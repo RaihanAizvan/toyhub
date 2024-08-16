@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+  </head>
+  <body>
+    <div class="flex flex-col md:flex-row h-screen relative">
+      <div class="h-1/2 md:h-screen w-full flex-1">
+        <img
+          class="object-cover w-full h-full"
+          src="/images/Stuffed animals/3-feet-teddy-bear-cream-color-90-jst-soft-toys-original-imah2vzm6uv5qg2y.webp"
+          alt="teddy"
+        />
+        <div
+          class="absolute inset-0 flex justify-center items-center md:hidden"
+        >
+          <div class="flex justify-center items-center flex-col">
+            <h1 class="text-4xl font-sans mb-5">Admin Login</h1>
+            <form
+              action="/admin/login"
+              class="flex flex-col w-96"
+              method="POST"
+            >
+              <input
+                type="email"
+                class="shadow-md rounded-lg p-3 mb-2"
+                placeholder="Email"
+                name="email"
+              />
+              <input
+                type="password"
+                class="shadow p-3 mb-5"
+                placeholder="Password"
+                name="password"
+              />
+              <input
+                type="submit"
+                style="background-color: #19d16f"
+                class="p-2 rounded shadow-md text-white"
+                value="Login"
+              />
+            </form>
+          </div>
+        </div>
+      </div>
+      <div
+        class="right-section hidden md:flex flex-1 justify-center items-center h-1/2 md:h-screen"
+      >
+        <div class="flex justify-center items-center flex-col">
+          <h1 class="text-4xl font-sans mb-5">Admin Login</h1>
+          <p class="error"><%=locals.error %></p>
+          <!--* Changing the method to post and the data will go through this form  -->
+          <form action="/admin/login" class="flex flex-col w-96" method="POST">
+            <input
+              type="email"
+              class="shadow-md rounded-lg p-3 mb-2"
+              placeholder="Email"
+              name="email"
+            />
+            <input
+              type="password"
+              class="shadow p-3 mb-5 rounded focus:outline focus:outline-green"
+              placeholder="Password"
+              name="password"
+            />
+            <input
+              type="submit"
+              style="background-color: #19d16f"
+              class="p-2 rounded shadow-md text-white"
+              value="Login"
+            />
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<!-- 19D16F -->

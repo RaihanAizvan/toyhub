@@ -1,9 +1,13 @@
 //* Requiring necessary modules
 import express from "express"
 import path from "path"
-import adminRoutes from "./routes/admin.js"
 import { fileURLToPath } from "url"
 import dotenv from "dotenv"
+import session from "express-session"
+
+// relative paths
+import adminRoutes from "./routes/adminRoute.js"
+import isUser from "./middlewares/userMiddleware.js"
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url)
@@ -12,6 +16,22 @@ const __dirname = path.dirname(__filename)
 dotenv.config()
 
 const app = express()
+
+// Set up session middleware
+app.use(
+  session({
+    secret: "abc123",
+    saveUninitialized: true,
+    cookie: { secure: false },
+    resave: true,
+  })
+)
+
+// Middleware for parsing JSON data
+app.use(express.json())
+
+//middleware to parse URL-encoded data
+app.use(express.urlencoded({ extended: true }))
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")))
@@ -32,7 +52,10 @@ const port = process.env.PORT
 app.use("/admin", adminRoutes)
 
 // Main route for the landing page
-app.get("/", (req, res) => {
+app.get("/", isUser, (req, res) => {
+  if (req.session.user) {
+    res.render("")
+  }
   res.render("auth/login")
 })
 
