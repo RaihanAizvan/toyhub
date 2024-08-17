@@ -4,10 +4,21 @@ import path from "path"
 import { fileURLToPath } from "url"
 import dotenv from "dotenv"
 import session from "express-session"
-
-// relative paths
 import adminRoutes from "./routes/adminRoute.js"
 import isUser from "./middlewares/userMiddleware.js"
+import connectDB from "./models/config/admin.js"
+// import AdminUser from './models/admin/adminUser.js';
+// import Banner from './models/admin/Banner.js';
+// import Coupon from './models/admin/Coupon.js';
+// import Discount from './models/admin/Discount.js';
+// import DashboardMetrics from './models/admin/dashboard.js';
+
+// import User from './models/user/user.js';
+// import Address from './models/user/address.js';
+// import Wishlist from './models/user/wishlist.js';
+// import Order from './models/user/order.js';
+// import Cart from './models/user/cart.js';
+// import Product from './models/user/product.js';
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url)
@@ -16,6 +27,9 @@ const __dirname = path.dirname(__filename)
 dotenv.config()
 
 const app = express()
+
+//  connect to the database 
+connectDB();
 
 // Set up session middleware
 app.use(
@@ -58,6 +72,8 @@ app.get("/", isUser, (req, res) => {
   }
   res.render("auth/login")
 })
+
+
 
 // Start the server
 app.listen(port, () => {
