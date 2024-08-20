@@ -1,4 +1,4 @@
-import AdminUser from '../../models/admin/adminUser.js';
+import AdminUser from '../../models/admin.models.js';
 
 
 async function getAdminCredentials() {

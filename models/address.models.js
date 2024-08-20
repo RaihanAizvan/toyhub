@@ -8,6 +8,5 @@ const AddressSchema = new mongoose.Schema({
   pincode: { type: String, required: true },
   date: { type: Date, default: Date.now }
 });
-
 const Address = mongoose.model('Address', AddressSchema);
 export default Address;

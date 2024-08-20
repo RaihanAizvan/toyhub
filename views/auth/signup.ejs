@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup </title>
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+  />
+  <link rel="stylesheet" href="/css/styles.css">
+  </head>
+  <body>
+    <form action="/user/signup" method="post">
+        <p><%= locals.message %></p>
+        <input type="text" name="name" id="name" placeholder="Enter Your name">
+        <input type="email" name="email" id="email" placeholder="Email">
+        <input type="password" name="password" id="password" placeholder="******">
+        <input type="submit" value="Signup">
+    </form>
+  </body>
+</html>

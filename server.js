@@ -5,8 +5,9 @@ import { fileURLToPath } from "url"
 import dotenv from "dotenv"
 import session from "express-session"
 import adminRoutes from "./routes/adminRoute.js"
+import userRoutes from "./routes/userRoute.js"
 import isUser from "./middlewares/userMiddleware.js"
-import connectDB from "./models/config/admin.js"
+import connectDB from "./models/main.models.js"
 // import AdminUser from './models/admin/adminUser.js';
 // import Banner from './models/admin/Banner.js';
 // import Coupon from './models/admin/Coupon.js';
@@ -64,6 +65,9 @@ const port = process.env.PORT
 
 // Route middleware for admin routes
 app.use("/admin", adminRoutes)
+
+// Route middleware for user routes
+app.use("/user", userRoutes)
 
 // Main route for the landing page
 app.get("/", isUser, (req, res) => {
