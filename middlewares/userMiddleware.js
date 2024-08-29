@@ -6,4 +6,4 @@ function isUser(req, res, next) {
   }
 }
 
-export default isUser
+export default {isUser}

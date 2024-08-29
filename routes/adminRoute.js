@@ -4,8 +4,8 @@ import * as adminController from "../controllers/adminController.js"
 
 const router = express.Router()
 
-//!---------------------------------------/!/  |
-//todo: Define authentication routes here/!/---|
+//!---------------------------------------/!/
+//todo: Define authentication routes here/!/
 //!-------------------------------------/!/    
 
 //router for rendering homepage
@@ -28,7 +28,7 @@ router.post("/logout", adminController.postLogout)
 router.get("/addProduct", isAdmin, adminController.getAddProduct)
 
 //!-----------------------------/!/
-//todo: define user routes here/!/
+//todo: define user list routes here/!/
 //!---------------------------/!/
 
 //router for retrieve all users

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup </title>
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+  />
+  <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+  <script src="http://localhost:8001/public/js/dom.js"></script>
+  <script src="../../public/js/dom.js"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  </head>
+  <body>
+    <%- include("../partials/header") -%>
+
+    <div class="container mx-auto  my-52 px-4  sm:px-6 lg:px-8 ">
+        <div class="max-w-sm mx-auto bg-white p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">OTP</h2>
+            <p class="text-red-700 font-serif"> <%= locals.message %> </p>
+            <form action="/user/otp" method="post">
+                <div class="mb-4 flex flex-col space-x-4">
+                    <div class="flex justify-center space-x-3">
+                        <input type="text" id="otp1" name="otp1" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp2')">
+                        <input type="text" id="otp2" name="otp2" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp3')">
+                        <input type="text" id="otp3" name="otp3" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp4')">
+                        <input type="text" id="otp4" name="otp4" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp5')">
+                        <input type="text" id="otp5" name="otp5" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp6')">
+                        <input type="text" id="otp6" name="otp6" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, '')">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
+                <p class="mt-4 text-center text-gray-600">Didn't get the OTP? <a href="#" id="resend-otp" class="text-green-500 hover:underline disabled" onclick="resendOTP()">Try again in <span id="countdown"><%= locals.remainingTime %></span> seconds</a></p>
+            </form>
+                    </div>
+                </div>
+                      
+                <%- include("../partials/footer") -%>
+      </body>
+      <script>
+        let timeLeft = localStorage.getItem('otpTimeLeft') || <%= locals.remainingTime %>;
+        const countdownElement = document.getElementById('countdown');
+        const resendButton = document.getElementById('resend-otp');
+        function startTimer() {
+            if (timeLeft > 0) {
+                resendButton.classList.add('disabled');
+            }
+            
+            const timer = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    countdownElement.textContent = '';
+                    resendButton.classList.remove('disabled');
+                    resendButton.textContent = "Resend OTP";
+                    resendButton.onclick = resendOTP; // Enable resend function
+                    localStorage.removeItem('otpTimeLeft'); // Clear stored time
+                } else {
+                    timeLeft -= 1;
+                    countdownElement.textContent = timeLeft;
+                    localStorage.setItem('otpTimeLeft', timeLeft); // Update stored time
+                }
+            }, 1000);
+        }
+    
+        function resendOTP() {
+            // Logic to resend OTP goes here
+            axios.post('/user/resent-otp', { email: req.session.email })
+                .then(response => {
+                    alert("OTP has been resent!");
+                })
+                .catch(error => {
+                    alert("Failed to resend OTP.");
+                });
+            alert("OTP has been resent!"); // Placeholder for actual resend logic
+        }
+    
+        // Start the timer on page load
+        window.onload = startTimer;
+    </script>
+    </html>

@@ -1,4 +1,9 @@
 .bg-primary{
     background-color: #19D16F;
     color: white;
+    transition: .1s all linear;
+}
+.bg-primary:hover{
+    background-color: #00A845;
+    color: white;
 }
