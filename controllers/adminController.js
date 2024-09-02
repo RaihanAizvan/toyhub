@@ -53,6 +53,11 @@ export const getHome = AdminHome.getHome
 // Exporting the getAddProduct function from product module
 export const getAddProduct = product.getAddProduct
 
+export const postAddProduct = product.postAddProduct
+
+
+
+
 //todo: -----------------User list Routes-----------------!
 
 // exporting the getUserlist function to show the user details

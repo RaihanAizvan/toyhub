@@ -19,4 +19,8 @@ router.post('/login', userAuth.postLogin);
 
 router.post('/resent-otp', userAuth.postResentOtp);
 
+router
+
+// hero route
+
 export default router;

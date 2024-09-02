@@ -1,213 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Add Product</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Add Product</title>
+  <!-- font awesome cdn-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- tailwind cdn-->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
+
 <body class="bg-gray-100">
-
-    <!-- Main container -->
-    <div class="flex">
-
-        <!-- Sidebar -->
-        <div class="w-64 bg-white p-4">
-            <div class="flex items-center justify-between px-6 py-4">
-              <span class="text-xl font-semibold">ToyHub</span>
+  <!-- Main container -->
+  <div class="flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white p-4">
+      <div class="flex items-center justify-between px-6 py-4">
+        <span class="text-xl font-semibold">ToyHub</span>
+      </div>
+      <nav>
+        <ul class="space-y-2">
+          <li>
+            <a href="/admin"
+              class="flex items-center p-2 text-gray-700 hover:shadow-xl ro unded-lg hover:bg-gray-100 transition-all">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="/admin/products"
+              class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all rounded p-2 text-gray-700">All
+              Products</a>
+          </li>
+          <li>
+            <a href="/admin/orders"
+              class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Order
+              List</a>
+          </li>
+          <li>
+            <a href="/admin/users"
+              class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">User
+              List</a>
+          </li>
+          <li>
+            <a href="/admin/productDetails"
+              class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">
+              Product Details</a>
+          </li>
+          <li>
+            <a href="/admin/addProduct"
+              class="flex items-center bg-primary rounded transition-all rounded p-2 text-gray-700"> <span
+                class="ml-3">Add Product</span></a>
+          </li>
+          <li>
+            <a href="/admin/banner"
+              class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all rounded p-2 text-gray-700">Banner</a>
+          </li>
+        </ul>
+      </nav>
+      <div class="mt-6">
+        <h3 class="text-sm font-semibold ">Categories</h3>
+        <hr>
+        <ul class="mt-2 space-y-2">
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+              1</a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+              2</a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
+              3</a>
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <form action="/admin/logout" method="POST">
+              <a href="/admin/logout">
+                <button type="submit"
+                  class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  ">Logout</Button>
+              </a>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Content Area -->
+    <div class="flex-1 p-8">
+      <h1 class="text-2xl font-semibold">Product Details</h1>
+      <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Add New Product</p>
+      <!-- Form container -->
+      <div class="bg-white p-8 rounded-lg shadow-md ">
+        <div class="bg-white p-8 rounded-lg shadow-md flex">
+          <form class="w-3/4 grid grid-cols-2 gap-6" method="POST" action="/admin/addProduct">
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
+              <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Type name here">
+              <p class="error">
+                <%= locals.titleError %>
+              </p>
             </div>
-            <nav>
-              <ul class="space-y-2">
-                <li>
-                  <a
-                    href="/admin"
-                    class="flex items-center p-2 text-gray-700 hover:shadow-xl ro unded-lg hover:bg-gray-100 transition-all"
-                    >Dashboard</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/admin/products" class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all rounded p-2 text-gray-700"
-                    >All Products</a
-                  >
-                </li>
-                <li>
-                  <a href="/admin/orders" class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all"
-                    >Order List</a
-                  >
-                </li>
-                <li>
-                  <a href="/admin/users" class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all"
-                    >User List</a
-                  >
-                </li>
-                <li>
-                  <a href="/admin/productDetails" class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all"
-                  > Product Details</a>
-                </li>
-                <li>
-                  <a href="/admin/addProduct" class="flex items-center bg-primary rounded transition-all rounded p-2 text-gray-700"
-                    > <span class="ml-3">Add Product</span></a
-                  >
-                </li>
-                <li>
-                  <a href="/admin/banner" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all rounded p-2 text-gray-700"
-                    >Banner</a
-                  >
-                </li>
-              </ul>
-            </nav>
-            <div class="mt-6">
-              <h3 class="text-sm font-semibold ">Categories</h3><hr>
-              <ul class="mt-2 space-y-2">
-                <li>
-                  <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700"
-                    >Category 1</a
-                  >
-                </li>
-                <li>
-                  <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700"
-                    >Category 2</a
-                  >
-                </li>
-                <li>
-                  <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700"
-                    >Category 3</a
-                  >
-                </li>
-              </ul>
-              <ul>
-                <li>
-                  <form action="/admin/logout" method ="POST">
-                    <a href="/admin/logout">
-                      <button type="submit" class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  ">Logout</Button>
-                    </a>
-                  </form>
-                </li>
-              </ul>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
+              <textarea id="description1" name="description1" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Type Description here"></textarea>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
+              <textarea id="description2" name="description2" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Type Description here"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="category">Category</label>
+              <input type="text" id="category" name="category" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Type Category here">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="warning">Warning</label>
+              <input type="text" id="warning" name="warning" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Type Warning here">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="type">Type</label>
+              <input type="text" id="type" name="type" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Enter the type">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="color">Color</label>
+              <input type="text" id="color" name="color" class="mt-1 p-2 w-full border rounded-md" placeholder="Color">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="weight">Weight</label>
+              <input type="text" id="weight" name="weight" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="Enter the weight">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="discount">Discount</label>
+              <input type="text" id="discount" name="discount" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="1258">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="sku">SKU</label>
+              <input type="text" id="sku" name="sku" class="mt-1 p-2 w-full border rounded-md" placeholder="Fox-3983">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="stock-quantity">Stock Quantity</label>
+              <input type="text" id="stock-quantity" name="stock_quantity" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="1258">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="regular-price">Regular Price</label>
+              <input type="text" id="regular-price" name="regular_price" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="₹1000">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700" for="sale-price">Sale Price</label>
+              <input type="text" id="sale-price" name="sale_price" class="mt-1 p-2 w-full border rounded-md"
+                placeholder="₹450">
+            </div>
+            <button  type="submit"  class="px-4 py-2 bg-blue-500 text-white rounded-lg">Add</button>
+          </form>
+          <!-- Product Gallery -->
+          <div class="w-1/4 pl-8">
+            <div class="bg-gray-100 p-4 rounded-lg mb-6">
+              <img src="product_image.png" alt="Product" class="w-full h-auto rounded-lg mb-4">
+              <p class="text-sm text-gray-500 text-center">Product Gallery</p>
+              <div class="mt-4 border-2 border-dashed border-gray-400 p-4 rounded-lg">
+                <p class="text-center text-sm text-gray-500">Drop your images here, or browse</p>
+                <p class="text-center text-xs text-gray-400">Jpeg, png are allowed</p>
+              </div>
+            </div>
+            <!-- Image Thumbnails -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between    space-x-2">
+                <img src="thumbnail1.png" alt="" class="w-10 h-10 rounded-lg">
+                <span class="text-gray-500 text-sm">Product thumbnail.png</span>
+                <a href="">
+                  <span class="text-gray-500 text-sm">X</span>
+                </a>
+              </div>
+              <div class="flex items-center space-x-2">
+                <img src="thumbnail2.png" alt="" class="w-10 h-10 rounded-lg">
+                <span class="text-gray-500 text-sm">Product thumbnail.png</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <img src="thumbnail3.png" alt="" class="w-10 h-10 rounded-lg">
+                <span class="text-gray-500 text-sm">Product thumbnail.png</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <img src="thumbnail4.png" alt="" class="w-10 h-10 rounded-lg">
+                <span class="text-gray-500 text-sm">Product thumbnail.png</span>
+              </div>
+            </div>
+            <!-- Buttons -->
+            <div class="flex justify-between mt-8">
+              <button class="px-4 py-2 bg-green-500 text-white rounded-lg">DELETE</button>
+              <button  type="submit"  class="px-4 py-2 bg-blue-500 text-white rounded-lg">UPLOAD</button>
             </div>
           </div>
-
-        <!-- Content Area -->
-        <div class="flex-1 p-8">
-            <h1 class="text-2xl font-semibold">Product Details</h1>
-            <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Add New Product</p>
-
-            <!-- Form container -->
-            <div class="bg-white p-8 rounded-lg shadow-md flex">
-                <form class="w-3/4 grid grid-cols-2 gap-6">
-
-                    <div class="col-span-2">
-                        <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
-                        <input type="text" id="product-title" class="mt-1 p-2 w-full border rounded-md" placeholder="Type name here">
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
-                        <textarea id="description1" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"></textarea>
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
-                        <textarea id="description2" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="category">Category</label>
-                        <input type="text" id="category" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Category here">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="warning">Warning</label>
-                        <input type="text" id="warning" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Warning here">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="type">Type</label>
-                        <input type="text" id="type" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the type">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="color">Color</label>
-                        <input type="text" id="color" class="mt-1 p-2 w-full border rounded-md" placeholder="Color">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="weight">Weight</label>
-                        <input type="text" id="weight" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the weight">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="discount">Discount</label>
-                        <input type="text" id="discount" class="mt-1 p-2 w-full border rounded-md" placeholder="1258">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="sku">SKU</label>
-                        <input type="text" id="sku" class="mt-1 p-2 w-full border rounded-md" placeholder="Fox-3983">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="stock-quantity">Stock Quantity</label>
-                        <input type="text" id="stock-quantity" class="mt-1 p-2 w-full border rounded-md" placeholder="1258">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="regular-price">Regular Price</label>
-                        <input type="text" id="regular-price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹1000">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700" for="sale-price">Sale Price</label>
-                        <input type="text" id="sale-price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹450">
-                    </div>
-
-                </form>
-
-                <!-- Product Gallery -->
-                <div class="w-1/4 pl-8">
-                    <div class="bg-gray-100 p-4 rounded-lg mb-6">
-                        <img src="product_image.png" alt="Product" class="w-full h-auto rounded-lg mb-4">
-                        <p class="text-sm text-gray-500 text-center">Product Gallery</p>
-                        <div class="mt-4 border-2 border-dashed border-gray-400 p-4 rounded-lg">
-                            <p class="text-center text-sm text-gray-500">Drop your images here, or browse</p>
-                            <p class="text-center text-xs text-gray-400">Jpeg, png are allowed</p>
-                        </div>
-                    </div>
-                    <!-- Image Thumbnails -->
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between    space-x-2">
-                            <img src="thumbnail1.png" alt="" class="w-10 h-10 rounded-lg">
-                            <span class="text-gray-500 text-sm">Product thumbnail.png</span>
-                            <a href="">
-                                <span class="text-gray-500 text-sm">X</span>
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <img src="thumbnail2.png" alt="" class="w-10 h-10 rounded-lg">
-                            <span class="text-gray-500 text-sm">Product thumbnail.png</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <img src="thumbnail3.png" alt="" class="w-10 h-10 rounded-lg">
-                            <span class="text-gray-500 text-sm">Product thumbnail.png</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <img src="thumbnail4.png" alt="" class="w-10 h-10 rounded-lg">
-                            <span class="text-gray-500 text-sm">Product thumbnail.png</span>
-                        </div>
-                    </div>
-                    <!-- Buttons -->
-                    <div class="flex justify-between mt-8">
-                        <button class="px-4 py-2 bg-green-500 text-white rounded-lg">DELETE</button>
-                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg">UPLOAD</button>
-                    </div>
-                </div>
-            </div>
         </div>
+      </div>
     </div>
-
 </body>
+
 </html>

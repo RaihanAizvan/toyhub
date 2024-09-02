@@ -7,3 +7,7 @@
     background-color: #00A845;
     color: white;
 }
+.error{
+    color: red !important;
+    font-family: 'Times New Roman', Times, serif;
+}

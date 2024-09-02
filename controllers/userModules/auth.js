@@ -76,7 +76,6 @@ async function postSignup(req, res) {
         await newUser.save();
 
         req.session.email = email;
-        console.log(req.session);
         res.status(200).redirect('/user/otp');
         console.log(`User created successfully and the name is ${newUser.name}`);
         //send mail to the user 
@@ -109,7 +108,7 @@ async function postOtp(req, res) {
     try {
         const { otp1, otp2, otp3, otp4, otp5, otp6 } = req.body;
         const enteredOtp = parseInt(`${otp1}${otp2}${otp3}${otp4}${otp5}${otp6}`);
-        const email = req.session.email; 
+        const email = req.session.email;
         console.log(`the email of the user entered is ${email}`);
         const user = await users.findOne({ email }); // Use the email from the session
         console.log(user);

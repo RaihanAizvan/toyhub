@@ -14,7 +14,7 @@ function getLandingPage(req,res){
         { name: "Board Game", image: "/images/Cover/board-game.png", category: "Games", price: 39.99, stock: 120, sold: 60 }
     ];
     const bestSellarProducts = [
-    { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, rating: 4.0, manufacturer: "ToyMakers",stock: 150, sold: 75 },
+        { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, rating: 4.0, manufacturer: "ToyMakers",stock: 150, sold: 75 },
         { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, rating: 4.5, manufacturer: "BarbieCorp",stock: 150, sold: 75 },
         { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, stock: 100, sold: 50 },
         { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, stock: 150, sold: 75 }

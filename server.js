@@ -3,23 +3,14 @@ import express from "express"
 import path from "path"
 import { fileURLToPath } from "url"
 import dotenv from "dotenv"
+import nocache from "nocache"
 import session from "express-session"
 import adminRoutes from "./routes/adminRoute.js"
 import userRoutes from "./routes/userRoute.js"
-import isUser from "./middlewares/userMiddleware.js"
+import homeRoutes from "./routes/homeRoute.js"
 import connectDB from "./models/main.models.js"
-// import AdminUser from './models/admin/adminUser.js';
-// import Banner from './models/admin/Banner.js';
-// import Coupon from './models/admin/Coupon.js';
-// import Discount from './models/admin/Discount.js';
-// import DashboardMetrics from './models/admin/dashboard.js';
+import * as landingRoute from "./controllers/userController.js"
 
-// import User from './models/user/user.js';
-// import Address from './models/user/address.js';
-// import Wishlist from './models/user/wishlist.js';
-// import Order from './models/user/order.js';
-// import Cart from './models/user/cart.js';
-// import Product from './models/user/product.js';
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url)
@@ -42,6 +33,9 @@ app.use(
   })
 )
 
+app.use(nocache())
+
+
 // Middleware for parsing JSON data
 app.use(express.json())
 
@@ -57,11 +51,11 @@ app.use(express.static(path.join(__dirname, "public")))
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "ejs")
 
-// Middleware for parsing JSON data
-app.use(express.json())
-
 // Initialize necessary variables
 const port = process.env.PORT
+
+// Route middleware for base routes
+app.use("/", homeRoutes)
 
 // Route middleware for admin routes
 app.use("/admin", adminRoutes)
@@ -69,15 +63,12 @@ app.use("/admin", adminRoutes)
 // Route middleware for user routes
 app.use("/user", userRoutes)
 
+app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com");
+    next();
+});
 // Main route for the landing page
-app.get("/", isUser, (req, res) => {
-  if (req.session.user) {
-    res.render("")
-  }
-  res.render("auth/login")
-})
-
-
+app.get("/", landingRoute.getLandingPage)
 
 // Start the server
 app.listen(port, () => {

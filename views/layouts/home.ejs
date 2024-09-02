@@ -143,9 +143,9 @@
 <section class="py-8">
     <div class="container mx-auto px-6">
         <h2 class="text-2xl font-bold mb-4">Daily Best Sells</h2>
-        <div class="bg-blue-100 p-6 rounded-lg flex items-center">
+        <div class="bg-blue-100 p-14 my-10 rounded-lg flex items-center">
             <div>
-                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Bring nature into your home</h3>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Bring life into your home</h3>
                 <a href="#"
                     class="inline-block bg-green-500 text-white px-4 py-2 rounded-lg font-medium">Shop Now</a>
             </div>
@@ -176,9 +176,12 @@
                     <div class="mt-2">
                         <p class="text-xs text-gray-500">Sold: <%= product.sold %>/<%= product.stock %></p>
                         <div class="w-full bg-gray-200 rounded-full h-1.5">
-                            <div class="bg-green-500 h-1.5 rounded-full"
-                            style="width: <%= (product.sold / product.stock) * 100%>%"></div>
+                            <div class="bg-green-500 h-1.5 rounded-full" id="soldBar" style="width:10%" ></div>
 
+                            <!-- <script>
+                                    let soldBar = document.getElementById('soldBar');
+                                    soldBar.style.width =  <%= //(locals.product.sold / locals.product.stock) * 100%>%
+                                    </script> -->
                         </div>
                     </div>
                     <button
@@ -218,6 +221,9 @@
     }
 
     showSlide(currentSlide); // Initialize the first slide
+
+
+    
 </script>
 </body>
 </html>

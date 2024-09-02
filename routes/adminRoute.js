@@ -27,6 +27,8 @@ router.post("/logout", adminController.postLogout)
 //router for renderig addProduct page
 router.get("/addProduct", isAdmin, adminController.getAddProduct)
 
+router.post("/addProduct", isAdmin, adminController.postAddProduct)
+
 //!-----------------------------/!/
 //todo: define user list routes here/!/
 //!---------------------------/!/
