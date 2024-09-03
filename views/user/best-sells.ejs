@@ -1,0 +1,57 @@
+<section class="py-8">
+    <div class="container mx-auto px-6">
+        <h2 class="text-2xl font-bold mb-4">Daily Best Sells</h2>
+        <div class="bg-blue-100 p-14 my-10 rounded-lg flex items-center">
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Bring life into your home</h3>
+                <a href="#" class="inline-block bg-green-500 text-white px-4 py-2 rounded-lg font-medium">Shop
+                    Now</a>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <!-- Promotional Banner -->
+            <!-- Product Cards -->
+            <% bestSellarProducts.forEach(product=> { %> <div class="bg-white shadow-lg rounded-lg p-4">
+                    <div class="relative">
+                        <% if (product.discount) { %>
+                            <span
+                                class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">Save
+                                <%= product.discount %>%</span>
+                            <% } %>
+                                <img src="<%= product.image %>" alt="<%= product.name %>"
+                                    class="w-full h-40 object-cover rounded-t-lg">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-sm font-semibold text-gray-700">
+                            <%= product.name %>
+                        </h3>
+                        <p class="text-xs text-gray-500">
+                            <%= product.brand %>
+                        </p>
+                        <div class="flex items-center mt-2">
+                            <span class="text-lg font-semibold text-green-600">$<%= product.price %></span>
+                            <% if (product.oldPrice) { %>
+                                <span class="text-gray-400 line-through ml-2">$<%= product.oldPrice %></span>
+                                <% } %>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-xs text-gray-500">Sold: <%= product.sold %>/<%= product.stock %>
+                            </p>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-green-500 h-1.5 rounded-full" id="soldBar" style="width:10%">
+                                </div>
+                                <!-- <script>
+                            let soldBar = document.getElementById('soldBar');
+                            soldBar.style.width =  <%= //(locals.product.sold / locals.product.stock) * 100%>%
+                            </script> -->
+                            </div>
+                        </div>
+                        <button
+                            class="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 w-full">
+                            Add To Cart </button>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+</section>

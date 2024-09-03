@@ -27,7 +27,15 @@ function getLandingPage(req,res){
     { name: "Puzzles", image: "/images/Cover/puzzle.png ", items: 30 }, // Updated path
     { name: "Building Sets", image: "/images/Cover/building-blocks.png", items: 25 } // Updated path
     ]
-    res.render('layouts/home',{popularProducts, bestSellarProducts,categories })
+    console.log(req.user);
+    if (req.session && req.session.user) {
+        // User is authenticated
+        res.render('user/home',{title:"hulk",popularProducts, bestSellarProducts,categories })
+    } else {
+        // User is not authenticated
+        res.render('user/home',{popularProducts, bestSellarProducts,categories})
+      }
+    
 }
 
 export default {getLandingPage}

@@ -1,5 +1,5 @@
 function getSingleProduct(req,res){
-    res.render('layouts/singleProduct')
+    res.render('user/singleProduct')
 }
 
 export default {getSingleProduct}

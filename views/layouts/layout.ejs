@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= locals.title%>
+    </title>
+    <!-- ----------------------------------tailwind----------------------------------->
+
+    <link href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- ---------------------------------custom styles----------------------------->
+    
+    <link rel="stylesheet" href="/css/styles.css">
+    
+    <!-- --------------------------------custom dom-------------------------------->
+
+    <script src="../../public/js/dom.js"></script>
+
+    <!------------------------    - link for font awesome----------------------- -->
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
+    <!------------------------------ google fonts------------------------------- -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+
+</head>
+
+<body>
+    <!-- ---------------------------------body-------------------------------------->
+
+    <%- body %>
+
+</body>
+
+</html>

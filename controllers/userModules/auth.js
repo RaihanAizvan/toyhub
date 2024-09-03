@@ -36,7 +36,7 @@ async function sendMail(otp, target) {
 
 //! actual controller functions
 function getSignup(req, res) {
-    res.render('auth/signup')
+    res.render('user/signup', { title: 'Signup' })
 }
 
 async function postSignup(req, res) {
@@ -52,11 +52,12 @@ async function postSignup(req, res) {
         const existingUser = await users.findOne({ email });
         if (existingUser) {
             console.log(` ${existingUser} already exist so failed`);
-            return res.status(400).render('auth/signup', {
+            return res.status(400).render('user/signup', {
                 message: 'Email already exists',
                 name,
                 email,
                 phone_number,
+                title: 'Signup'
             });
         }
 
@@ -76,13 +77,14 @@ async function postSignup(req, res) {
         await newUser.save();
 
         req.session.email = email;
+        console.log(req.session);
         res.status(200).redirect('/user/otp');
         console.log(`User created successfully and the name is ${newUser.name}`);
         //send mail to the user 
         sendMail(otp, email);
     } catch (error) {
         console.log(error);
-        res.status(500).render('auth/signup', { message: "An error occurred while saving the user" });
+        res.status(500).render('user/signup', { message: "An error occurred while saving the user", title: 'Signup' });
     }
 }
 
@@ -91,16 +93,16 @@ async function getOtp(req, res) {
     try {
         const user = await users.findOne({ email });
         if (!user) {
-            return res.status(404).render('auth/otp', { message: 'User not found', remainingTime: 0 });
+            return res.status(404).render('auth/otp', { message: 'User not found', remainingTime: 0, title: 'OTP Verification' });
         }
 
         const currentTime = Date.now();
         const remainingTime = Math.max(0, Math.floor((user.otpExpires - currentTime) / 1000)); // Calculate remaining seconds
         console.log(remainingTime);
-        res.render('auth/otp', { remainingTime });
+        res.render('user/otp', { remainingTime, title: 'OTP Verification' });
     } catch (err) {
         console.error(err);
-        res.status(500).render('auth/otp', { message: 'An error occurred while fetching the user' });
+        res.status(500).render('user/otp', { message: 'An error occurred while fetching the user', title: 'OTP Verification' });
     }
 }
 
@@ -108,7 +110,7 @@ async function postOtp(req, res) {
     try {
         const { otp1, otp2, otp3, otp4, otp5, otp6 } = req.body;
         const enteredOtp = parseInt(`${otp1}${otp2}${otp3}${otp4}${otp5}${otp6}`);
-        const email = req.session.email;
+        const email = req.session.email; 
         console.log(`the email of the user entered is ${email}`);
         const user = await users.findOne({ email }); // Use the email from the session
         console.log(user);
@@ -120,18 +122,18 @@ async function postOtp(req, res) {
                     await users.updateOne({ email }, { $set: { verified: true } });
                     res.status(200).redirect('user/login');
                 } else {
-                    res.status(400).render('auth/otp', { message: 'OTP is incorrect' });
+                    res.status(400).render('auth/otp', { message: 'OTP is incorrect', title: 'OTP Verification' });
                 }
             } else {
-                res.status(404).render('auth/otp', { message: 'otp expired' });
+                res.status(404).render('user/otp', { message: 'otp expired', title: 'OTP Verification' });
             }
         } else {
-            res.status(404).render('auth/otp', { message: 'User not found' });
+            res.status(404).render('user/otp', { message: 'User not found', title: 'OTP Verification' });
         }
         console.log(`Stored OTP: ${user.otp}, Entered OTP: ${enteredOtp}`);
     } catch (error) {
         console.error(error);
-        res.status(500).render('auth/otp', { message: 'An error occurred while validating OTP' });
+        res.status(500).render('user/otp', { message: 'An error occurred while validating OTP', title: 'OTP Verification' });
     }
 }
 
@@ -146,36 +148,32 @@ async function postResendOtp(req, res) {
     try {
         const user = await users.findOne({ email });
         if (!user) {
-            return res.status(404).render('auth/otp', { message: 'User not found' });
+            return res.status(404).render('user/otp', { message: 'User not found', title: 'Resend OTP' });
         }
         if (user.otpExpires > Date.now()) {
-            res.status(400).render('auth/otp', { message: 'OTP is already sent Try again after some time' });
+            res.status(400).render('user/otp', { title:'Otp', message: 'OTP is already sent Try again after some time', title: 'Resend OTP' });
         } else {
             let otp = Math.floor(100000 + Math.random() * 900000);
             user.otp = otp;
             user.otpExpires = Date.now() + 4 * 60 * 1000; // 1
             await user.save();
             sendMail(otp, email);
-            res.status(200).render('auth/otp', { message: 'OTP sent again' });
+            res.status(200).render('user/otp', {title:'Otp', message: 'OTP sent again', title: 'Resend OTP' });
             tryAgain(); // Try again after 30 seconds
-            console.log(`Resending OTP to ${email}`);
-            console.log(`Stored OTP: ${user.otp}, Entered OTP: ${otp}`);
         }
         
     } catch (error) {
         console.error(error);
-        res.status(500).render('auth/otp', { message: 'An error occurred while resending OTP' });
+        res.status(500).render('user/otp', { title:'Otp',message: 'An error occurred while resending OTP', title: 'Resend OTP' });
     }
 }
-
-
 //login
 
 function getLogin(req,res) {       
     if (req.session.user) {
         return res.redirect("/")
     }
-    res.render("auth/login")
+    res.render("user/login",{title:'Login'})
 }
 
 async function postLogin(req, res) {
@@ -186,10 +184,11 @@ async function postLogin(req, res) {
             req.session.user = user;
             res.redirect("/");
         } else {
-            res.status(400).render("auth/login", { message: "Invalid email or password", email: user.email });
+            res.status(400).render("user/login", { title:'Login', message: "Invalid email or password", email: user.email });
         }
     } catch (err) {
         console.log(err.message);
+        res.status(400).render("user/login", { title:'Login', message: "Internl Server error", email: user.email });
     }
 }
 

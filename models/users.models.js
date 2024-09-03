@@ -1,13 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
 
 const UserSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  name: { 
+    type: String, 
+    required: true 
+  },
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true },
   phone_number: { type: String },
-  password: { type: String, required: true },
+  password: { type: String },
   joined_date: { type: Date, default: Date.now },
   isBlocked: { type: String, default: false },
-  verified: { type: Boolean, default: false},
+  verified: { type: Boolean, default: false },
   googleId: { type: String },
   otp: { type: Number },
   otpExpires: { type: Date },
