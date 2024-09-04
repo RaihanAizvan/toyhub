@@ -34,6 +34,11 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://unpkg.com 'unsafe-inline';");
+  next();
+});
+
 app.use(nocache());
 
 // Initialize Passport and restore authentication state, if any, from the session
@@ -46,6 +51,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
+
+
 
 //layouts
 app.use(expressLayouts);

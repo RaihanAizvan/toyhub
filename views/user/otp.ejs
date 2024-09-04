@@ -1,21 +1,5 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Signup </title>
-    <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-  />
-  <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
-  <script src="http://localhost:8001/public/js/dom.js"></script>
-  <script src="../../public/js/dom.js"></script>
-  <link rel="stylesheet" href="/css/styles.css">
-  </head>
-  <body>
-    <%- include("../partials/header") -%>
+
+    <%- include("./header-login") -%>
 
     <% 
     const popularProducts = [
@@ -66,10 +50,9 @@
                     </div>
                 </div>
                       
-                <%- include("../partials/footer") -%>
-      </body>
+                <%- include("./footer") -%>
       <script>
-        let timeLeft = localStorage.getItem('otpTimeLeft') || parseInt(<%= locals.remainingTime %>, 10); 
+        let timeLeft = localStorage.getItem('otpTimeLeft') || parseInt( <%= locals.remainingTime %>, 10); 
         const countdownElement = document.getElementById('countdown');
         const resendButton = document.getElementById('resend-otp');
         function startTimer() {
@@ -83,7 +66,7 @@
                     countdownElement.textContent = '';
                     resendButton.classList.remove('disabled');
                     resendButton.textContent = "Resend OTP";
-                    resendButton.onclick = resendOTP; // Enable resend function
+                    resendButton.onclick = '/user/resend-otp'; // Enable resend function
                     localStorage.removeItem('otpTimeLeft'); // Clear stored time
                 } else {
                     timeLeft -= 1;
@@ -108,4 +91,3 @@
         // Start the timer on page load
         window.onload = startTimer;
     </script>
-    </html> 

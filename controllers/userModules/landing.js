@@ -1,6 +1,8 @@
 import products from '../../models/product.models.js'
+import User from '../../models/users.models.js';
+import users from '../adminModules/users.js';
 
-function getLandingPage(req,res){
+async function getLandingPage(req,res){
     const popularProducts = [
         { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, rating: 4.0, manufacturer: "ToyMakers" },
         { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, rating: 4.5, manufacturer: "BarbieCorp" },
@@ -27,15 +29,31 @@ function getLandingPage(req,res){
     { name: "Puzzles", image: "/images/Cover/puzzle.png ", items: 30 }, // Updated path
     { name: "Building Sets", image: "/images/Cover/building-blocks.png", items: 25 } // Updated path
     ]
-    console.log(req.user);
-    if (req.session && req.session.user) {
+    const user = req.session.user
+    if (req.session.user) {
+        console.log(`user is anuthenticated`)
         // User is authenticated
-        res.render('user/home',{title:"hulk",popularProducts, bestSellarProducts,categories })
+        res.render('user/home',
+            {
+                title:"ToyHub", 
+                auth:true,
+                name:user.name,
+                popularProducts,
+                bestSellarProducts,
+                categories
+         })
     } else {
         // User is not authenticated
-        res.render('user/home',{popularProducts, bestSellarProducts,categories})
+        res.render('user/home',
+            {
+                title:"ToyHub", 
+                auth:false,
+                popularProducts,
+                bestSellarProducts,
+                categories
+            })
       }
     
 }
 
-export default {getLandingPage}
+export default { getLandingPage }

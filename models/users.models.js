@@ -12,7 +12,7 @@ const UserSchema = new Schema({
   phone_number: { type: String },
   password: { type: String },
   joined_date: { type: Date, default: Date.now },
-  isBlocked: { type: String, default: false },
+  isBlocked: { type: Boolean, default: false },
   verified: { type: Boolean, default: false },
   googleId: { type: String },
   otp: { type: Number },

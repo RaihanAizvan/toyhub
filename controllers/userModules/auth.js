@@ -42,7 +42,7 @@ function getSignup(req, res) {
 async function postSignup(req, res) {
     // Generate a random 6-digit OTP and send it to the user's email
     let otp = Math.floor(100000 + Math.random() * 900000);
-    const otpExpires = Date.now() + 1 * 60 * 1000; //! 1mints
+    const otpExpires = Date.now() + 5 * 60 * 1000; //! otp expires in 5mints----replace the 5 with the minutes you want
     
     // setInterval(() => {console.log(`otp expires in ${}`)},1000)
     try {
@@ -77,9 +77,7 @@ async function postSignup(req, res) {
         await newUser.save();
 
         req.session.email = email;
-        console.log(req.session);
         res.status(200).redirect('/user/otp');
-        console.log(`User created successfully and the name is ${newUser.name}`);
         //send mail to the user 
         sendMail(otp, email);
     } catch (error) {
@@ -93,7 +91,7 @@ async function getOtp(req, res) {
     try {
         const user = await users.findOne({ email });
         if (!user) {
-            return res.status(404).render('auth/otp', { message: 'User not found', remainingTime: 0, title: 'OTP Verification' });
+            return res.status(404).render('user/otp', { message: 'User not found', remainingTime: 0, title: 'OTP Verification' });
         }
 
         const currentTime = Date.now();
@@ -111,18 +109,15 @@ async function postOtp(req, res) {
         const { otp1, otp2, otp3, otp4, otp5, otp6 } = req.body;
         const enteredOtp = parseInt(`${otp1}${otp2}${otp3}${otp4}${otp5}${otp6}`);
         const email = req.session.email; 
-        console.log(`the email of the user entered is ${email}`);
         const user = await users.findOne({ email }); // Use the email from the session
-        console.log(user);
         // Check if user exists and OTP is valid
         if (user) {
             if (user.otpExpires > Date.now()) {
                 if (user.otp === enteredOtp) {
-                    console.log(`going to chech on '${user.otp}' == '${enteredOtp}'`);
                     await users.updateOne({ email }, { $set: { verified: true } });
-                    res.status(200).redirect('user/login');
+                    res.status(200).redirect('/user/login');
                 } else {
-                    res.status(400).render('auth/otp', { message: 'OTP is incorrect', title: 'OTP Verification' });
+                    res.status(400).render('user/otp', { message: 'OTP is incorrect', title: 'OTP Verification' });
                 }
             } else {
                 res.status(404).render('user/otp', { message: 'otp expired', title: 'OTP Verification' });
@@ -179,16 +174,38 @@ function getLogin(req,res) {
 async function postLogin(req, res) {
     try {
         const { email, password } = req.body;
-        const user = await users.findOne({ email, password });
+        const user = await users.findOne({ email });
+        if(user.isBlocked){
+            return res.status(403).render("user/login",{title:'Login', message: 'Sorry You are Blocked'})
+        }
         if (user) {
             req.session.user = user;
             res.redirect("/");
         } else {
-            res.status(400).render("user/login", { title:'Login', message: "Invalid email or password", email: user.email });
+            res.status(400).render("user/login", { title:'Login', message: "Invalid email or password" });
         }
     } catch (err) {
         console.log(err.message);
         res.status(400).render("user/login", { title:'Login', message: "Internl Server error", email: user.email });
+    }
+}
+
+async function postLogout(req,res){
+    try {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.redirect('/'); // Redirect to the homepage or show an error page
+            }
+    
+            // Clear the cookie
+            res.clearCookie('connect.sid'); // 'connect.sid' is the default cookie name used by express-session
+            
+            // Redirect to the login page after logout
+            res.redirect('/login');
+        });
+    } catch (err) {
+        console.log(err.message);
     }
 }
 
@@ -199,5 +216,6 @@ export default {
     postOtp,
     getLogin,
     postLogin,
-    postResendOtp
+    postResendOtp,
+    postLogout
 }

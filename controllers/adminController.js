@@ -25,6 +25,9 @@ import product from "./adminModules/addProducts.js"
 // Importinf the User module which contains get user related functions
 import user from "./adminModules/users.js"
 
+//This is for blocking the user nad also unbloacking
+import block from "./adminModules/block.js"
+
 //! ------------------------------------------------------!
 //                                                        |                                        
 //!                   Exporting Modules                   |
@@ -62,6 +65,12 @@ export const postAddProduct = product.postAddProduct
 
 // exporting the getUserlist function to show the user details
 export const getUserlist = user.getUserList
+
+
+//todo: -----------------User block Routes-----------------!
+
+// exporting the getUserlist function to show the user details
+export const postBlock = block.postBlock
 
 
 

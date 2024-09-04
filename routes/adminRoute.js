@@ -36,7 +36,9 @@ router.post("/addProduct", isAdmin, adminController.postAddProduct)
 //router for retrieve all users
 router.get("/users", isAdmin, adminController.getUserlist)
 
-// Export the router as the default export
+//router for block  users
+router.post('/blockUser/:id', isAdmin, adminController.postBlock)
+
 export default router
 
 

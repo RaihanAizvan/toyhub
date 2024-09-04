@@ -1,287 +1,244 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Home</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css">
-  </head>
-  <body>
-    <div class="min-h-screen flex flex-col justify-stretch">
-      <div class="flex bg-gray-200">
-        <!-- Sidebar -->
-        <div class="w-64 bg-white p-4  hidden sm:block">
-          <div class="flex items-center justify-between px-6 py-4">
-            <span class="text-xl font-semibold">ToyHub</span>
-          </div>
-          <nav>
-            <ul class="space-y-2">
-              <li>
-                <a
-                  href="/admin"
-                  class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg"
-                  >
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="/admin/products" class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700"
-                  >All Products</a
-                >
-              </li>
-              <li>
-                <a href="/admin/orders" class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700"
-                  >Order List</a
-                >
-              </li>
-              <li>
-                <a href="/admin/users" class="flex items-center bg-primary rounded p-2 text-gray-700"
-                  ><span class="ml-3">User List </span>
-                  </a
-                >
-              </li>
-              <li>
-                <a href="/admin/productDetails" class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700"
-                  >Product Details</a
-                >
-              </li>
-              <li>
-                <a href="/admin/addProduct" class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700"
-                  >Add Products</a
-                >
-              </li>
-              <li>
-                <a href="/admin/banner" class="flex items-center rounded  hover:bg-gray-200 transition-all rounded p-2 text-gray-700"
-                  >Banner</a
-                >
-              </li>
-            </ul>
-          </nav>
-          <div class="mt-6">
-            <h3 class="text-sm font-semibold ">Categories</h3><hr>
-            <ul class="mt-2 space-y-2">
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700"
-                  >Category 1</a
-                >
-              </li>
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700"
-                  >Category 2</a
-                >
-              </li>
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700"
-                  >Category 3</a
-                >
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <form action="/admin/logout" method ="POST">
-                  <a href="/admin/logout">
-
-                    <button type="submit" class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  ">Logout</Button>
-                  </a>
-                </form>
-                
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="bg-gray-100 w-screen">
-            <div class="p-6">
-                <!-- Breadcrumb -->
-                <div class="text-sm text-gray-600 mb-4">
-                    <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> >
-                    <a href="#" class="text-gray-600 hover:text-gray-800">Order List</a>
-                </div>
-        
-                <!-- Header -->
-                <div class="flex justify-between items-center mb-4">
-                    <h1 class="text-2xl font-bold text-gray-800">User List</h1>
-                    <div class="relative">
-                        <input type="text" placeholder="Search User" class="bg-white border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <button class="absolute right-2 top-2">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-4.35-4.35M9.5 4.5a7 7 0 11-9.9 9.9 7 7 0 019.9-9.9z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-        
-                <!-- User List Table -->
-                <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                    <table class="min-w-full table-auto">
-                        <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                            <tr>
-                                <th class="py-3 px-6 text-left">Customer Name</th>
-                                <th class="py-3 px-6 text-left">Joined Date</th>
-                                <th class="py-3 px-6 text-left">Email ID</th>
-                                <th class="py-3 px-6 text-left">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm font-light">
-                            <% users.forEach(user => { %>
-                            <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                <td class="py-3 px-6 text-left whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <img class="w-10 h-10 rounded-full mr-2" src="https://via.placeholder.com/150" alt="Avatar">
-                                        <span><%= user.name %></span>
-                                    </div>
-                                </td>
-                                <% const formattedDate = user.joined_date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
-                                <td class="py-3 px-6 text-left"><%= formattedDate %></td>
-                                <td class="py-3 px-6 text-left"><%= user.email %></td>
-                                <td class="py-3 px-6 text-left">
-                                  <!-- <a href="/user/block"> -->
-                                    <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-1 px-5 rounded-full text-xs toggle-button" onclick="toggleButton(this)">
-                                        Block
-                                    </button>
-                                  <!-- </a> -->
-                                </td>
-                            </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
-                </div>
-        
-                <!-- Pagination -->
-                <div class="mt-4 flex justify-between items-center">
-                    <div class="flex space-x-1">
-                        <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">1</button>
-                        <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">2</button>
-                        <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">3</button>
-                        <!-- Add more page numbers as needed -->
-                    </div>
-                    <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- footer -->
+<div class="min-h-screen flex flex-col justify-stretch">
+  <div class="flex bg-gray-200">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white p-4  hidden sm:block">
+      <div class="flex items-center justify-between px-6 py-4">
+        <span class="text-xl font-semibold">ToyHub</span>
       </div>
-      <footer
-        class="flex items-center justify-between text-xs px-6 py-4 bg-white border-t mt-6"
-      >
-        <div class="text-gray-700">© 2024 ToyHub. All rights reserved.</div>
-        <div class="flex items-center space-x-4">
-          <a href="#" class="text-gray-700">Privacy Policy</a>
-          <a href="#" class="text-gray-700">Terms of Service</a>
-        </div>
-      </footer>
+      <nav>
+        <ul class="space-y-2">
+          <li>
+            <a href="/admin" class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg">
+              Dashboard </a>
+          </li>
+          <li>
+            <a href="/admin/products"
+              class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700">All
+              Products</a>
+          </li>
+          <li>
+            <a href="/admin/orders"
+              class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700">Order
+              List</a>
+          </li>
+          <li>
+            <a href="/admin/users" class="flex items-center bg-primary rounded p-2 text-gray-700"><span
+                class="ml-3">User List </span>
+            </a>
+          </li>
+          <li>
+            <a href="/admin/productDetails"
+              class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700">Product
+              Details</a>
+          </li>
+          <li>
+            <a href="/admin/addProduct"
+              class="flex items-center rounded hover:bg-gray-200 transition-all rounded p-2 text-gray-700">Add
+              Products</a>
+          </li>
+          <li>
+            <a href="/admin/banner"
+              class="flex items-center rounded  hover:bg-gray-200 transition-all rounded p-2 text-gray-700">Banner</a>
+          </li>
+        </ul>
+      </nav>
+      <div class="mt-6">
+        <h3 class="text-sm font-semibold ">Categories</h3>
+        <hr>
+        <ul class="mt-2 space-y-2">
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+              1</a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+              2</a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
+              3</a>
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <form action="/admin/logout" method="POST">
+              <a href="/admin/logout">
+                <button type="submit"
+                  class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  " id="logoutLink">Logout</Button>
+              </a>
+            </form>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    <!-- modal for logout confirmation -->
-    <div
-      id="logoutModal"
-      class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden"
-    >
-      <div
-        class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full"
-      >
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          <div class="sm:flex sm:items-start">
-            <div
-              class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
-            >
-              <svg
-                class="h-6 w-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
+    <!-- Main Content -->
+    <div class="bg-gray-100 w-screen">
+      <div class="p-6">
+        <!-- Breadcrumb -->
+        <div class="text-sm text-gray-600 mb-4">
+          <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
+            class="text-gray-600 hover:text-gray-800">Order List</a>
+        </div>
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4">
+          <h1 class="text-2xl font-bold text-gray-800">User List</h1>
+          <div class="relative">
+            <input type="text" placeholder="Search User"
+              class="bg-white border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <button class="absolute right-2 top-2">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35M9.5 4.5a7 7 0 11-9.9 9.9 7 7 0 019.9-9.9z"></path>
               </svg>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3
-                class="text-lg leading-6 font-medium text-gray-900"
-                id="modal-title"
-              >
-                Logout Confirmation
-              </h3>
-              <div class="mt-2">
-                <p class="text-sm text-gray-500">
-                  Are you sure you want to logout? All of your unsaved changes
-                  will be lost.
-                </p>
-              </div>
-            </div>
+            </button>
           </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button
-            id="confirmLogout"
-            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-          >
-            Logout
-          </button>
-          <button
-            id="cancelLogout"
-            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-          >
-            Cancel
-          </button>
+        <!-- User List Table -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+          <table class="min-w-full table-auto">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+              <tr>
+                <th class="py-3 px-6 text-left">Customer Name</th>
+                <th class="py-3 px-6 text-left">Joined Date</th>
+                <th class="py-3 px-6 text-left">Email ID</th>
+                <th class="py-3 px-6 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+              <% users.forEach(user => { %> 
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                  <td class="py-3 px-6 text-left whitespace-nowrap">
+                    <div class="flex items-center">
+                      <img class="w-10 h-10 rounded-full mr-2" src="https://via.placeholder.com/150" alt="Avatar">
+                      <span><%= user.name %></span>
+                    </div>
+                  </td>
+                  <% const formattedDate = user.joined_date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
+                  <td class="py-3 px-6 text-left"><%= formattedDate %></td>
+                  <td class="py-3 px-6 text-left"><%= user.email %></td>
+                  <td class="py-3 px-6 text-left">
+                    <button id="toggleButton-<%= user._id %>" 
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 w-20 font-semibold py-1 px-5 rounded-full text-xs toggle-button"
+                            onclick="toggleBlockUser('<%= user._id %>', <%= user.isBlocked %>)">
+                      <%= user.isBlocked ? 'Unblock' : 'Block' %> <!-- Initial button text -->
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center">
+          <div class="flex space-x-1">
+            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">1</button>
+            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">2</button>
+            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">3</button>
+            <!-- Add more page numbers as needed -->
+          </div>
+          <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</button>
         </div>
       </div>
     </div>
-    <script>
-      document
-        .getElementById("logoutLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault()
-          document.getElementById("logoutModal").classList.remove("hidden")
-        })
+    <!-- footer -->
+  </div>
+  <footer class="flex items-center justify-between text-xs px-6 py-4 bg-white border-t mt-6">
+    <div class="text-gray-700">© 2024 ToyHub. All rights reserved.</div>
+    <div class="flex items-center space-x-4">
+      <a href="#" class="text-gray-700">Privacy Policy</a>
+      <a href="#" class="text-gray-700">Terms of Service</a>
+    </div>
+  </footer>
+</div>
+<!-- modal for logout confirmation -->
+<div id="logoutModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+  <div class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full">
+    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+      <div class="sm:flex sm:items-start">
+        <div
+          class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+          <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+          <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title"> Logout Confirmation </h3>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500"> Are you sure you want to logout? All of your unsaved changes will be lost.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+      <button id="confirmLogout"
+        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+        Logout </button>
+      <button id="cancelLogout"
+        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+        Cancel </button>
+    </div>
+  </div>
+</div>
+<script>
+  document
+    .getElementById("logoutLink")
+    .addEventListener("click", function (event) {
+      event.preventDefault()
+      document.getElementById("logoutModal").classList.remove("hidden")
+    })
 
-      document
-        .getElementById("cancelLogout")
-        .addEventListener("click", function () {
-          document.getElementById("logoutModal").classList.add("hidden")
-        })
+  document
+    .getElementById("cancelLogout")
+    .addEventListener("click", function () {
+      document.getElementById("logoutModal").classList.add("hidden")
+    })
 
-      document
-        .getElementById("confirmLogout")
-        .addEventListener("click", function () {
-          // Perform logout action here, for example, redirect to logout route
-          window.location.href = "/admin/logout"
-          const form = document.createElement("form")
-          form.method = "POST"
-          form.action = "/admin/logout"
-          document.body.appendChild(form)
-          form.submit()
-        })
+  document
+    .getElementById("confirmLogout")
+    .addEventListener("click", function () {
+      // Perform logout action here, for example, redirect to logout route
+      window.location.href = "/admin/logout"
+      const form = document.createElement("form")
+      form.method = "POST"
+      form.action = "/admin/logout"
+      document.body.appendChild(form)
+      form.submit()
+    })
+    //blocking the user
 
-        function toggleButton(button) {
-          // Toggle the button state
-          const isBlocked = button.getAttribute('data-blocked') === 'true';
-          
-          // Change button color and text based on the new state
-          if (!isBlocked) {
-              button.style.backgroundColor = 'red'; // Change to red when blocking
-              button.innerText = 'Unblock'; // Change text to Unblock
-              button.setAttribute('data-blocked', 'true'); // Set attribute to indicate blocked state
-          } else {
-              button.style.backgroundColor = ''; // Reset to original color
-              button.innerText = 'Block'; // Reset text to Block
-              button.setAttribute('data-blocked', 'false'); // Reset attribute to unblocked state
-          }
+
+    
+    function toggleBlockUser(userId, isBlocked) {
+  const action = isBlocked ? 'unblock' : 'block';
+
+  axios.post(`/admin/blockUser/${userId}`, { action: action }, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-
-    </script>
-  </body>
-</html>
+    })
+    .then(response => {
+      if (response.status === 200) {
+        const button = document.getElementById(`toggleButton-${userId}`);
+        // Update the button text and isBlocked variable
+        if (action === 'block') {
+          button.textContent = 'Unblock';
+          isBlocked = true; // Update the local variable to reflect the new status
+        } else {
+          button.textContent = 'Block';
+          isBlocked = false; // Update the local variable to reflect the new status
+        }
+        // Update the onclick event with the new isBlocked status
+        button.setAttribute('onclick', `toggleBlockUser('${userId}', ${isBlocked})`);
+      } else {
+        alert('Failed to toggle user block status.');
+      }
+    })
+    .catch(error => {
+      console.error('Error during the request:', error);
+      alert('An error occurred while toggling the user block status.');
+    });
+}
+</script>
