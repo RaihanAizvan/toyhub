@@ -1,9 +1,9 @@
-<% 
-  function getHeaderPath(auth) {
-    return auth ? "./header" : "./header-landing";
-  }
-%>
-<%- include(getHeaderPath(locals.auth)); -%>
+  <% 
+    function getHeaderPath(auth) {
+      return auth ? "./header" : "./header-landing";
+    }
+  %>
+  <%- include(getHeaderPath(locals.auth)); -%>
     <!-- Hero Section -->
     <%- include('./hero') %>
 
