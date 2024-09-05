@@ -19,7 +19,7 @@ router.post('/login', userAuth.postLogin);
 
 router.post('/resent-otp', userAuth.postResentOtp);
 
-router
+router.get('/logout',userAuth.getLogout)
 
 // hero route
 

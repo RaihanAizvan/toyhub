@@ -46,6 +46,8 @@ export const postLogin = userAuthentication.postLogin
 
 export const postResentOtp = userAuthentication.postResendOtp
 
+export const getLogout = userAuthentication.getLogout
+
 //* -----------------------------------------!                                         
 //s       Exporting landingPage              |
 //* -----------------------------------------!      

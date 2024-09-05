@@ -179,7 +179,10 @@ async function postLogin(req, res) {
             return res.status(403).render("user/login",{title:'Login', message: 'Sorry You are Blocked'})
         }
         if (user) {
-            req.session.user = user;
+            req.session.user = {
+                id: user._id,
+                name: user.name
+            };
             res.redirect("/");
         } else {
             res.status(400).render("user/login", { title:'Login', message: "Invalid email or password" });
@@ -190,7 +193,7 @@ async function postLogin(req, res) {
     }
 }
 
-async function postLogout(req,res){
+async function getLogout(req,res){
     try {
         req.session.destroy((err) => {
             if (err) {
@@ -201,8 +204,11 @@ async function postLogout(req,res){
             // Clear the cookie
             res.clearCookie('connect.sid'); // 'connect.sid' is the default cookie name used by express-session
             
+            //clear cache
+            res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+
             // Redirect to the login page after logout
-            res.redirect('/login');
+            res.redirect('/user/login');
         });
     } catch (err) {
         console.log(err.message);
@@ -217,5 +223,5 @@ export default {
     getLogin,
     postLogin,
     postResendOtp,
-    postLogout
+    getLogout
 }

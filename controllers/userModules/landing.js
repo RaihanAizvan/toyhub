@@ -29,38 +29,35 @@ async function getLandingPage(req,res){
     { name: "Puzzles", image: "/images/Cover/puzzle.png ", items: 30 }, // Updated path
     { name: "Building Sets", image: "/images/Cover/building-blocks.png", items: 25 } // Updated path
     ]
-    console.log(req.session);
 
-// Check if the user is authenticated by checking both `req.session.user` and `req.session.passport.user`
-const user_id = req.session.user || req.session.passport?.user;
-const user = await User.findOne({id:user_id})
-console.log(`id of the user in the database is ${user, user_id}`);
 
-if (user) {
-    console.log('User is authenticated');
+    const user = req.user;  // Get user data from session
+    console.log(`user is ${user}`);
     
-    // Depending on what `req.session.passport.user` contains, you may need to fetch more details
-    // Here we assume that `user.name` is already set
-    res.render('user/home', {
-        title: "ToyHub", 
-        auth: true,
-        name: user.name || user.displayName,  // Fallback to displayName if necessary
-        popularProducts,
-        bestSellarProducts,
-        categories
-    });
-} else {
-    console.log('User is not authenticated');
+    if (user) {
+        console.log(` authenticated`);
 
-    // Render the home page without authentication
-    res.render('user/home', {
-        title: "ToyHub", 
-        auth: false,
-        popularProducts,
-        bestSellarProducts,
-        categories
-    });
-}
+        // User is authenticated
+        res.render('user/home', {
+            title: "ToyHub",
+            auth: true,
+            name: user.name,  // Use the name stored in the session
+            popularProducts,
+            bestSellarProducts,
+            categories
+        });
+    } else {
+        // User is not authenticated
+        console.log(`not authenticated`);
+        res.render('user/home', {
+            title: "ToyHub",
+            auth: false,
+            name: 'Login',  // Show "Login" if not authenticated
+            popularProducts,
+            bestSellarProducts,
+            categories
+        });
+    }
     
 }
 
