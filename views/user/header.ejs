@@ -1,4 +1,24 @@
 
+<style>
+    .relative:hover #dropdownProfile {
+        display: block;
+    }
+    #dropdownProfile:hover{
+        display:block;
+    }
+
+    #dropdownProfile {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        width: 12rem;
+        background-color: white;
+        border-radius: 0.375rem; /* Rounded corners */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Shadow */   
+    }
+
+</style>
     <div class="bg-gray-100 py-2 border-b border-gray-300 text-sm ">
         <div class="container mx-auto flex justify-between">
             <div class="flex space-x-4">
@@ -60,16 +80,29 @@
                     <span class="ml-1">Cart</span>
                 </a>
 
-                <a href="#" class="flex items-center text-gray-800 hover:text-green-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 16v-1a4 4 0 00-8 0v1M6 10v1a4 4 0 008 0v-1M6 18v2a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
-                    </svg>
-                    <span class="ml-1">
-                        <%= locals.name %>
-                    </span>
-                </a>
+                <div class="relative">
+                    <a id="profilePopUp" class="flex items-center text-gray-800 hover:text-green-600 cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 16v-1a4 4 0 00-8 0v1M6 10v1a4 4 0 008 0v-1M6 18v2a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                        </svg>
+                        <span class="ml-1">
+                            <%= locals.name %>
+                        </span>
+                    </a>
+                
+                    <!-- Dropdown Menu -->
+                    <div id="dropdownProfile" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block">
+                        <ul class="py-1">
+                            <li><a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a></li>
+                            <li><a href="/cart" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cart</a></li>
+                            <li><a href="/wishlist" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Wishlist</a></li>
+                            <li><a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a></li>
+                            <li><a href="/user/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>                              
             </div>
         </div>
 
