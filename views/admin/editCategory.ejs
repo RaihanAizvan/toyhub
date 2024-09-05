@@ -1,0 +1,18 @@
+<form action="/admin/category/edit/<%= category._id %>" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="mb-6">
+        <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Category Name</label>
+        <input type="text" id="name" name="name" value="<%= category.name %>" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </div>
+    
+
+    <div class="mb-6">
+        <label for="image" class="block text-gray-700 text-sm font-bold mb-2">Image</label>
+        <input type="file" id="image" name="image" accept="image/*"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </div>
+    
+    <div class="text-right">
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">Update Category</button>
+    </div>
+</form>

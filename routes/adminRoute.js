@@ -30,13 +30,23 @@ router.get("/addProduct", isAdmin, adminController.getAddProduct)
 
 router.post("/addProduct", isAdmin, upload.array('files', 5),  adminController.postAddProduct)
 
+
+//!---------------------------------/!/
+//todo: define Category routes here/!/
+//!-------------------------------/!/
+
+router.get('/category',isAdmin,  adminController.getAddCategory)
+router.post('/category', isAdmin, upload.single('image'), adminController.postAddCategory)
+router.get('/category/edit/:id', isAdmin, adminController.getEditCategory);
+router.post('/category/edit/:id', isAdmin, upload.single('image'), adminController.postEditCategory);
+router.post('/category/delete/:id', isAdmin, adminController.postDeleteCategory);
+
 //!-----------------------------/!/
 //todo: define user list routes here/!/
 //!---------------------------/!/
 
 //router for retrieve all users
 router.get("/users", isAdmin, adminController.getUserlist)
-
 //router for block  users
 router.post('/blockUser/:id', isAdmin, adminController.postBlock)
 

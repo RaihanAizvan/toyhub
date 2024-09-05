@@ -110,7 +110,6 @@ async function postAddProduct(req, res) {
   }
 }
 
-
   export default {
     getAddProduct,
     postAddProduct,
