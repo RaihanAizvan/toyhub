@@ -1,5 +1,6 @@
 import Product from "../../models/product.models.js"
 
+
 //defineing funtions for passing to the controller and then the controller passes it it to the router
 export function getAddProduct(req, res) {
     if (!req.session.sAdminEmail) {
@@ -74,8 +75,16 @@ async function postAddProduct(req, res) {
   } catch (error) {
     res.status(404).render('admin/addProduct',{message : 'error validating product details'})
   }
-  console.log(`entered product adding`);
-  //adding products
+  
+  let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      console.log(`entered the condition`);
+      imageUrls = req.files.map(file => file.path); // Get image URLs
+    }
+    console.log(`images are ${imageUrls}`);
+
+
+  // Create a new product
   try {
     const product = new Product({
       name: title,
@@ -90,15 +99,15 @@ async function postAddProduct(req, res) {
       category: category,
       price: regular_price,
       stock: stock_quantity,
-      sold:0
+      images: imageUrls,
+      sold: 0
     });
     await product.save();
     console.log(`product added`);
-    res.send('Product added')
+    res.send('Product added');
   } catch (error) {
-      res.status(404).render('admin/addProduct',{message : 'error adding product details'})
-      
-    }
+    res.status(404).render('admin/addProduct', { message: 'Error adding product details' });
+  }
 }
 
 
@@ -106,3 +115,4 @@ async function postAddProduct(req, res) {
     getAddProduct,
     postAddProduct,
   }
+

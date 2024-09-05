@@ -1,6 +1,7 @@
 import express from "express"
 import isAdmin from "../middlewares/adminMIddleware.js"
 import * as adminController from "../controllers/adminController.js"
+import upload from "../utils/multer.js"
 
 const router = express.Router()
 
@@ -27,7 +28,7 @@ router.post("/logout", adminController.postLogout)
 //router for renderig addProduct page
 router.get("/addProduct", isAdmin, adminController.getAddProduct)
 
-router.post("/addProduct", isAdmin, adminController.postAddProduct)
+router.post("/addProduct", isAdmin, upload.array('files', 5),  adminController.postAddProduct)
 
 //!-----------------------------/!/
 //todo: define user list routes here/!/
