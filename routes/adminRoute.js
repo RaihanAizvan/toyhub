@@ -27,8 +27,11 @@ router.post("/logout", adminController.postLogout)
 
 //router for renderig addProduct page
 router.get("/addProduct", isAdmin, adminController.getAddProduct)
-
-router.post("/addProduct", isAdmin, upload.array('files', 5),  adminController.postAddProduct)
+router.post("/addProduct", upload.array('files', 5),  adminController.postAddProduct)
+router.get("/products", adminController.getProductList)
+router.get('/editProduct/:id', adminController.getEditProduct);
+router.post('/editProduct/:id', upload.single('image'), adminController.postEditProduct);
+router.post('/blockProduct/:id', adminController.postBlockProduct);
 
 
 //!---------------------------------/!/

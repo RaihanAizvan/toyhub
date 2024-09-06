@@ -1,6 +1,7 @@
 import users from "../../models/users.models.js"
 import nodemailer from "nodemailer"
 import bcrypt from 'bcrypt';
+import validator from "validator"
 
 // function for a timer for try again to sent otp
 function tryAgain(){
@@ -39,50 +40,101 @@ function getSignup(req, res) {
     res.render('user/signup', { title: 'Signup' })
 }
 
+
 async function postSignup(req, res) {
-    // Generate a random 6-digit OTP and send it to the user's email
+    // Generate a random 6-digit OTP and define its expiration time
     let otp = Math.floor(100000 + Math.random() * 900000);
-    const otpExpires = Date.now() + 5 * 60 * 1000; //! otp expires in 5mints----replace the 5 with the minutes you want
-    
-    // setInterval(() => {console.log(`otp expires in ${}`)},1000)
+    const otpExpires = Date.now() + 1 * 60 * 1000; // OTP expires in 5 minutes
+
     try {
-        const { name, email, password, phone_number } = req.body;
+        const { name, email, phone_number, password, confirmPassword } = req.body;
+
+        // Basic field validation
+        if (!name || !email || !phone_number || !password || !confirmPassword) {
+            return res.status(400).render("user/signup", { 
+                title: 'Sign Up', 
+                message: "All fields are required", 
+                name, email, phone_number 
+            });
+        }
+
+        // Email validation
+        if (!validator.isEmail(email)) {
+            return res.status(400).render("user/signup", { 
+                title: 'Sign Up', 
+                message: "Invalid email format", 
+                name, email, phone_number 
+            });
+        }
+
+        // Phone number validation (International format, e.g., +1234567890 or 1234567890)
+        const phoneRegex = /^[0-9]{10,15}$/;
+        if (!phoneRegex.test(phone_number)) {
+            return res.status(400).render("user/signup", { 
+                title: 'Sign Up', 
+                message: "Invalid phone number format", 
+                name, email, phone_number 
+            });
+        }
+
+        // Password validation (minimum 8 characters, at least one letter and one number)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).render("user/signup", { 
+                title: 'Sign Up', 
+                message: "Password must be at least 8 characters long, contain one letter and one number", 
+                name, email, phone_number 
+            });
+        }
+
+        // Confirm password match
+        if (password !== confirmPassword) {
+            return res.status(400).render("user/signup", { 
+                title: 'Sign Up', 
+                message: "Passwords do not match", 
+                name, email, phone_number 
+            });
+        }
 
         // Check if the email already exists
         const existingUser = await users.findOne({ email });
         if (existingUser) {
-            console.log(` ${existingUser} already exist so failed`);
             return res.status(400).render('user/signup', {
+                title: 'Sign Up',
                 message: 'Email already exists',
-                name,
-                email,
-                phone_number,
-                title: 'Signup'
+                name, email, phone_number
             });
         }
 
         // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+        const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds = 10
 
-        // Create a new user if the email doesn't exist
+        // Create a new user and save it to the database
         const newUser = new users({
             name,
             email,
-            password: hashedPassword, // Use hashed password
             phone_number,
-            otp,
-            otpExpires, // Store the expiry time of the OTP
+            password: hashedPassword, // Save hashed password
+            otp, // Store the OTP
+            otpExpires // Store the OTP expiration time
         });
 
         await newUser.save();
 
-        req.session.email = email;
-        res.status(200).redirect('/user/otp');
-        //send mail to the user 
+        // Send OTP to the user via email
         sendMail(otp, email);
+
+        // Store email in session and redirect to OTP page
+        req.session.email = email;
+        return res.status(200).redirect('/user/otp');
+
     } catch (error) {
-        console.log(error);
-        res.status(500).render('user/signup', { message: "An error occurred while saving the user", title: 'Signup' });
+        console.error(error);
+        return res.status(500).render('user/signup', { 
+            title: 'Sign Up', 
+            message: "Internal Server Error", 
+            name, email, phone_number 
+        });
     }
 }
 
@@ -93,7 +145,6 @@ async function getOtp(req, res) {
         if (!user) {
             return res.status(404).render('user/otp', { message: 'User not found', remainingTime: 0, title: 'OTP Verification' });
         }
-
         const currentTime = Date.now();
         const remainingTime = Math.max(0, Math.floor((user.otpExpires - currentTime) / 1000)); // Calculate remaining seconds
         console.log(remainingTime);
@@ -123,7 +174,7 @@ async function postOtp(req, res) {
                 res.status(404).render('user/otp', { message: 'otp expired', title: 'OTP Verification' });
             }
         } else {
-            res.status(404).render('user/otp', { message: 'User not found', title: 'OTP Verification' });
+            res.status(404).render('user/otp', { message: 'Internal Server Error Try again ', title: 'OTP Verification' });
         }
         console.log(`Stored OTP: ${user.otp}, Entered OTP: ${enteredOtp}`);
     } catch (error) {
@@ -136,6 +187,7 @@ async function postOtp(req, res) {
 //function for resending otp 
 
 async function postResendOtp(req, res) {
+    console.log(1);
     const email = req.session.email;
     if (!email) {
         return res.status(401).redirect("/user/signup");
@@ -150,10 +202,11 @@ async function postResendOtp(req, res) {
         } else {
             let otp = Math.floor(100000 + Math.random() * 900000);
             user.otp = otp;
-            user.otpExpires = Date.now() + 4 * 60 * 1000; // 1
+            user.otpExpires = Date.now() + 1 * 60 * 1000; //! 1 minute
             await user.save();
             sendMail(otp, email);
-            res.status(200).render('user/otp', {title:'Otp', message: 'OTP sent again', title: 'Resend OTP' });
+            console.log('mail send succesfully')
+            res.status(200).render('user/otp', {title:'Otp', alertMessage: 'ENter the new OTP', title: 'Resend OTP' });
             tryAgain(); // Try again after 30 seconds
         }
         
@@ -174,22 +227,44 @@ function getLogin(req,res) {
 async function postLogin(req, res) {
     try {
         const { email, password } = req.body;
+
+        // Basic validation for email and password
+        if (!email || !password) {
+            return res.status(400).render("user/login", { title: 'Login', message: "Email and password are required" });
+        }
+
+        // Email validation
+        if (!validator.isEmail(email)) {
+            return res.status(400).render("user/login", { title: 'Login', message: "Invalid email format" });
+        }
+
         const user = await users.findOne({ email });
-        if(user.isBlocked){
-            return res.status(403).render("user/login",{title:'Login', message: 'Sorry You are Blocked'})
+
+        if (!user) {
+            return res.status(400).render("user/login", { title: 'Login', message: "Invalid email or password" });
         }
-        if (user) {
-            req.session.user = {
-                id: user._id,
-                name: user.name
-            };
-            res.redirect("/");
-        } else {
-            res.status(400).render("user/login", { title:'Login', message: "Invalid email or password" });
+
+        if (user.isBlocked) {
+            return res.status(403).render("user/login", { title: 'Login', message: 'Sorry, you are blocked' });
         }
+
+        // Compare password using bcrypt
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).render("user/login", { title: 'Login', message: "Invalid email or password" });
+        }
+
+        // Setting user session
+        req.session.user = {
+            id: user._id,
+            name: user.name
+        };
+
+        res.redirect("/");
+
     } catch (err) {
         console.log(err.message);
-        res.status(400).render("user/login", { title:'Login', message: "Internl Server error", email: user.email });
+        res.status(500).render("user/login", { title: 'Login', message: "Internal Server Error", email });
     }
 }
 

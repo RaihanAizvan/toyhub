@@ -11,6 +11,8 @@
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <!-- Promotional Banner -->
             <!-- Product Cards -->
+            <% if(locals.bestSellarProduct ) { %>
+
             <% bestSellarProducts.forEach(product=> { %> <div class="bg-white shadow-lg rounded-lg p-4">
                     <div class="relative">
                         <% if (product.discount) { %>
@@ -52,6 +54,9 @@
                     </div>
                 </div>
                 <% }) %>
+                <% } else { %>
+                    <p>No products available</p>
+                  <% } %>
         </div>
     </div>
 </section>

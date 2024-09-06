@@ -21,8 +21,15 @@ import landingPage from "./userModules/landing.js"
 
 import singleProduct from "./userModules/singleProduct.js"
 
-//todo: --------------------------------------!
 
+//* -----------------------------------------!                                         
+//s       Importing category                 |
+//* -----------------------------------------!                                         
+
+import category from "./userModules/category.js"
+
+
+//todo: --------------------------------------!
 
 //? *******************************************************************!                                      
 //?                          Exporting Modules                         |                        
@@ -53,6 +60,10 @@ export const getLogout = userAuthentication.getLogout
 //* -----------------------------------------!      
 
 export const getLandingPage = landingPage.getLandingPage
+
+export const getProductsByCategory = category.getProductsByCategory
+
+export const getCategoryList = category.getCategoryList
 
 //* -----------------------------------------!                                         
 //s     Exporting singleproductPage          |

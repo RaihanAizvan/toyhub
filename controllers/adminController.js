@@ -20,11 +20,12 @@ import AdminHome from "./adminModules/dashboard.js"
 // Importing the product module which contains add product related functions
 import product from "./adminModules/addProducts.js"
 
+import productList from "./adminModules/productList.js"
+
+
 //todo ----------------category Routes--------------------!
 
 import category from "./adminModules/addCategory.js"
-
-
 
 
 //todo: -----------------User list Routes-----------------!
@@ -62,8 +63,11 @@ export const getHome = AdminHome.getHome
 
 // Exporting the getAddProduct function from product module
 export const getAddProduct = product.getAddProduct
-
 export const postAddProduct = product.postAddProduct
+export const getProductList = productList.getProductList
+export const getEditProduct = productList.getEditProduct
+export const postEditProduct = productList.postEditProduct
+export const postBlockProduct = productList.postBlockProduct
 
 
 //todo ----------------category Routes----------------------!

@@ -22,24 +22,23 @@ export async function getAddCategory(req, res) {
 
 // Function to handle adding a new category
 export async function postAddCategory(req, res) {
-    // Extract name and image
-    const { name } = req.body;  // Text field
+    const { name } = req.body;
     try {
-        if (!name) {
-            return res.status(400).render('admin/addCategory', { nameError: 'Name is required' });
-        }
-        const imageUrl = req.file ? req.file.path : '';  // Cloudinary URL comes from multer
-        const category = new Category({
-            name: name,
-            image: imageUrl
-        });
-        await category.save();
-        res.redirect('/admin/category')
+      if (!name) {
+        return res.status(400).render('admin/addCategory', { nameError: 'Name is required' });
+      }
+      const imageUrl = req.file ? req.file.path : '';
+      const category = new Category({
+        name,
+        image: imageUrl
+      });
+      await category.save();
+      res.redirect('/admin/category');
     } catch (error) {
-        console.error('Error adding category:', error);
-        res.status(500).render('admin/addCategory', { message: 'Error adding category details' });
+      console.error('Error adding category:', error);
+      res.status(500).render('admin/addCategory', { message: 'Error adding category details' });
     }
-}
+  }
 export async function getEditCategory(req, res) {
     const categoryId = req.params.id;
     try {

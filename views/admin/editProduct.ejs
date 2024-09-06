@@ -1,0 +1,121 @@
+<div class="container mx-auto py-6">
+  <h1 class="text-2xl font-semibold mb-6">Add Product</h1>
+
+  <form id="productForm" class="space-y-4">
+      <!-- Product Name -->
+      <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
+          <input type="text" name="name" id="name" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product name" required>
+      </div>
+
+      <!-- Category -->
+      <div>
+          <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+          <input type="text" name="category" id="category" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product category" required>
+      </div>
+
+      <!-- Price -->
+      <div>
+          <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+          <input type="number" name="price" id="price" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product price" required min="0" step="0.01">
+      </div>
+
+      <!-- Stock -->
+      <div>
+          <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
+          <input type="number" name="stock" id="stock" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter available stock" required min="0">
+      </div>
+
+      <!-- Image Upload -->
+      <div>
+          <label for="image" class="block text-sm font-medium text-gray-700">Product Image</label>
+          <input type="file" name="image" id="image" class="mt-1 w-full border rounded-md p-2" accept="image/*">
+      </div>
+
+      <!-- Image Preview -->
+      <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+          <img id="imagePreview" class="max-w-full h-auto max-h-64 object-contain border" alt="Image Preview">
+      </div>
+
+      <!-- Crop Image Button -->
+      <button type="button" id="cropButton" class="mt-2 bg-yellow-500 text-white py-2 px-4 rounded-md" style="display: none;">
+          Crop Image
+      </button>
+
+      <!-- Submit Button -->
+      <div>
+          <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">
+              Add Product
+          </button>
+      </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const imageInput = document.getElementById('image');
+      const imagePreview = document.getElementById('imagePreview');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      const cropButton = document.getElementById('cropButton');
+      const productForm = document.getElementById('productForm');
+      let cropper;
+
+      imageInput.addEventListener('change', function (event) {
+          const file = event.target.files[0];
+          if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                  imagePreview.src = e.target.result;
+                  imagePreviewContainer.style.display = 'block';
+                  cropButton.style.display = 'inline-block';
+
+                  if (cropper) {
+                      cropper.destroy();
+                  }
+              };
+              reader.readAsDataURL(file);
+          }
+      });
+
+      cropButton.addEventListener('click', function () {
+          if (!cropper) {
+              cropper = new Cropper(imagePreview, {
+                  aspectRatio: 1,
+                  viewMode: 1,
+                  autoCropArea: 1,
+              });
+          }
+      });
+
+      productForm.addEventListener('submit', function (event) {
+          event.preventDefault();
+
+          const formData = new FormData(productForm);
+
+          if (cropper) {
+              cropper.getCroppedCanvas().toBlob((blob) => {
+                  formData.set('image', blob, 'cropped_image.png');
+                  submitForm(formData);
+              }, 'image/png');
+          } else {
+              submitForm(formData);
+          }
+      });
+
+      function submitForm(formData) {
+          fetch('/admin/addProduct', {
+              method: 'POST',
+              body: formData
+          }).then(response => {
+              if (response.ok) {
+                  console.log('Product added successfully');
+                  window.location.href = '/admin/products';
+              } else {
+                  console.error('Error adding product');
+              }
+          }).catch(error => {
+              console.error('Error:', error);
+          });
+      }
+  });
+</script>

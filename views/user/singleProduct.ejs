@@ -1,150 +1,102 @@
-<html lang="en">
+<%- include("./header"); %>
 
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title> Product Page </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
-        rel="stylesheet" />
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-    <div class="container mx-auto p-6">
-        <div class="flex flex-col lg:flex-row">
-            <!-- Product Image Section -->
-            <div class="w-full lg:w-1/2 order-1 lg:order-none">
-                <div class="border rounded-lg p-4 bg-white">
-                    <img alt="The incredible Hulk action Toy Figure 18cm" class=" w-full md:w-3/4  h-auto"
-                        src="../images/Action Figures/3-incredible-hulk-action-toy-figure-18-cm-with-light-soni-original-imagqp5jdbwjrgmu.webp" />
-                </div>
-                <div class="flex mt-4 space-x-2">
-                    <img alt="The incredible Hulk action Toy Figure 18cm thumbnail 1"
-                        class="w-1/4 h-auto border rounded-lg" src="https://placehold.co/100x100" />
-                    <img alt="The incredible Hulk action Toy Figure 18cm thumbnail 2"
-                        class="w-1/4 h-auto border rounded-lg" src="https://placehold.co/100x100" />
-                    <img alt="The incredible Hulk action Toy Figure 18cm thumbnail 3"
-                        class="w-1/4 h-auto border rounded-lg" src="https://placehold.co/100x100" />
-                </div>
+<div class="container mx-auto p-6">
+    <div class="flex flex-col lg:flex-row">
+        <!-- Product Image Section -->
+        <div class="w-full lg:w-1/2">
+            <div class="border rounded-lg p-4 bg-white">
+                <img id="mainImage" alt="<%= product.name %>" class="w-full md:w-3/4 h-auto zoom"
+                    src="<%= product.images[0] %>" data-zoom-image="<%= product.images[0] %>" />
             </div>
-            <!-- Product Details Section -->
-            <div class="w-full lg:w-1/2 lg:pl-8 mt-8 lg:mt-0 order-2 lg:order-none">
-                <div class="bg-red-100 text-red-500 text-sm font-semibold px-2 py-1 rounded inline-block mb-2"> Sale Off
-                </div>
-                <h1 class="text-3xl font-bold mb-2"> The incredible Hulk action Toy Figure 18cm </h1>
-                <div class="flex items-center mb-4">
-                    <span class="text-yellow-500">
-                        <i class="fas fa-star">
-                        </i>
-                    </span>
-                    <span class="text-gray-600 ml-2"> (32 reviews) </span>
-                </div>
-                <div class="flex items-center mb-4">
-                    <span class="text-3xl font-bold text-green-500"> $38 </span>
-                    <span class="text-gray-500 line-through ml-2"> $52 </span>
-                    <span class="text-green-500 ml-2 text-sm"> 26% Off </span>
-                </div>
-                <p class="text-gray-600 mb-4"> Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam rem
-                    officia, corrupti reiciendis minima nisi modi, quasi, odio minus dolore impedit fuga eum eligendi.
-                </p>
-                <div class="flex items-center mb-4">
-                    <input class="border rounded w-16 text-center py-2" type="number" value="1" />
-                    <button class="bg-green-500 text-white px-4 py-2 rounded ml-4"> Add to cart </button>
-                    <button class="border rounded px-4 py-2 ml-2">
-                        <i class="fas fa-heart">
-                        </i>
-                    </button>
-                    <button class="border rounded px-4 py-2 ml-2">
-                        <i class="fas fa-share-alt">
-                        </i>
-                    </button>
-                </div>
-                <div class="text-sm text-gray-600">
-                    <p>
-                        <span class="font-semibold"> Type: </span> Organic
-                    </p>
-                    <p>
-                        <span class="font-semibold"> MFG: </span> Jun 4, 2022
-                    </p>
-                    <p>
-                        <span class="font-semibold"> LIFE: </span> 70 days
-                    </p>
-                    <p>
-                        <span class="font-semibold"> SKU: </span> FWM15VKT
-                    </p>
-                    <p>
-                        <span class="font-semibold"> Tags: </span> Snack, Organic, Brown
-                    </p>
-                    <p>
-                        <span class="font-semibold"> Stock: </span> 8 Items In Stock
-                    </p>
-                </div>
+            <div class="flex mt-4 space-x-2">
+                <% product.images.forEach((img, index) => { %>
+                <img alt="<%= product.name %> thumbnail" class="thumbnail w-1/4 h-auto border rounded-lg cursor-pointer"
+                    src="<%= img %>" data-index="<%= index %>" onclick="updateMainImage('<%= img %>')" />
+                <% }) %>
             </div>
         </div>
-        <!-- Category Section -->
-        <div class="w-full lg:w-1/4 mt-8">
-            <div class="bg-white p-4 rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4"> Category </h2>
-                <ul>
-                    <li class="flex items-center justify-between mb-2">
-                        <span class="text-gray-700"> Milks &amp; Dairies </span>
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"> 5 </span>
-                    </li>
-                    <li class="flex items-center justify-between mb-2">
-                        <span class="text-gray-700"> Clothing </span>
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"> 6 </span>
-                    </li>
-                    <li class="flex items-center justify-between mb-2">
-                        <span class="text-gray-700"> Pet Foods </span>
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"> 7 </span>
-                    </li>
-                    <li class="flex items-center justify-between mb-2">
-                        <span class="text-gray-700"> Baking material </span>
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"> 12 </span>
-                    </li>
-                    <li class="flex items-center justify-between mb-2">
-                        <span class="text-gray-700"> Fresh Fruit </span>
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full"> 16 </span>
-                    </li>
-                </ul>
+
+        <!-- Product Details Section -->
+        <div class="w-full lg:w-1/2 lg:pl-8 mt-8 lg:mt-0">
+            <% if (product.discount) { %>
+            <div class="bg-red-100 text-red-500 text-sm font-semibold px-2 py-1 rounded inline-block mb-2">
+                Sale Off
             </div>
-        </div>
-        <!-- Tabs Section -->
-        <div class="mt-8">
-            <div class="bg-white p-4 rounded-lg shadow">
-                <div class="flex flex-col md:flex-row border-b mb-4">
-                    <button class="text-green-500 font-semibold px-4 py-2 border-b-2 border-green-500"> Description
-                    </button>
-                    <button class="text-gray-500 font-semibold px-4 py-2"> Additional info </button>
-                    <button class="text-gray-500 font-semibold px-4 py-2"> Vendor </button>
-                    <button class="text-gray-500 font-semibold px-4 py-2"> Reviews (3) </button>
-                </div>
-                <div>
-                    <p class="text-gray-600 mb-4"> Uninhibited carnally hired played in whimpered dear gorilla koala
-                        depending and much yikes off far quetzal goodness and from for grimaced goodness unaccountably
-                        and meadowlark near unblushingly crucial scallop tightly neurotic hungrily some and dear
-                        furiously this apart. </p>
-                    <p class="text-gray-600 mb-4"> Spluttered narrowly yikes left moth in yikes bowed this that grizzly
-                        much hello on spoon-fed that alas rethought much decently richly and wow against the frequent
-                        fluidly at formidable acceptably flapped besides and much circa far over the bucolically hey
-                        precarious goldfinch mastodon goodness gnashed a jellyfish and one however because. </p>
-                    <ul class="list-disc list-inside text-gray-600 mb-4">
-                        <li> Type Of Packing: Bottle </li>
-                        <li> Color: Green, Pink, Powder Blue, Purple </li>
-                        <li> Quantity Per Case: 100ml </li>
-                        <li> Ethyl Alcohol: 70% </li>
-                        <li> Piece In One: Carton </li>
-                    </ul>
-                    <p class="text-gray-600"> Laconic overhead dear woodchuck wow this outrageously taut beaver hey
-                        hello far meadowlark imitatively egregiously hugged that yikes minimally unanimous pouted
-                        flirtatiously as beaver beheld above forward energetic across this jeepers beneficently cockily
-                        less a the raucously that magic upheld far so the this where crud then below after jeez
-                        enchanting drunkenly more much wow callously irrespective. </p>
-                </div>
+            <% } %>
+            <h1 class="text-3xl font-bold mb-2"><%= product.name %></h1>
+            <div class="flex items-center mb-4">
+                <span class="text-yellow-500"><i class="fas fa-star"></i></span>
+                <span class="text-gray-600 ml-2">Sold: <%= product.sold %></span>
+            </div>
+            <div class="flex items-center mb-4">
+                <span class="text-3xl font-bold text-green-500">$<%= product.price %></span>
+                <% if (product.discount) { %>
+                <span class="text-gray-500 line-through ml-2">$<%= product.price * (1 + product.discount / 100) %></span>
+                <span class="text-green-500 ml-2 text-sm"><%= product.discount %>% Off</span>
+                <% } %>
+            </div>
+            <p class="text-gray-600 mb-4"><%= product.description1 %></p>
+            <% if (product.description2) { %>
+            <p class="text-gray-600 mb-4"><%= product.description2 %></p>
+            <% } %>
+            <% if (product.warnings) { %>
+            <p class="text-red-600 mb-4">Warnings: <%= product.warnings %></p>
+            <% } %>
+            <div class="flex items-center mb-4">
+                <input class="border rounded w-16 text-center py-2" type="number" value="1" />
+                <button class="bg-green-500 text-white px-4 py-2 rounded ml-4">Add to cart</button>
+                <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-heart"></i></button>
+                <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-share-alt"></i></button>
+            </div>
+            <div class="text-sm text-gray-600">
+                <p><span class="font-semibold">Type: </span><%= product.type %></p>
+                <% if (product.color) { %>
+                <p><span class="font-semibold">Color: </span><%= product.color %></p>
+                <% } %>
+                <% if (product.weight) { %>
+                <p><span class="font-semibold">Weight: </span><%= product.weight %>g</p>
+                <% } %>
+                <p><span class="font-semibold">SKU: </span><%= product.SKU %></p>
+                <p><span class="font-semibold">Category: </span><%= product.category.name %></p>
+                <p><span class="font-semibold">Stock: </span><%= product.stock %> Items In Stock</p>
+                <p><span class="font-semibold">Created At: </span><%= new Date(product.createdAt).toLocaleDateString() %></p>
+                <% if (product.isBlocked) { %>
+                <p class="text-red-500">This product is currently blocked.</p>
+                <% } %>
             </div>
         </div>
     </div>
+</div>
+<%- include('./popular-product') %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include ElevateZoom JS -->
+<script src="https://cdn.jsdelivr.net/npm/elevatezoom@3.0.8/jquery.elevateZoom.min.js"></script>
+
+<script>
+    // Initialize ElevateZoom on the main image
+    $('#mainImage').elevateZoom({
+        zoomType: "lens",
+        lensShape: "round",
+        lensSize: 600,
+        zoomLevel:300
+
+    });
+
+    // Function to update the main image and reapply the zoom effect
+    function updateMainImage(src) {
+        const mainImage = document.getElementById('mainImage');
+        mainImage.src = src;
+        mainImage.setAttribute('data-zoom-image', src);
+
+        // Re-initialize ElevateZoom for the new image
+        $('.zoomContainer').remove(); // Remove previous zoom container
+        $('#mainImage').elevateZoom({
+            zoomType: "lens",
+            lensShape: "round",
+            lensSize: 250,
+            zoomLevel:300
+        });
+    }
+</script>

@@ -1,4 +1,5 @@
 function isAdmin(req, res, next) {
+  console.log(req.session);
     if (req.session && req.session.sAdminEmail) {
       next()
       console.log("admin middleware passed")

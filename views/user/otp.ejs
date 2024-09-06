@@ -1,93 +1,58 @@
+<%- include("./header-login") -%>
 
-    <%- include("./header-login") -%>
-
-    <% 
-    const popularProducts = [
-        { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, rating: 4.0, manufacturer: "ToyMakers" },
-        { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, rating: 4.5, manufacturer: "BarbieCorp" },
-        { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, stock: 100, sold: 50 },
-        { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, stock: 150, sold: 75 },
-        { name: "Jigsaw Puzzle", image: "/images/Cover/jigsaw-puzzle.png", category: "Puzzles", price: 9.99, stock: 200, sold: 100 },
-        { name: "Building Blocks", image: "/images/Cover/building-blocks.png", category: "Building Sets", price: 49.99, oldPrice: 59.99, stock: 120, sold: 60 },
-        { name: "Teddy Bear", image: "/images/Cover/teddy-bear.png", category: "Soft Toys", price: 12.99, stock: 180, sold: 90 },
-        { name: "Play Kitchen", image: "/images/Cover/play-kitchen.png", category: "Playsets", price: 69.99, oldPrice: 79.99, stock: 100, sold: 50 },
-        { name: "Art Supplies", image: "/images/Cover/art-supplies.png", category: "Arts & Crafts", price: 19.99, stock: 150, sold: 75 },
-        { name: "Board Game", image: "/images/Cover/board-game.png", category: "Games", price: 39.99, stock: 120, sold: 60 }
-    ];
-    const bestSellarProducts = [
-    { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, rating: 4.0, manufacturer: "ToyMakers",stock: 150, sold: 75 },
-        { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, rating: 4.5, manufacturer: "BarbieCorp",stock: 150, sold: 75 },
-        { name: "Toy Car", image: "/images/Cover/toy-car.png", category: "Action Toys", price: 15.99, oldPrice: 19.99, stock: 100, sold: 50 },
-        { name: "Barbie Doll", image: "/images/Dolls & Accesories/-original-imagv3ruz3h63tpx.webp", category: "Dolls", price: 29.99, stock: 150, sold: 75 }
-    ]
-    let demoCategories = [
-    { name: "Action Toys", image: "/images/Cover/action-png.png", items: 20 }, // Updated path
-    { name: "Dolls", image: "/images/Cover/dolls.png", items: 15 }, // Updated path
-    { name: "Puzzles", image: "/images/Cover/puzzle.png ", items: 30 }, // Updated path
-    { name: "Building Sets", image: "/images/Cover/building-blocks.png", items: 25 }, // Updated path
-    { name: "Puzzles", image: "/images/Cover/puzzle.png ", items: 30 }, // Updated path
-    { name: "Building Sets", image: "/images/Cover/building-blocks.png", items: 25 } // Updated path
-    ] %>
-
-    <div class="container mx-auto  my-52 px-4  sm:px-6 lg:px-8 ">
-        <div class="max-w-sm mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">OTP</h2>
-            <p class="text-red-700 font-serif"> <%= locals.message %> </p>
-            <form action="/user/otp" method="post">
-                <div class="mb-4 flex flex-col space-x-4">
-                    <div class="flex justify-center space-x-3">
-                        <input type="text" id="otp1" name="otp1" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp2')">
-                        <input type="text" id="otp2" name="otp2" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp3')">
-                        <input type="text" id="otp3" name="otp3" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp4')">
-                        <input type="text" id="otp4" name="otp4" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp5')">
-                        <input type="text" id="otp5" name="otp5" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp6')">
-                        <input type="text" id="otp6" name="otp6" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, '')">
-                    </div>
+<div class="container mx-auto my-52 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-sm mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">OTP</h2>
+        <p class="text-red-700 font-serif"> <%= locals.message %> </p>
+        <p class="text-black font-serif"> <%= locals.alertMessage %> </p>
+        <form action="/user/otp" method="post">
+            <div class="mb-4 flex flex-col space-x-4">
+                <div class="flex justify-center space-x-3">
+                    <input type="text" id="otp1" name="otp1" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp2')">
+                    <input type="text" id="otp2" name="otp2" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp3')">
+                    <input type="text" id="otp3" name="otp3" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp4')">
+                    <input type="text" id="otp4" name="otp4" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp5')">
+                    <input type="text" id="otp5" name="otp5" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp6')">
+                    <input type="text" id="otp6" name="otp6" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1">
                 </div>
-                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
-                <p class="mt-4 text-center text-gray-600">Didn't get the OTP? <a href="#" id="resend-otp" class="text-green-500 hover:underline disabled" onclick="resendOTP()">Try again in <span id="countdown"><%= locals.remainingTime %></span> seconds</a></p>
-            </form>
-                    </div>
-                </div>
-                      
-                <%- include("./footer") -%>
-      <script>
-        let timeLeft = localStorage.getItem('otpTimeLeft') || parseInt( <%= locals.remainingTime %>, 10); 
-        const countdownElement = document.getElementById('countdown');
-        const resendButton = document.getElementById('resend-otp');
-        function startTimer() {
-            if (timeLeft > 0) {
-                resendButton.classList.add('disabled');
+            </div>
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
+            <p class="mt-4 text-center text-gray-600">Didn't get the OTP? 
+                <a href="#" id="resend-otp" class="text-green-500 hover:underline disabled" onclick="resendOTP()">Try again in 
+                    <span id="countdown"><%= locals.remainingTime %></span> seconds</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<%- include("./footer") -%>
+
+<script>
+    let timeLeft = localStorage.getItem('otpTimeLeft') || parseInt(<%= locals.remainingTime %>, 10); 
+    const countdownElement = document.getElementById('countdown');
+    const resendButton = document.getElementById('resend-otp');
+
+    function startTimer() {
+        if (timeLeft > 0) {
+            resendButton.classList.add('disabled');
+        }
+        
+        const timer = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownElement.textContent = '';
+                resendButton.classList.remove('disabled');
+                resendButton.href = '/user/resend-otp';  // Enable link to resend OTP
+                resendButton.onclick = null;  // Remove the onclick event for automatic redirect
+                localStorage.removeItem('otpTimeLeft'); // Clear stored time
+            } else {
+                timeLeft -= 1;
+                countdownElement.textContent = timeLeft;
+                localStorage.setItem('otpTimeLeft', timeLeft); // Update stored time
             }
-            
-            const timer = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    countdownElement.textContent = '';
-                    resendButton.classList.remove('disabled');
-                    resendButton.textContent = "Resend OTP";
-                    resendButton.onclick = '/user/resend-otp'; // Enable resend function
-                    localStorage.removeItem('otpTimeLeft'); // Clear stored time
-                } else {
-                    timeLeft -= 1;
-                    countdownElement.textContent = timeLeft;
-                    localStorage.setItem('otpTimeLeft', timeLeft); // Update stored time
-                }
-            }, 1000);
-        }
-    
-        function resendOTP() {
-            // Logic to resend OTP goes here
-            axios.post('/user/resent-otp', { email: req.session.email })
-                .then(response => {
-                    alert("OTP has been resent!");
-                })
-                .catch(error => {
-                    alert("Failed to resend OTP.");
-                });
-            alert("OTP has been resent!"); // Placeholder for actual resend logic
-        }
-    
-        // Start the timer on page load
-        window.onload = startTimer;
-    </script>
+        }, 1000);
+    }
+
+    // Start the timer on page load
+    window.onload = startTimer;
+</script>

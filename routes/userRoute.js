@@ -1,26 +1,30 @@
-import * as userAuth from "../controllers/userController.js"
+import * as userController from "../controllers/userController.js"
 import middleware from "../middlewares/userMiddleware.js"
 import express from "express";
 const router = express.Router();
 
 //auth routes
 
-router.get('/signup', userAuth.getSignup);
+router.get('/signup', userController.getSignup);
 
-router.post('/signup', userAuth.postSignup);
+router.post('/signup', userController.postSignup);
 
-router.get('/otp',userAuth.getOtp);
+router.get('/otp',userController.getOtp);
 
-router.post('/otp',userAuth.postOtp);
+router.post('/otp',userController.postOtp);
 
-router.get('/login', userAuth.getLogin);
+router.get('/login', userController.getLogin);
 
-router.post('/login', userAuth.postLogin);
+router.post('/login', userController.postLogin);
 
-router.post('/resent-otp', userAuth.postResentOtp);
+router.get('/resend-otp', userController.postResentOtp);
 
-router.get('/logout',userAuth.getLogout)
+router.get('/logout',userController.getLogout)
 
-// hero route
+//home
+router.get('/category/:id', userController.getProductsByCategory);
+
+
+
 
 export default router;

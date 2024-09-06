@@ -1,0 +1,104 @@
+<div class="flex">
+<div class="w-64 bg-white p-4">
+    <div class="flex items-center justify-between px-6 py-4">
+        <span class="text-xl font-semibold">ToyHub</span>
+    </div>
+    <nav>
+        <ul class="space-y-2">
+            <li>
+                <a href="/admin"
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Dashboard</a>
+            </li>
+            <li>
+                <a href="/admin/products"
+                    class="flex items-center bg-primary rounded transition-all p-2 text-gray-700">
+                    <span class="ml-3">All Products </span> </a>
+            </li>
+            <li>
+                <a href="/admin/orders"
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Order
+                    List</a>
+            </li>
+            <li>
+                <a href="/admin/users"
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">User
+                    List</a>
+            </li>
+            <li>
+                <a href="/admin/category"
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Product
+                    Details</a>
+            </li>
+            <li>
+                <a href="/admin/addProduct"
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all"> <span
+                        class="">Add Product</span></a>
+            </li>
+            <li>
+                <a href="/admin/banner"
+                    class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all p-2 text-gray-700">Banner</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="mt-6">
+        <ul>
+            <li>
+                <form action="/admin/logout" method="POST">
+                    <a href="/admin/logout">
+                        <button type="submit"
+                            class="flex items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded">Logout</button>
+                    </a>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>
+<!-- Content Area -->
+<div class="container mx-auto py-6">
+    <h1 class="text-2xl font-semibold mb-4 text-gray-800">Product List</h1>
+
+    <div class="overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr class="bg-gray-100 text-left text-gray-700 uppercase text-sm tracking-wider">
+                    <th class="py-3 px-6 border-b">#</th>
+                    <th class="py-3 px-6 border-b">Product Name</th>
+                    <th class="py-3 px-6 border-b">Category</th>
+                    <th class="py-3 px-6 border-b">Price</th>
+                    <th class="py-3 px-6 border-b">Stock</th>
+                    <th class="py-3 px-6 border-b">Status</th>
+                    <th class="py-3 px-6 border-b">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                <% products.forEach((product, index) => { %>
+                    <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <td class="py-3 px-6 border-b"><%= index + 1 %></td>
+                        <td class="py-3 px-6 border-b"><%= product.name %></td>
+                        <td class="py-3 px-6 border-b"><%= product.category %></td>
+                        <td class="py-3 px-6 border-b">$<%= product.price %></td>
+                        <td class="py-3 px-6 border-b"><%= product.stock %></td>
+                        <td class="py-3 px-6 border-b">
+                            <span class="<%= product.isBlocked ? 'text-red-600' : 'text-green-600' %> font-semibold">
+                                <%= product.isBlocked ? 'Blocked' : 'Active' %>
+                            </span>
+                        </td>
+                        <td class="py-3 px-6 border-b flex space-x-4">
+                            <!-- Edit Button -->
+                            <a href="/admin/editProduct/<%= product._id %>" class="text-blue-500 hover:text-blue-700">Edit</a>
+                            
+                            <!-- Block/Unblock Button -->
+                            <form action="/admin/blockProduct/<%= product._id %>" method="POST" class="inline-block">
+                                <button type="submit" class="text-yellow-500 hover:text-yellow-700">
+                                    <%= product.isBlocked ? 'Unblock' : 'Block' %>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
