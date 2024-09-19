@@ -129,17 +129,23 @@
           </table>
         </div>
         <!-- Pagination -->
+         
         <div class="mt-4 flex justify-between items-center">
           <div class="flex space-x-1">
-            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">1</button>
-            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">2</button>
-            <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">3</button>
-            <!-- Add more page numbers as needed -->
+            <% for (let i = 1; i <= locals.totalPages; i++) { %>
+              <a href="/admin/users?page=<%= i %>&limit=10" 
+                 class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= currentPage === i ? 'bg-gray-300' : '' %>">
+                <%= i %>
+              </a>
+            <% } %>
           </div>
-          <button class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</button>
+          <% if (locals.currentPage < locals.totalPages) { %>
+            <a href="/admin/users?page=<%= locals.currentPage + 1 %>&limit=10" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
+          <% } %>
         </div>
       </div>
     </div>
+
     <!-- footer -->
   </div>
   <footer class="flex items-center justify-between text-xs px-6 py-4 bg-white border-t mt-6">
@@ -181,6 +187,7 @@
     </div>
   </div>
 </div>
+
 <script>
   document
     .getElementById("logoutLink")

@@ -73,7 +73,7 @@
             <tbody class="text-gray-700">
                 <% products.forEach((product, index) => { %>
                     <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
-                        <td class="py-3 px-6 border-b"><%= index + 1 %></td>
+                        <td class="py-3 px-6 border-b"><%= index + 1 + (currentPage - 1) * 10 %></td>
                         <td class="py-3 px-6 border-b"><%= product.name %></td>
                         <td class="py-3 px-6 border-b"><%= product.category %></td>
                         <td class="py-3 px-6 border-b">$<%= product.price %></td>
@@ -84,10 +84,7 @@
                             </span>
                         </td>
                         <td class="py-3 px-6 border-b flex space-x-4">
-                            <!-- Edit Button -->
                             <a href="/admin/editProduct/<%= product._id %>" class="text-blue-500 hover:text-blue-700">Edit</a>
-                            
-                            <!-- Block/Unblock Button -->
                             <form action="/admin/blockProduct/<%= product._id %>" method="POST" class="inline-block">
                                 <button type="submit" class="text-yellow-500 hover:text-yellow-700">
                                     <%= product.isBlocked ? 'Unblock' : 'Block' %>
@@ -99,6 +96,31 @@
             </tbody>
         </table>
     </div>
-</div>
-</div>
 
+    <!-- Pagination Controls -->
+    <div class="mt-4 flex justify-between items-center">
+        <!-- Previous Button -->
+        <% if (currentPage > 1) { %>
+            <a href="/admin/products?page=<%= currentPage - 1 %>&limit=10" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
+        <% } else { %>
+            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
+        <% } %>
+
+        <!-- Page Numbers -->
+        <div class="flex space-x-1">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="/admin/products?page=<%= i %>&limit=10" 
+                   class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= currentPage === i ? 'bg-gray-300' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
+        </div>
+
+        <!-- Next Button -->
+        <% if (currentPage < totalPages) { %>
+            <a href="/admin/products?page=<%= currentPage + 1 %>&limit=10" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
+        <% } else { %>
+            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>
+        <% } %>
+    </div>
+</div>

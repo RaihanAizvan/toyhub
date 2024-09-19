@@ -18,7 +18,6 @@ const postBlock = async (req, res) => {
       //remove user from session
       if (isBlocked && req.session.user && req.session.user._id.toString() === userId) {
         delete req.session.user;
-        console.log(` the session is ${req.session}`);
       }
   
       // Respond with the updated block status

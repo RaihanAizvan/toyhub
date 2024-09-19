@@ -39,10 +39,10 @@ app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com 'unsafe-inline';");
   next();
 });
-// app.use((req, res, next) => {
-//   req.session.sAdminEmail = "admin@gmail.com"
-//   next();
-// });
+app.use((req, res, next) => {
+  req.session.sAdminEmail = "admin@gmail.com"
+  next(); 
+});
 
 app.use(nocache());
 

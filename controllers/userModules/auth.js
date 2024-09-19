@@ -147,7 +147,6 @@ async function getOtp(req, res) {
         }
         const currentTime = Date.now();
         const remainingTime = Math.max(0, Math.floor((user.otpExpires - currentTime) / 1000)); // Calculate remaining seconds
-        console.log(remainingTime);
         res.render('user/otp', { remainingTime, title: 'OTP Verification' });
     } catch (err) {
         console.error(err);

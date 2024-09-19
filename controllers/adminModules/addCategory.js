@@ -10,10 +10,26 @@ export async function getAddCategory(req, res) {
     }
     
     try {
-        // Fetch the list of categories from the database
-        const categories = await Category.find({});
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1; // Current page
+        const pageSize = parseInt(req.query.limit) || 10; // Number of categories per page
+
+        // Fetch the total number of categories
+        const totalCategories = await Category.countDocuments();
+
+        // Fetch the categories for the current page
+        const categories = await Category.find({})
+            .skip((page - 1) * pageSize) // Skip products for previous pages
+            .limit(pageSize) // Limit the number of products per page
+            .exec();
+
         res.set("Cache-Control", "no-store");
-        res.render("admin/addCategory", { categories,title:'Categories' });
+        res.render("admin/addCategory", {
+            categories,
+            title: 'Categories',
+            currentPage: page,
+            totalPages: Math.ceil(totalCategories / pageSize)
+        });
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).render('admin/addCategory', { message: 'Error fetching categories' });
@@ -22,23 +38,37 @@ export async function getAddCategory(req, res) {
 
 // Function to handle adding a new category
 export async function postAddCategory(req, res) {
+    const categories = await Category.find({});
     const { name } = req.body;
     try {
-      if (!name) {
-        return res.status(400).render('admin/addCategory', { nameError: 'Name is required' });
-      }
-      const imageUrl = req.file ? req.file.path : '';
-      const category = new Category({
-        name,
-        image: imageUrl
-      });
-      await category.save();
-      res.redirect('/admin/category');
+        // Validate: Check if name exists and has the required length
+        if (!name) {
+            return res.status(400).render('admin/addCategory', { nameError: 'Category name is required',categories});
+        }
+        if (name.length < 3 || name.length > 30) {
+            return res.status(400).render('admin/addCategory', { nameError: 'Name must be between 3 and 30 characters' ,categories});
+        }
+
+        // Validate: Check if category with the same name exists (case insensitive)
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+        if (existingCategory) {
+            return res.status(400).render('admin/addCategory', { nameError: 'Category name already exists' ,categories});
+        }
+
+        // Proceed with saving the category if validation passed
+        const imageUrl = req.file ? req.file.path : '';
+        const category = new Category({
+            name,
+            image: imageUrl
+        });
+        await category.save();
+        res.redirect('/admin/category');
     } catch (error) {
-      console.error('Error adding category:', error);
-      res.status(500).render('admin/addCategory', { message: 'Error adding category details' });
+        console.error('Error adding category:', error);
+        res.status(500).render('admin/addCategory', { message: 'Error adding category details',categories });
     }
-  }
+}
+
 export async function getEditCategory(req, res) {
     const categoryId = req.params.id;
     try {
@@ -54,27 +84,34 @@ export async function getEditCategory(req, res) {
 }
 
 export async function postEditCategory(req, res) {
-
-    const { name, description } = req.body;  // Extract text fields
-    const imageFile = req.file;              // Extract uploaded file
+    const { name, description } = req.body;
+    const imageFile = req.file;
 
     try {
+        // Validate: Check if name exists and has the required length
         if (!name) {
-            console.log('No name provided');
-            return res.status(400).render('admin/editCategory', { message: 'Name is required' });
+            return res.status(400).render('admin/editCategory', { message: 'Category name is required' });
+        }
+        if (name.length < 3 || name.length > 30) {
+            return res.status(400).render('admin/editCategory', { message: 'Name must be between 3 and 30 characters' });
         }
 
         // Find the category by ID
         const category = await Category.findById(req.params.id);
         if (!category) {
-            console.log('Category not found');
             return res.status(404).render('admin/editCategory', { message: 'Category not found' });
+        }
+
+        // Validate: Check if new name already exists (case insensitive), excluding the current category being edited
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') }, _id: { $ne: req.params.id } });
+        if (existingCategory) {
+            return res.status(400).render('admin/editCategory', { message: 'Category name already exists' });
         }
 
         // Update category details
         category.name = name;
         category.description = description;
-        
+
         if (imageFile) {
             // Upload the new image to Cloudinary
             const uploadResult = await cloudinary.uploader.upload(imageFile.path);
@@ -82,13 +119,13 @@ export async function postEditCategory(req, res) {
         }
 
         await category.save();
-        console.log('Category updated successfully');
-        res.redirect('/admin/category');  // Redirect to the categories list page
+        res.redirect('/admin/category');
     } catch (error) {
         console.error('Error updating category:', error);
         res.status(500).render('admin/editCategory', { message: 'Error updating category' });
     }
 }
+
 
 // Function to handle deleting a category
 export async function postDeleteCategory(req, res) {

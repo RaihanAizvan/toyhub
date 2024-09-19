@@ -1,54 +1,91 @@
-<div class="container mx-auto py-6">
-  <h1 class="text-2xl font-semibold mb-6">Add Product</h1>
+<div class="flex-1 p-8">
+    <h1 class="text-2xl font-semibold">Edit Product</h1>
+    <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Edit Product</p>
+    <!-- Form container -->
+    <div class="bg-white p-8 rounded-lg shadow-md">
+      <form id="productForm" class="grid grid-cols-2 gap-6" method="POST" action="/admin/editProduct" enctype="multipart/form-data">
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
+          <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md" placeholder="Type name here" value="<%= product.title %>">
+          <p class="error"><%= locals.titleError %></p>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
+          <textarea id="description1" name="description1" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"><%= product.description1 %></textarea>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
+          <textarea id="description2" name="description2" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"><%= product.description2 %></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="category">Category</label>
+          <select id="category" name="category" class="mt-1 p-2 w-full border rounded-md">
+            <option value="">Select a Category</option>
+            <% if(locals.categories) { %>
+              <% categories.forEach(category => { %>
+                <option value="<%= category._id %>" <% if (category._id === product.category) { %> selected <% } %>><%= category.name %></option>
+              <% }) %>
+            <% } else { %>
+              <option value="">No categories available</option>
+            <% } %>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="warning">Warning</label>
+          <input type="text" id="warning" name="warning" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Warning here" value="<%= product.warning %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="type">Type</label>
+          <input type="text" id="type" name="type" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the type" value="<%= product.type %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="color">Color</label>
+          <input type="text" id="color" name="color" class="mt-1 p-2 w-full border rounded-md" placeholder="Color" value="<%= product.color %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="weight">Weight</label>
+          <input type="text" id="weight" name="weight" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the weight" value="<%= product.weight %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="discount">Discount</label>
+          <input type="text" id="discount" name="discount" class="mt-1 p-2 w-full border rounded-md" placeholder="1258" value="<%= product.discount %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="sku">SKU</label>
+          <input type="text" id="sku" name="sku" class="mt-1 p-2 w-full border rounded-md" placeholder="Fox-3983" value="<%= product.sku %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="stock-quantity">Stock Quantity</label>
+          <input type="text" id="stock-quantity" name="stock_quantity" class="mt-1 p-2 w-full border rounded-md" placeholder="1258" value="<%= product.stock_quantity %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="regular-price">Regular Price</label>
+          <input type="text" id="regular-price" name="regular_price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹1000" value="<%= product.regular_price %>">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="sale-price">Sale Price</label>
+          <input type="text" id="sale-price" name="sale_price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹450" value="<%= product.sale_price %>">
+        </div>
 
-  <form id="productForm" class="space-y-4">
-      <!-- Product Name -->
-      <div>
-          <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
-          <input type="text" name="name" id="name" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product name" required>
-      </div>
+        <div class="col-span-2">
+          <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <svg class="w-10 h-10 mb-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h14"></path>
+              </svg>
+              <p class="text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+            </div>
+            <input id="dropzone-file" type="file" class="hidden" name="images" multiple>
+          </label>
+        </div>
 
-      <!-- Category -->
-      <div>
-          <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
-          <input type="text" name="category" id="category" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product category" required>
-      </div>
-
-      <!-- Price -->
-      <div>
-          <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
-          <input type="number" name="price" id="price" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter product price" required min="0" step="0.01">
-      </div>
-
-      <!-- Stock -->
-      <div>
-          <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
-          <input type="number" name="stock" id="stock" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter available stock" required min="0">
-      </div>
-
-      <!-- Image Upload -->
-      <div>
-          <label for="image" class="block text-sm font-medium text-gray-700">Product Image</label>
-          <input type="file" name="image" id="image" class="mt-1 w-full border rounded-md p-2" accept="image/*">
-      </div>
-
-      <!-- Image Preview -->
-      <div id="imagePreviewContainer" class="mt-3" style="display: none;">
-          <img id="imagePreview" class="max-w-full h-auto max-h-64 object-contain border" alt="Image Preview">
-      </div>
-
-      <!-- Crop Image Button -->
-      <button type="button" id="cropButton" class="mt-2 bg-yellow-500 text-white py-2 px-4 rounded-md" style="display: none;">
-          Crop Image
-      </button>
-
-      <!-- Submit Button -->
-      <div>
-          <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md">
-              Add Product
-          </button>
-      </div>
-  </form>
+        <div class="col-span-2 flex justify-end">
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Update Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
