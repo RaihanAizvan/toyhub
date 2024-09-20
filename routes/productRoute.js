@@ -9,4 +9,6 @@ router.get('/:id', productController.getSingleProduct);
 
 router.get('/categories', productController.getCategoryList);
 
+
+
 export default router;

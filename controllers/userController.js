@@ -72,3 +72,6 @@ export const getCategoryList = category.getCategoryList
 
 export const getSingleProduct = singleProduct.getSingleProduct
 
+
+export const viewAllCategories = category.viewAllCategories
+

@@ -26,5 +26,4 @@ const storage = new CloudinaryStorage({
   });
 
 
-
 export default upload;

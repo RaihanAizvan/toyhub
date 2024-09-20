@@ -5,4 +5,6 @@ const router = express.Router();
 
 router.get('/product', middleware.checkBlockStatus, home.getSingleProduct);
 
+router.get('/categories/all', home.viewAllCategories);
+
 export default router
