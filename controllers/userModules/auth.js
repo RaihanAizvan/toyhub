@@ -217,10 +217,11 @@ async function postResendOtp(req, res) {
 //login
 
 function getLogin(req,res) {       
+    const isBlocked = req.query.blocked
     if (req.session.user) {
         return res.redirect("/")
     }
-    res.render("user/login",{title:'Login'})
+    res.render("user/login",{title:'Login',message:isBlocked?"Sorry You are Blocked" : ""})
 }
 
 async function postLogin(req, res) {
