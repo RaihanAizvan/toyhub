@@ -67,6 +67,11 @@ app.use((req, res, next) => {
   delete req.session.toast;
   next();
 });
+app.use((req, res, next) => {
+  res.locals.flashMessage = req.session.flashMessage;
+  delete req.session.flashMessage;
+  next();
+});
 
 
 //layouts

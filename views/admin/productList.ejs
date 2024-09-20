@@ -26,8 +26,7 @@
             </li>
             <li>
                 <a href="/admin/category"
-                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Product
-                    Details</a>
+                    class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Category Managemant</a>
             </li>
             <li>
                 <a href="/admin/addProduct"
@@ -66,6 +65,7 @@
             <thead>
                 <tr class="bg-gray-100 text-left text-gray-700 uppercase text-sm tracking-wider">
                     <th class="py-3 px-6 border-b">#</th>
+                    <th class="py-3 px-6 border-b">Preview</th>
                     <th class="py-3 px-6 border-b">Product Name</th>
                     <th class="py-3 px-6 border-b">Category</th>
                     <th class="py-3 px-6 border-b">Price</th>
@@ -78,6 +78,9 @@
                 <% products.forEach((product, index) => { %>
                     <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
                         <td class="py-3 px-6 border-b"><%= index + 1 + (currentPage - 1) * 10 %></td>
+                        <td class="py-3 px-6 border-b">
+                            <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-10 h-10 object-cover rounded-full">
+                        </td>
                         <td class="py-3 px-6 border-b"><%= product.name %></td>
                         <td class="py-3 px-6 border-b"><%= product.category %></td>
                         <td class="py-3 px-6 border-b">$<%= product.price %></td>

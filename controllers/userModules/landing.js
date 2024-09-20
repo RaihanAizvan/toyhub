@@ -6,6 +6,11 @@ import Category from '../../models/categories.model.js';
 
 async function getLandingPage(req, res) {
     try {
+        const flashMessage = req.session.flashMessage || null;
+        if (req.session.flashMessage) {
+            delete req.session.flashMessage;
+          }
+        
         // Fetch the latest active products for "Popular Products"
         const popularProducts = await Product.find({ isBlocked: false })
             .sort({ createdAt: -1 }) 
@@ -28,7 +33,8 @@ async function getLandingPage(req, res) {
                 name: user.name,
                 popularProducts,
                 bestSellerProducts,
-                categories
+                categories,
+                flashMessage: flashMessage ? { message: flashMessage, type: type } : null
             });
             
         } else {
@@ -38,7 +44,8 @@ async function getLandingPage(req, res) {
                 name: 'Login',  // Show "Login" if not authenticated
                 popularProducts,
                 bestSellerProducts,
-                categories
+                categories,
+                flashMessage: flashMessage ? { message: flashMessage, type: type } : null
             });
         }
     } catch (error) {

@@ -18,3 +18,11 @@
 
     <!-- footer  -->
     <%- include("./footer") -%>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+      <% if (typeof flashMessage !== 'undefined' && flashMessage !== null) { %>
+        toastr['<%= flashMessage.type %>']('<%= flashMessage.message %>');
+      <% } %>
+    });
+    </script>

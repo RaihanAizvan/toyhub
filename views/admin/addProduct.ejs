@@ -443,10 +443,9 @@
 
     // Check if there's an alert message from the server
     
+    <% if (flashMessage) { %>
     document.addEventListener('DOMContentLoaded', function() {
-      <% if (typeof toast != 'undefined') { %>
-        toastr['<%= toast.type %>']('<%= toast.message %>');
-      <% } %>
+      toastr['<%= flashMessage.type %>']('<%= flashMessage.message %>');
     });
-
+<% } %>
 </script>

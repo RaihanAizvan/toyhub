@@ -258,7 +258,7 @@ async function postLogin(req, res) {
             id: user._id,
             name: user.name
         };
-
+        console.log(`session at postLogin `,req.session);
         res.redirect("/");
 
     } catch (err) {
