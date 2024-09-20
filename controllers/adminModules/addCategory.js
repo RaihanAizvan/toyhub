@@ -12,7 +12,7 @@ export async function getAddCategory(req, res) {
     try {
         // Pagination parameters
         const page = parseInt(req.query.page) || 1; // Current page
-        const pageSize = parseInt(req.query.limit) || 10; // Number of categories per page
+        const pageSize = parseInt(req.query.limit) || 6; // Number of categories per page
 
         // Fetch the total number of categories
         const totalCategories = await Category.countDocuments();

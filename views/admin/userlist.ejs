@@ -189,62 +189,65 @@
 </div>
 
 <script>
+
+  // Logout functionality
   document
     .getElementById("logoutLink")
     .addEventListener("click", function (event) {
-      event.preventDefault()
-      document.getElementById("logoutModal").classList.remove("hidden")
-    })
+      event.preventDefault();
+      document.getElementById("logoutModal").classList.remove("hidden");
+    });
 
   document
     .getElementById("cancelLogout")
     .addEventListener("click", function () {
-      document.getElementById("logoutModal").classList.add("hidden")
-    })
+      document.getElementById("logoutModal").classList.add("hidden");
+    });
 
   document
     .getElementById("confirmLogout")
     .addEventListener("click", function () {
       // Perform logout action here, for example, redirect to logout route
-      window.location.href = "/admin/logout"
-      const form = document.createElement("form")
-      form.method = "POST"
-      form.action = "/admin/logout"
-      document.body.appendChild(form)
-      form.submit()
-    })
-    //blocking the user
-
-
-    
-    function toggleBlockUser(userId, isBlocked) {
-  const action = isBlocked ? 'unblock' : 'block';
-
-  axios.post(`/admin/blockUser/${userId}`, { action: action }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.status === 200) {
-        const button = document.getElementById(`toggleButton-${userId}`);
-        // Update the button text and isBlocked variable
-        if (action === 'block') {
-          button.textContent = 'Unblock';
-          isBlocked = true; // Update the local variable to reflect the new status
-        } else {
-          button.textContent = 'Block';
-          isBlocked = false; // Update the local variable to reflect the new status
-        }
-        // Update the onclick event with the new isBlocked status
-        button.setAttribute('onclick', `toggleBlockUser('${userId}', ${isBlocked})`);
-      } else {
-        alert('Failed to toggle user block status.');
-      }
-    })
-    .catch(error => {
-      console.error('Error during the request:', error);
-      alert('An error occurred while toggling the user block status.');
+      window.location.href = "/admin/logout";
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/admin/logout";
+      document.body.appendChild(form);
+      form.submit();
     });
-}
+
+  // Function to toggle user block status with toast notifications
+  function toggleBlockUser(userId, isBlocked) {
+    const action = isBlocked ? 'unblock' : 'block';
+
+    axios.post(`/admin/blockUser/${userId}`, { action: action }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.status === 200) {
+          const button = document.getElementById(`toggleButton-${userId}`);
+          // Update the button text and isBlocked variable
+          if (action === 'block') {
+            button.textContent = 'Unblock';
+            isBlocked = true; // Update the local variable to reflect the new status
+            toastr.success('User has been successfully blocked.');
+          } else {
+            button.textContent = 'Block';
+            isBlocked = false; // Update the local variable to reflect the new status
+            toastr.success('User has been successfully unblocked.');
+          }
+          // Update the onclick event with the new isBlocked status
+          button.setAttribute('onclick', `toggleBlockUser('${userId}', ${isBlocked})`);
+        } else {
+          toastr.error('Failed to toggle user block status.');
+        }
+      })
+      .catch(error => {
+        console.error('Error during the request:', error);
+        toastr.error('An error occurred while toggling the user block status.');
+      });
+  }
+      
 </script>

@@ -278,6 +278,8 @@
     </div>
   </div>
 </div>
+<!-- alert  -->
+
 <!-- HTML remains largely the same, we'll focus on JavaScript changes -->
 <script>
   
@@ -438,5 +440,13 @@
       return new Blob([ab], { type: mimeString });
     }
   });
+
+    // Check if there's an alert message from the server
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      <% if (typeof toast != 'undefined') { %>
+        toastr['<%= toast.type %>']('<%= toast.message %>');
+      <% } %>
+    });
 
 </script>

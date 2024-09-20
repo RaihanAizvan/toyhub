@@ -1,5 +1,8 @@
 import Product from "../../models/product.models.js"
 import Category from '../../models/categories.model.js';
+import { toast } from 'sonner';
+ 
+
 
 
 //defineing funtions for passing to the controller and then the controller passes it it to the router
@@ -167,7 +170,11 @@ async function postAddProduct(req, res) {
     await Category.findByIdAndUpdate(category, {
       $push: { products: product._id }
     });
-    res.redirect('/admin/products'); // Redirect to the products list page
+    req.session.toast = {
+      message: 'Product added successfully!',
+      type: 'success' // Use 'success', 'error', 'info', 'warning'
+    };
+    res.redirect('/admin/addProduct'); // Redirect to the products list page
 
   } catch (error) {
     console.error('Error adding product:', error);

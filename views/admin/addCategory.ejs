@@ -159,37 +159,47 @@
     <script>
         // Function to add a new category row
         document.getElementById('addRowButton').addEventListener('click', function () {
-            const categoryRows = document.getElementById('categoryRows');
-            const newRow = document.createElement('div');
-            newRow.className = 'category-row bg-white p-4 border border-gray-300 rounded-lg shadow-md flex items-center space-x-4 relative';
-            newRow.innerHTML = `
+          const categoryRows = document.getElementById('categoryRows');
+          const newRow = document.createElement('div');
+          newRow.className = 'category-row bg-white p-4 border border-gray-300 rounded-lg shadow-md flex items-center space-x-4 relative';
+          newRow.innerHTML = `
             <input type="text" name="name" placeholder="Category Name" required class="border border-gray-300 p-2 rounded-md flex-1">
             <input type="file" name="image" accept="image/*" class="border border-gray-300 p-2 rounded-md">
             <img src="" alt="" class="w-24 h-24 object-cover hidden">
             <button type="button" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 delete-button">X</button>
           `;
-            categoryRows.appendChild(newRow);
+          categoryRows.appendChild(newRow);
+      
+          // Show success toast notification
+          toastr.success('New category row added.');
         });
-
+      
         // Function to handle file input change
         document.getElementById('categoryForm').addEventListener('change', function (event) {
-            if (event.target.type === 'file') {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        event.target.nextElementSibling.src = e.target.result;
-                        event.target.nextElementSibling.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                }
+          if (event.target.type === 'file') {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                event.target.nextElementSibling.src = e.target.result;
+                event.target.nextElementSibling.style.display = 'block';
+      
+                // Show success toast notification
+                toastr.success('Image preview updated.');
+              }
+              reader.readAsDataURL(file);
             }
+          }
         });
-
+      
         // Function to handle delete button click
         document.getElementById('categoryRows').addEventListener('click', function (event) {
-            if (event.target.classList.contains('delete-button')) {
-                event.target.parentElement.remove();
-            }
+          if (event.target.classList.contains('delete-button')) {
+            event.target.parentElement.remove();
+      
+            // Show info toast notification
+            toastr.info('Category row removed.');
+          }
         });
-    </script>
+      </script>
+      

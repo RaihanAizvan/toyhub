@@ -16,6 +16,8 @@ import productRoutes from "./routes/productRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
 
+import { toast } from 'sonner';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -59,6 +61,12 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(morgan('dev'))
 
+//middlware to Send the Toast Information to the Client: Use a middleware to pass the session data to the EJS template.
+app.use((req, res, next) => {
+  res.locals.toast = req.session.toast;
+  delete req.session.toast;
+  next();
+});
 
 
 //layouts

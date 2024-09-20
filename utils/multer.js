@@ -17,7 +17,7 @@ const storage = new CloudinaryStorage({
     storage: storage,
     fileFilter: (req, file, cb) => {
       // Accept all files that start with 'croppedImage_' or match 'files'
-      if (file.fieldname.startsWith('croppedImage_') || file.fieldname === 'files') {
+      if (file.fieldname.startsWith('croppedImage_') || file.fieldname === 'files' || file.fieldname ==='image') {
         cb(null, true);
       } else {
         cb(new Error('Unexpected field'));

@@ -8,10 +8,8 @@ async function getLandingPage(req, res) {
     try {
         // Fetch the latest active products for "Popular Products"
         const popularProducts = await Product.find({ isBlocked: false })
-
             .sort({ createdAt: -1 }) 
-
-
+            
         // Fetch the best-selling active products sorted by "sold" field
         const bestSellerProducts = await Product.find({ isBlocked: false })
             .sort({ sold: -1 })  // Sorting by sold units, descending (most sold)
@@ -32,6 +30,7 @@ async function getLandingPage(req, res) {
                 bestSellerProducts,
                 categories
             });
+            
         } else {
             res.render('user/home', {
                 title: "ToyHub",

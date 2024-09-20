@@ -19,9 +19,12 @@ const postBlock = async (req, res) => {
       if (isBlocked && req.session.user && req.session.user._id.toString() === userId) {
         delete req.session.user;
       }
-  
+      req.session.toast = {
+        message: 'user blocked successfully!',
+        type: 'success' // Use 'success', 'error', 'info', 'warning'
+      };
       // Respond with the updated block status
-      res.status(200).json({ message: 'User status updated successfully', userId: userId, isBlocked: isBlocked });
+      res.status(200).redirect('/admin/users');
     } catch (error) {
       console.error('Error updating user status:', error);
       res.status(500).json({ message: 'Server error' });
