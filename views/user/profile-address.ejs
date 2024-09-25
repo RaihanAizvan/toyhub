@@ -1,0 +1,16 @@
+<!-- address.ejs -->
+<%- include('profile-sidebar'); %>
+<div class="ml-64 md:ml-80 p-6">
+  <h1 class="text-2xl font-semibold mb-4">Address Management</h1>
+  <ul class="space-y-4">
+    <% user.addresses.forEach(address => { %>
+      <li class="border p-4 rounded">
+        <p><%= address.name %></p>
+        <p><%= address.contactDetails %></p>
+        <p><%= address.address %></p>
+        <p><%= address.postalCode %></p>
+      </li>
+    <% }) %>
+  </ul>
+  <a href="/add-address" class="mt-4 inline-block bg-[#00A845] text-white py-2 px-4 rounded">Add New Address</a>
+</div>

@@ -29,6 +29,13 @@ import singleProduct from "./userModules/singleProduct.js"
 import category from "./userModules/category.js"
 
 
+//* -----------------------------------------!                                         
+//s       Importing Profile                  |
+//* -----------------------------------------!                                         
+
+import profile from "./userModules/profile.js"
+
+
 //todo: --------------------------------------!
 
 //? *******************************************************************!                                      
@@ -75,3 +82,9 @@ export const getSingleProduct = singleProduct.getSingleProduct
 
 export const viewAllCategories = category.viewAllCategories
 
+
+//* -----------------------------------------!                                         
+//s     Exporting profiles                   |
+//* -----------------------------------------!      
+
+export const getProfileEdit = profile.getProfileEdit

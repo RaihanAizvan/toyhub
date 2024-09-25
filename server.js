@@ -13,6 +13,7 @@ import userRoutes from "./routes/userRoute.js";
 import googleRoutes from "./routes/googleAuthRoute.js";
 import homeRoutes from "./routes/homeRoute.js";
 import productRoutes from "./routes/productRoute.js"
+import profileRoutes from "./routes/profileRoutes.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
 
@@ -90,6 +91,7 @@ app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/auth", googleRoutes);
 app.use("/product", productRoutes);
+app.use("/profile", profileRoutes);
 
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com");

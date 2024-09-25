@@ -1,0 +1,14 @@
+<!-- coupons.ejs -->
+<%- include('profile-sidebar'); %>
+<div class="ml-64 md:ml-80 p-6">
+  <h1 class="text-2xl font-semibold mb-4">Available Coupons</h1>
+  <ul class="space-y-4">
+    <% user.coupons.forEach(coupon => { %>
+      <li class="border p-4 rounded">
+        <p><strong>Coupon:</strong> <%= coupon.title %></p>
+        <p><strong>Discount:</strong> <%= coupon.discount %> %</p>
+        <p><strong>Expiry Date:</strong> <%= coupon.expiryDate.toDateString() %></p>
+      </li>
+    <% }) %>
+  </ul>
+</div>

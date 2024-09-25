@@ -42,7 +42,7 @@ export async function postAddCategory(req, res) {
     const { name } = req.body;
     try {
         // Validate: Check if name exists and has the required length
-        if (!name) {
+        if (!name  || name.length < 3 || name.trim()==='') {
             return res.status(400).render('admin/addCategory', { nameError: 'Category name is required',categories});
         }
         if (name.length < 3 || name.length > 30) {

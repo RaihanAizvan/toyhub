@@ -1,0 +1,30 @@
+<!-- wallet.ejs -->
+<%- include('profile-wallet'); %>
+<div class="ml-64 md:ml-80 p-6">
+  <h1 class="text-2xl font-semibold mb-4">Wallet</h1>
+  <div class="bg-gray-100 p-4 rounded mb-6">
+    <h2 class="text-xl">Current Balance: ₹<%= user.walletBalance %></h2>
+    <a href="/add-money" class="mt-4 inline-block bg-[#00A845] text-white py-2 px-4 rounded">Add Money</a>
+  </div>
+  <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+  <table class="w-full border">
+    <thead>
+      <tr>
+        <th class="p-2 border">Date</th>
+        <th class="p-2 border">Name</th>
+        <th class="p-2 border">Amount</th>
+        <th class="p-2 border">Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% user.transactions.forEach(transaction => { %>
+        <tr>
+          <td class="p-2 border"><%= transaction.date.toDateString() %></td>
+          <td class="p-2 border"><%= transaction.name %></td>
+          <td class="p-2 border"><%= transaction.amount %></td>
+          <td class="p-2 border"><%= transaction.balance %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

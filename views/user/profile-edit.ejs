@@ -1,0 +1,81 @@
+<%- include('header') %>
+<div class="bg-gray-100 pt-4 w-full text-sm">
+
+    <div class="flex min-h-screen md:w-8/12  mx-auto">
+        <!-- Sidebar -->
+        <%- include('profile-sidebar') %>
+        
+        <!-- Profile Content -->
+        <div class="flex-1 p-2">
+        <!-- Personal Information Header -->
+        <div class="bg-white p-4  shadow-md mb-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">Personal Information</h2>
+                <a href="#" class="text-primary">Edit</a>
+            </div>
+      
+          <div class="grid grid-cols-2 gap-2 mt-4">
+              <!-- First Name -->
+              <div>
+                  <label class="text-gray-600">First Name</label>
+                  <input type="text" class="w-full border p-2 rounded-lg" value="Mohammed" disabled>
+                </div>
+            
+                <!-- Last Name -->
+                <div>
+                    <label class="text-gray-600">Last Name</label>
+                    <input type="text" class="w-full border p-2 rounded-lg" value="Raihan" disabled>
+                </div>
+      
+                <!-- Gender -->
+                <div class="col-span-2">
+              <label class="text-gray-600">Your Gender</label>
+              <div class="space-x-4 mt-2">
+                <label>
+                  <input type="radio" name="gender" checked> Male
+                </label>
+                <label>
+                  <input type="radio" name="gender"> Female
+                </label>
+            </div>
+        </div>
+            
+        <!-- Email -->
+        <div>
+              <label class="text-gray-600">Email Address</label>
+              <div class="flex items-center">
+                <input type="email" class="w-full border p-2 rounded-lg" value="aizvanr@gmail.com" disabled>
+                <a href="#" class="text-primary ml-4">Edit</a>
+            </div>
+        </div>
+        
+        <!-- Phone -->
+            <div>
+              <label class="text-gray-600">Mobile Number</label>
+              <div class="flex items-center">
+                <input type="tel" class="w-full border p-2 rounded-lg" value="+916238880997" disabled>
+                <a href="#" class="text-primary ml-4">Edit</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+        <!-- FAQs -->
+        <div class="bg-white p-4 shadow-md">
+          <h3 class="text-lg font-semibold text-gray-800">FAQs</h3>
+          <div class="mt-4 space-y-4">
+            <div>
+              <h4 class="font-semibold text-gray-600">What happens when I update my email address?</h4>
+              <p class="text-gray-500">Your login email id will change. You'll receive account-related communication at your updated email address.</p>
+            </div>
+      
+            <div>
+              <h4 class="font-semibold text-gray-600">When will my ToyHub account be updated?</h4>
+              <p class="text-gray-500">Your account will be updated as soon as you confirm the verification code sent to your email or mobile.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+  </div>
+</div>
