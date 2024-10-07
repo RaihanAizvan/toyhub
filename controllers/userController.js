@@ -88,3 +88,7 @@ export const viewAllCategories = category.viewAllCategories
 //* -----------------------------------------!      
 
 export const getProfileEdit = profile.getProfileEdit
+
+export const postUpdateName = profile.postUpdateName
+
+export const postUpdatePhone = profile.postUpdatePhone

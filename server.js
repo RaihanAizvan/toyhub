@@ -91,7 +91,7 @@ app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/auth", googleRoutes);
 app.use("/product", productRoutes);
-app.use("/profile", profileRoutes);
+app.use("/account", profileRoutes);
 
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com");
