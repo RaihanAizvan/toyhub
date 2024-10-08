@@ -37,10 +37,10 @@ const UserSchema = new Schema({
   otpExpires: {
     type: Date
   },
-  address: {
+  addresses: [{
     type: Schema.Types.ObjectId,
     ref: 'Address'
-  },
+  }],
   orders: {
     type: Schema.Types.ObjectId,
     ref: 'Orders'

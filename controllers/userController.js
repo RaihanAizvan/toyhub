@@ -35,6 +35,11 @@ import category from "./userModules/category.js"
 
 import profile from "./userModules/profile.js"
 
+//* -----------------------------------------!                                         
+//s       Importing Profile                  |
+//* -----------------------------------------!       
+
+import address from "./userModules/address.js"
 
 //todo: --------------------------------------!
 
@@ -79,7 +84,6 @@ export const getCategoryList = category.getCategoryList
 
 export const getSingleProduct = singleProduct.getSingleProduct
 
-
 export const viewAllCategories = category.viewAllCategories
 
 
@@ -92,3 +96,19 @@ export const getProfileEdit = profile.getProfileEdit
 export const postUpdateName = profile.postUpdateName
 
 export const postUpdatePhone = profile.postUpdatePhone
+
+//* -----------------------------------------!                                         
+//s     Exporting address                    |
+//* -----------------------------------------!      
+
+export const getAddress = address.getAddress
+
+export const postAddAddress = address.postAddAddress
+
+export const getEditAddress = address.getEditAddress
+
+export const postEditAddress = address.postEditAddress
+
+export const postDeleteAddress = address.postDeleteAddress
+
+

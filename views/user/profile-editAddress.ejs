@@ -1,0 +1,70 @@
+<%- include('header') %>
+<div class="bg-gray-100 pt-4 w-full text-sm">
+    <div class="flex min-h-screen md:w-8/12 mx-auto">
+        <!-- Sidebar -->
+        <%- include('profile-sidebar') %>
+
+        <!-- Profile Content -->
+        <div class="flex-1 p-2">
+            <!-- Personal Information Header -->
+            <div class="bg-white p-4 shadow-md mb-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-gray-800">Edit Address</h2>
+                    
+                </div>
+
+                <!-- Hidden Form (Initially Hidden) -->
+                <div id="editAddressForm" class=" mt-4">
+                    <form action="/account/edit-address/<%= address._id %>" method="POST" class="bg-white p-4 shadow-md">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-gray-600">Contact Name</label>
+                                <input type="text" name="name" class="w-full border p-2 rounded-lg" placeholder="Mohammed Raihan" required value="<%= address.name %>">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600">Street Address</label>
+                                <input type="text" name="street" class="w-full border p-2 rounded-lg" placeholder="123 Main Street, Anytown, USA, 12345" required value="<%= address.street %>">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600">City</label>
+                                <input type="text" name="city" class="w-full border p-2 rounded-lg" placeholder="Trivandrum" required value="<%= address.city %>">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600">State</label>
+                                <input type="text" name="state" class="w-full border p-2 rounded-lg" placeholder="Kerla" required value="<%= address.state %>">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600">Postal Code</label>
+                                <input type="text" name="zip" class="w-full border p-2 rounded-lg" placeholder="695505" required value="<%= address.zip %>">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600">Phone Number</label>
+                                <input type="text" name="phone" class="w-full border p-2 rounded-lg" placeholder="9876543210" required value="<%= address.phone %>">
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800">Address Management</h3>
+                <p class="text-gray-600">Manage your delivery addresses for a smoother shopping experience. You can add, edit, or delete addresses as needed.</p>
+                <div class="mt-4">
+                    <p class="text-gray-600">To add a new address, click the "Add New Address" button above. You can edit or delete existing addresses by clicking on the respective icons next to each address.</p>
+                    <p class="text-gray-600">Please ensure to keep your addresses up-to-date to avoid any delivery issues.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to toggle the Edit Address form visibility
+    function toggleAddressForm() {
+        const form = document.getElementById('editAddressForm');
+        form.classList.toggle('hidden');
+    }
+</script>

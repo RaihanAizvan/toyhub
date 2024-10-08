@@ -14,10 +14,12 @@
         <i class="fas fa-box"></i> My Orders
       </a>
       <div class="text-gray-500 font-bold px-4">ACCOUNT SETTINGS</div>
-      <a href="/account" class="block py-2 px-4 rounded <%= locals.title === 'Profile Edit'? 'bg-primary' : '' %>">Profile Information</a>
+      <a href="/account" class="block py-2 px-4 rounded <%= locals.title === 'Profile Edit'? 'bg-primary' : 'hover:bg-gray-200' %>">Profile Information</a>
       <a href="/account/address" class="block py-2 px-4 rounded <%= locals.title === 'Manage Addresses' ? 'bg-primary' : ' hover:bg-gray-200' %>">Manage Addresses</a>
+      <a href="/account/change-password" class="block py-2 px-4 rounded <%= locals.title === 'Change Password' ? 'bg-primary' : ' hover:bg-gray-200' %>">Change Passsword</a>
   
       <div class="text-gray-500 font-bold px-4"><i class="fab fa-amazon-pay"></i>  PAYMENTS</div>
+
       <a href="/account/gift-cards" class="block py-2 px-4 rounded hover:bg-gray-200">Gitf Cards</a>
       <a href="/account/card-details" class="block py-2 px-4 rounded hover:bg-gray-200">Card Details</a>
   
