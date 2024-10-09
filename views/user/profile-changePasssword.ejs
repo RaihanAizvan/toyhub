@@ -1,0 +1,103 @@
+<%- include('header') %>
+<div class="bg-gray-100 pt-4 w-full text-sm">
+    <div class="flex min-h-screen md:w-8/12 mx-auto">
+        <!-- Sidebar -->
+        <%- include('profile-sidebar') %>
+
+        <!-- Profile Content -->
+        <div class="flex-1 p-2">
+            <!-- Personal Information Header -->
+            <div class="bg-white p-4 shadow-md mb-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-gray-800">Change Password</h2>
+                </div>
+
+                <!-- Password Change Form -->
+                <div id="addAddressForm" class="mt-4">
+                    <form action="/account/change-password" method="POST" class="bg-white p-4 shadow-md" id="changePasswordForm">
+                        <div class="error text-red-600"><%= locals.error %></div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Current Password -->
+                            <div>
+                                <label class="block text-gray-600">Current Password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" class="w-full border p-2 rounded-lg" placeholder="Enter your current password" required>
+                            </div>
+                    
+                            <!-- New Password -->
+                            <div>
+                                <label class="block text-gray-600">New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" class="w-full border p-2 rounded-lg" placeholder="Enter a new password" required>
+                            </div>
+                    
+                            <!-- Confirm New Password -->
+                            <div>
+                                <label class="block text-gray-600">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="w-full border p-2 rounded-lg" placeholder="Confirm your new password" required>
+                            </div>
+                        </div>
+                    
+                        <!-- Submit Button -->
+                        <div class="flex justify-end mt-4">
+                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md">Change Password</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FAQ Section -->
+                <div class="bg-white p-4 shadow-md mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Change Password FAQ</h3>
+                    <div class="mt-4">
+                        <h4 class="text-md font-semibold text-gray-700">Why do I need to change my password?</h4>
+                        <p class="text-gray-600">Changing your password regularly helps to keep your account secure and protects your personal information from unauthorized access.</p>
+                        <h4 class="text-md font-semibold text-gray-700">How often should I change my password?</h4>
+                        <p class="text-gray-600">It's recommended to change your password every 60 to 90 days to maintain optimal security.</p>
+                        <h4 class="text-md font-semibold text-gray-700">What makes a strong password?</h4>
+                        <p class="text-gray-600">A strong password should be at least 12 characters long, include uppercase and lowercase letters, numbers, and special characters.</p>
+                        <h4 class="text-md font-semibold text-gray-700">What if I forget my new password?</h4>
+                        <p class="text-gray-600">If you forget your new password, you can reset it using the "Forgot Password" feature on the login page.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('changePasswordForm').addEventListener('submit', function (event) {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const errorDiv = document.querySelector('.error'); // Inline error display
+
+        // Reset errorDiv content before validation
+        errorDiv.textContent = '';
+
+        // Check if newPassword and confirmPassword match
+        if (newPassword !== confirmPassword) {
+            const errorMsg = 'New password and confirm password do not match.';
+            errorDiv.textContent = errorMsg; // Display inline error message
+            toastr.error(errorMsg); // Show Toastr error message
+            event.preventDefault(); // Prevent form submission
+            return; // Exit early if passwords do not match
+        }
+
+        // Check if newPassword is at least 5 characters long
+            if (newPassword.length < 5) {
+                const errorMsg = 'New password must be at least 5 characters long.';
+                errorDiv.textContent = errorMsg; // Display inline error message
+                toastr.error(errorMsg); // Show Toastr error message
+                event.preventDefault(); // Prevent form submission
+                return; // Exit early if password is too short
+            }
+
+            // Check if newPassword contains at least one uppercase letter
+            // if (!/[A-Z]/.test(newPassword)) {
+            //     const errorMsg = 'New password must contain at least one uppercase letter.';
+            //     errorDiv.textContent = errorMsg; // Display inline error message
+            //     toastr.error(errorMsg); // Show Toastr error message
+            //     event.preventDefault(); // Prevent form submission
+            // }
+            // Display a success toast if form submission is successful
+            alert("susec")
+        });
+</script>
+

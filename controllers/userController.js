@@ -111,4 +111,6 @@ export const postEditAddress = address.postEditAddress
 
 export const postDeleteAddress = address.postDeleteAddress
 
+export const getChangePassword = address.getChangePassword
 
+export const postChangePassword = address.postChangePassword
