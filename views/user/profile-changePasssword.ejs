@@ -90,14 +90,14 @@
             }
 
             // Check if newPassword contains at least one uppercase letter
-            // if (!/[A-Z]/.test(newPassword)) {
-            //     const errorMsg = 'New password must contain at least one uppercase letter.';
-            //     errorDiv.textContent = errorMsg; // Display inline error message
-            //     toastr.error(errorMsg); // Show Toastr error message
-            //     event.preventDefault(); // Prevent form submission
-            // }
+            if (!/[A-Z]/.test(newPassword)) {
+                const errorMsg = 'New password must contain at least one uppercase letter.';
+                errorDiv.textContent = errorMsg; // Display inline error message
+                toastr.error(errorMsg); // Show Toastr error message
+                event.preventDefault(); // Prevent form submission
+            }
             // Display a success toast if form submission is successful
-            alert("susec")
+            
         });
 </script>
 
