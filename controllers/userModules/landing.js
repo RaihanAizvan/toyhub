@@ -31,6 +31,7 @@ async function getLandingPage(req, res) {
                 title: "ToyHub",
                 auth: true,
                 name: user.name,
+                userId:user.id,
                 popularProducts,
                 bestSellerProducts,
                 categories,
@@ -45,7 +46,8 @@ async function getLandingPage(req, res) {
                 popularProducts,
                 bestSellerProducts,
                 categories,
-                flashMessage: flashMessage ? { message: flashMessage, type: type } : null
+                flashMessage: flashMessage ? { message: flashMessage, type: type } : null,
+                
             });
         }
     } catch (error) {

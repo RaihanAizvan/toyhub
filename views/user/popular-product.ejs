@@ -16,59 +16,114 @@
 
 </style>
 
+
+<!-- Product Card Section -->
+<!-- Product Card Section -->
 <section class="bg-white py-8">
     <div class="container mx-auto px-6">
         <h2 class="text-3xl font-semibold mb-6">All Products</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-            <% if(locals.popularProducts ) { %>
-                <% popularProducts.forEach(product=> { %>
-                <div class="bg-white shadow-lg rounded-lg flex flex-col justify-between p-4 h-80"> <!-- Set fixed height -->
-                    <a href="/product/<%= product._id %>">
-                        <div class="relative">
-                            <% if (product.oldPrice) { %>
-                            <div
-                                class="absolute top-0 left-0 bg-orange-400 text-white text-xs font-semibold py-1 px-3 rounded-br-lg">
-                                <%= Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) %>% OFF
-                            </div>
-                            <% } %>
-                            <!-- Product Image -->
-                            <img src="<%= product.images[0] %>" alt="<%= product.name %>"
-                                class="h-32 w-full object-contain rounded-t-lg"> <!-- Set fixed image height -->
+            <% if (locals.popularProducts) { %>
+                <% popularProducts.forEach(product => { %>
+                <div class="bg-white shadow-lg rounded-lg flex flex-col justify-between p-4">
+                    <div class="relative">
+                        <% if (product.oldPrice) { %>
+                        <div class="absolute top-0 left-0 bg-orange-400 text-white text-xs font-semibold py-1 px-3 rounded-br-lg">
+                            <%= Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) %>% OFF
                         </div>
-                        <div class="mt-2">
-                            <h1 class="font-bold text-sm"><%= product.name %></h1> <!-- Set font size to control overflow -->
+                        <% } %>
+                        <img src="<%= product.images[0] %>" alt="<%= product.name %>"
+                            class="h-32 w-full object-contain rounded-t-lg">
+                    </div>
+                    <div class="mt-2">
+                        <a href="/product/<%= product._id %>" class="block">
+                            <h1 class="font-bold text-sm"><%= product.name %></h1>
                             <p class="text-xs text-gray-600 overflow-hidden overflow-ellipsis line-clamp-2">
                                 <%= product.description1 %>
-                            </p> <!-- Add text truncation with line clamp -->
+                            </p>
                             <p class="text-green-500 text-2xl font-bold mt-2">$<%= product.price %></p>
-                        </div>
-                    </a>
-                    <div class="mt-auto"> <!-- Push buttons to bottom -->
-                        <div class="flex justify-evenly mt-4">
-                            <button
-                                class="w-full bg-primary text-white font-semibold py-2 px-4 rounded-lg transition duration-300 flex items-center justify-center">
-                                <svg class="w-5 h-5 mr-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24">
-                                    <path
-                                        d="M10 9V5a5 5 0 0 1 10 0v4h1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h1V5a7 7 0 0 1 14 0v4h-2V5a5 5 0 0 0-10 0v4h-1a1 1 0 0 0-1 1v9h2v-9a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1v9h2v-9a3 3 0 0 0-3-3h-1zM3 22a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-1H3v1z" />
-                                </svg>
-                                Add to cart
+                            <p class="text-sm text-gray-700 mt-2">
+                                <%= product.description2 %>
+                            </p>
+                        </a>
+                        <div class="flex justify-between mt-2">
+                            <button class="bg-transparent border-0 <%= product.inWishlist ? 'text-red-500' : 'text-green-500' %> hover:text-red-700 transition duration-300">
+                                <i class="fas fa-heart"></i>
                             </button>
-                            <button>
-                                <svg class="mt-4"
-                                    style="width: 2em; height: 1.5em; vertical-align: middle; fill: black; overflow: hidden;"
-                                    viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M512 898.56l-9.813333-4.693333C485.546667 884.906667 85.333333 679.68 85.333333 384c0-115.626667 53.76-202.666667 147.2-239.36C325.546667 108.373333 435.2 132.266667 512 203.52c76.8-71.253333 186.88-95.146667 279.466667-58.88C884.906667 181.333333 938.666667 268.373333 938.666667 384c0 295.68-400.213333 501.333333-416.853334 509.866667l-9.813333 4.693333zM322.986667 170.24c-25.6 0-51.2 4.693333-75.093334 14.08C171.52 214.186667 128 286.72 128 384c0 245.333333 323.413333 433.493333 384 466.346667 60.586667-32.853333 384-221.013333 384-466.346667 0-96.853333-43.52-169.813333-119.893333-199.68-83.2-32.426667-183.04-6.826667-248.32 64l-15.786667 17.066667-15.786667-17.066667c-46.506667-50.346667-110.08-78.08-173.226666-78.08z" />
-                                </svg>
+                            <button type="button" class="add-to-cart-btn text-green-500 font-bold py-1 px-4 rounded-xl flex items-center justify-center" data-product-id="<%= product._id %>">
+                                <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
                             </button>
                         </div>
                     </div>
+                    <% if (product.stock < 5) { %>
+                    <div class="text-white bg-red-600 p-1 text-center rounded text-sm mt-2">
+                        Few stocks left!
+                    </div>
+                    <% } %>
                 </div>
                 <% }) %>
-                <% } else { %>
-                <p>No products available</p>
-                <% } %>
+            <% } else { %>
+            <p>No products available</p>
+            <% } %>
         </div>
     </div>
 </section>
+<script>
+    console.log('Script loaded');
+
+// // Initialize Toastr
+// toastr.options = {
+//     closeButton: true,
+//     progressBar: true,
+//     positionClass: "toast-top-right",
+//     timeOut: 3000
+// };
+
+<% if (locals.toast) { %>
+    toastr["<%= locals.toast.type %>"]("<%= locals.toast.message %>");
+<% } %>
+
+function addToCart(event) {
+    console.log('Add to cart clicked');
+    event.preventDefault();
+    event.stopPropagation();
+
+    const productId = event.target.closest('.add-to-cart-btn').dataset.productId;
+    const quantity = 1;
+
+    console.log('Product ID:', productId);
+
+    axios.post('/cart/addProduct', {
+        productId: productId,
+        quantity: quantity
+    })
+    .then(response => {
+        console.log('Success:', response.data);
+        toastr.success(response.data.message || 'Product added to cart!');
+        if (response.data.cartItemCount !== undefined) {
+            updateCartItemCount(response.data.cartItemCount);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error(error.response?.data?.message || 'Failed to add product to cart.');
+    });
+}
+
+function updateCartItemCount(count) {
+    const cartCountElement = document.getElementById('cart-count');
+    if (cartCountElement) {
+        cartCountElement.innerText = count;
+    }
+}
+
+// Add event listeners to all "Add to Cart" buttons
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', addToCart);
+    });
+});
+
+</script>

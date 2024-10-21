@@ -41,6 +41,12 @@ import profile from "./userModules/profile.js"
 
 import address from "./userModules/address.js"
 
+//* -----------------------------------------!                                         
+//s       Importing Cart                     |
+//* -----------------------------------------!       
+
+import cart from "./userModules/cart.js"
+
 //todo: --------------------------------------!
 
 //? *******************************************************************!                                      
@@ -114,3 +120,16 @@ export const postDeleteAddress = address.postDeleteAddress
 export const getChangePassword = address.getChangePassword
 
 export const postChangePassword = address.postChangePassword
+
+
+//* -----------------------------------------!                                         
+//s           Exporting Cart                 |
+//* -----------------------------------------!      
+
+export const getCart = cart.getCart
+
+export const updateQuantity = cart.updateQuantity
+
+export const postAddProductToCart = cart.postAddProductToCart
+
+export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler

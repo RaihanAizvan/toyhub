@@ -1,0 +1,207 @@
+<style>
+    .price {
+        min-width: 100px;
+        text-align: right;
+    }
+</style>
+
+<%- include('header') %>
+
+<div class="bg-gray-50 pt-4 w-full text-sm">
+    <div class="md:w-8/12 mx-auto bg-white p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl font-bold text-center mb-6">Your Cart</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Cart Items Section -->
+            <div class="col-span-2 space-y-4">
+                <% if (cart && cart.items && cart.items.length > 0) { %>
+                    <% cart.items.forEach(item => { %>
+                        <div class="flex justify-between items-center border-b pb-4" id="cart-item-<%= item.product._id %>">
+                            <div class="flex items-center w-full">
+                                <!-- Product Image -->
+                                <a href="/product/<%= item.product._id %>">
+                                    <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-20 h-20 object-cover rounded-md mr-4">
+                                </a>
+
+                                <div class="flex-grow">
+                                    <!-- Product Info -->
+                                    <h2 class="font-semibold">
+                                        <a href="/product/<%= item.product._id %>">
+                                            <%= item.product.name %>
+                                        </a>
+                                    </h2>
+                                    <p class="text-gray-500"> <%= item.product.description %></p>
+
+                                    <!-- Quantity Selector -->
+                                    <div class="flex items-center mt-2">
+                                        <p class="text-gray-500 mr-2">Quantity:</p>
+                                        <select class="border border-gray-300 rounded-md p-1" onchange="updateQuantity(this, '<%= item.product._id %>', <%= item.price %>)">
+                                            <% for (let i = 1; i <= 10; i++) { %>
+                                                <option value="<%= i %>" <% if(i === item.quantity) { %> selected <% } %>><%= i %></option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Item Price -->
+                            <div class="text-lg font-bold text-green-600 ml-4" id="item-price-<%= item.product._id %>">
+                                $<%= (item.quantity * item.price).toFixed(2) %>
+                            </div>
+
+                            <!-- Remove Icon -->
+                            <form id="removeForm">
+                                <input type="hidden" id="cartId" name="cartId" value="<%= cart._id %>">
+                                <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" class="ml-5 hover:text-gray-500 text-red-500">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-gray-500 text-lg">Your cart is empty.</p>
+                <% } %>
+            </div>
+
+            <!-- Cart Summary Section -->
+            <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
+                <h2 class="text-xl font-bold mb-4">Cart Summary</h2>
+
+                <div class="space-y-2">
+                    <!-- Subtotal -->
+                    <div class="flex justify-between items-center" id="subtotal">
+                        <span>Subtotal:</span>
+                        <span class="font-bold price" id="subtotal-amount">$<%= cart.subtotal.toFixed(2) %></span>
+                    </div>
+
+                    <!-- Discount -->
+                    <% if (cart.discount) { %>
+                    <div class="flex justify-between items-center text-green-600">
+                        <span>Discount:</span>
+                        <span class="font-bold price" id="discount">-$<%= cart.discount.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+
+                    <!-- Total -->
+                    <div class="flex justify-between items-center text-lg font-bold text-green-600" id="total-price">
+                        <span>Total:</span>
+                        <span class="font-bold price" id="total-amount">$<%= cart.total.toFixed(2) %></span>
+                    </div>
+                </div>
+
+                <!-- Proceed to Checkout Button -->
+                <div class="mt-8">
+                    <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                        Proceed to Checkout
+                    </a>
+                </div>
+
+                <!-- Continue Shopping Button -->
+                <div class="mt-4 text-center">
+                    <a href="/shop" class="text-gray-500 underline">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('footer') %>
+
+<script>
+     // Function to add product to cart
+function addToCart(productId, quantity) {
+    axios.post('/cart/addProduct', {
+        productId: productId,
+        quantity: quantity
+    })
+    .then(response => {
+        toastr.success(response.data.message);
+        updateCartItemCount(response.data.cartItemCount);
+    })
+    .catch(error => {
+        toastr.error('Failed to add product to cart.');
+    });
+}
+
+// Function to update quantity
+function updateQuantity(element, productId, itemPrice) {
+    const quantity = element.value;
+    const cartId = document.getElementById('cartId').value; // Add a hidden input with cart ID in your HTML
+
+    axios.post('/cart/update-quantity', {
+        cartId: cartId,
+        productId: productId,
+        quantity: quantity
+    })
+    .then(response => {
+        const { subtotal, total, discount, message } = response.data;
+        updateCartSummary(subtotal, total, discount);
+        toastr.success(message);
+    })
+    .catch(error => {
+        toastr.error('Could not update cart.');
+    });
+}
+
+// Function to remove item from cart
+function removeItemFromCart(event, productId) {
+    event.preventDefault(); // Prevent form submission
+    const cartId = document.getElementById('cartId').value;
+
+    axios.post('/cart/remove-item', {
+        cartId: cartId,
+        productId: productId
+    })
+    .then(response => {
+        const { message, subtotal, total, discount, cartItemCount } = response.data;
+
+        // Attempt to get the item element
+        const itemElement = document.getElementById(`cart-item-${productId}`);
+        console.log(itemElement);
+        if (itemElement) {
+            itemElement.remove(); // Remove the item if it exists
+        } else {
+            console.log(2)
+            console.error(`Element with ID cart-item-${productId} not found.`);
+        }
+
+        // Update cart summary and item count
+        updateCartSummary(subtotal, total, discount);
+        updateCartItemCount(cartItemCount);
+        toastr.success(message);
+    })
+    .catch(error => {
+        toastr.error('Failed to remove item from cart.');
+        console.error('Error removing item:', error);
+    });
+}
+
+// Helper function to update cart summary
+function updateCartSummary(subtotal, total, discount) {
+    document.getElementById('subtotal-amount').innerText = `$${subtotal.toFixed(2)}`;
+    document.getElementById('total-amount').innerText = `$${total.toFixed(2)}`;
+    if (discount > 0) {
+        document.getElementById('discount').innerHTML = `Discount: -$${discount.toFixed(2)}`;
+    } 
+}
+
+// Helper function to update cart item count
+function updateCartItemCount(count) {
+    const cartCountElement = document.getElementById('cart-count');
+    if (cartCountElement) {
+        cartCountElement.innerText = count;
+    }
+}
+
+// Initialize Toastr
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: "toast-top-right",
+    timeOut: 3000
+};
+    
+
+</script>

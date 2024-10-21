@@ -3,8 +3,11 @@ import middleware from "../middlewares/userMiddleware.js"
 import express from "express";
 const router = express.Router();
 
-router.get('/product', middleware.checkBlockStatus, home.getSingleProduct);
+router.use(middleware.checkBlockStatus)
+
+router.get('/product', home.getSingleProduct);
 
 router.get('/categories/all', home.viewAllCategories);
+
 
 export default router
