@@ -47,6 +47,14 @@ import address from "./userModules/address.js"
 
 import cart from "./userModules/cart.js"
 
+
+//* -----------------------------------------!                                         
+//s       Importing checkout                 |
+//* -----------------------------------------!     
+
+import checkout from "./userModules/checkout.js"
+
+
 //todo: --------------------------------------!
 
 //? *******************************************************************!                                      
@@ -133,3 +141,11 @@ export const updateQuantity = cart.updateQuantity
 export const postAddProductToCart = cart.postAddProductToCart
 
 export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
+
+
+//* -----------------------------------------!                                         
+//s          Exporting checkout              |
+//* -----------------------------------------!
+
+
+export const getCheckoutPage = checkout.getCheckoutPage

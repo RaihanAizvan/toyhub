@@ -1,0 +1,120 @@
+<%- include('header') %>
+
+<div class="bg-gray-200  py-6 w-full text-sm">
+    <div class="md:w-8/12 mx-auto bg-gray-100 p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl font-bold text-center mb-6">Checkout</h1>
+
+        <div class="grid grid-cols-1 bg-gray-50 md:grid-cols-3 gap-6">
+            <!-- Left Section: Address, Coupon, and Payment -->
+            <div class="col-span-2 space-y-6">
+                <!-- Address Selector -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="font-semibold text-lg mb-4">Select Delivery Address</h2>
+                    <% if (user.addresses && user.addresses.length > 0) { %>
+                        <% user.addresses.forEach((address, index) => { %>
+                            <div class="flex items-start space-x-4 mb-4">
+                                <input type="radio" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> class="mt-1">
+                                <label for="address-<%= index %>" class="w-full">
+                                    <p class="font-semibold"><%= address.name %></p>
+                                    <p><%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%= address.postalCode %></p>
+                                    <p class="text-gray-500"><%= address.phone %></p>
+                                </label>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="text-gray-500">No address found. Please add one from your profile.</p>
+                    <% } %>
+                </div>
+
+                <!-- Coupon Code Entry -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="font-semibold text-lg mb-4">Apply Coupon</h2>
+                    <div class="flex">
+                        <input type="text" id="couponCode" placeholder="Enter Coupon Code" class="border border-gray-300 p-2 rounded-l-md w-full">
+                        <button onclick="applyCoupon()" class="bg-primary text-white p-2 rounded-r-md">Apply</button>
+                    </div>
+                    <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="font-semibold text-lg mb-4">Payment Method</h2>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="paymentMethod" id="razorpay" value="razorpay" class="mr-2">
+                            <label for="razorpay" class="text-gray-600">Razorpay</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="mr-2">
+                            <label for="cod" class="text-gray-600">Cash on Delivery</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="paymentMethod" id="wallet" value="wallet" class="mr-2">
+                            <label for="wallet" class="text-gray-600">Wallet</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section: Order Summary -->
+            <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+
+                <!-- List of Products in the Cart -->
+                <div class="space-y-4">
+                    <% cart.items.forEach(item => { %>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-4">
+                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-contain rounded-md">
+                                <div>
+                                    <h3 class="font-semibold"><%= item.product.name %></h3>
+                                    <p class="text-gray-500">Qty: <%= item.quantity %></p>
+                                </div>
+                            </div>
+                            <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %></p>
+                        </div>
+                        <hr>
+                    <% }) %>
+                </div>
+
+                <!-- Price Details -->
+                <div class="mt-6 space-y-2">
+                    <div class="flex justify-between">
+                        <span>Subtotal</span>
+                        <span class="font-bold">$<%= cart.subtotal.toFixed(2) %></span>
+                    </div>
+                    <% if (cart.discount) { %>
+                    <div class="flex justify-between text-green-600">
+                        <span>Discount</span>
+                        <span class="font-bold">-$<%= cart.discount.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                    <div class="flex justify-between text-lg font-bold text-green-600">
+                        <span>Total</span>
+                        <span class="font-bold">$<%= cart.total.toFixed(2) %></span>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <div class="mt-8">
+                    <form action="/checkout/complete" method="POST">
+                        <input type="hidden" name="selectedAddress" value="<%= user.addresses[0]._id %>">
+                        <input type="hidden" name="paymentMethod" value="razorpay">
+                        <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                            Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('footer') %>
+
+<script>
+    // Apply Coupon Feedback
+    function applyCoupon() {
+        document.getElementById('couponFeedback').classList.remove('hidden');
+    }
+</script>

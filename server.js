@@ -15,6 +15,7 @@ import homeRoutes from "./routes/homeRoute.js";
 import productRoutes from "./routes/productRoute.js"
 import profileRoutes from "./routes/profileRoutes.js"
 import cartRoutes from "./routes/cartRoute.js"
+import checkoutRoutes from "./routes/checkoutRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
 
@@ -94,6 +95,7 @@ app.use("/auth", googleRoutes);
 app.use("/product", productRoutes);
 app.use("/account", profileRoutes);
 app.use("/cart", cartRoutes);
+app.use("/checkout", checkoutRoutes);
 
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com https://cdnjs.cloudflare.com");
