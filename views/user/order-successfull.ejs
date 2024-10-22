@@ -1,0 +1,46 @@
+<%- include('header') %>
+<style>
+    .checkmark {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: dash 1s ease-in-out forwards;
+    }
+
+    @keyframes dash {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .scale-up-center {
+        animation: scale-up-center 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+    }
+
+    @keyframes scale-up-center {
+        0% {
+            transform: scale(0.5);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+</style>
+<div class="bg-gray-100 flex items-center justify-center ">
+<div class="text-center">
+    <!-- Animated Checkmark -->
+    <svg class="mx-auto mb-8" xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#00A845" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="scale-up-center">
+        <circle cx="12" cy="12" r="10" class="checkmark" />
+        <polyline points="9 12 12 15 20 7" class="checkmark" />
+    </svg>
+
+    <!-- Success Message -->
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h1>
+    <p class="text-lg text-gray-600 mb-8">Thank you for shopping with ToyHub. Your order is being processed.</p>
+
+    <!-- Button to View Orders -->
+    <a href="/account/orders" class="bg-primary text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-600 transition-all">
+        View My Orders
+    </a>
+</div>
+</div>
+<%- include('footer') %>

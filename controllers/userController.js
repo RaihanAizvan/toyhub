@@ -149,3 +149,6 @@ export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
 
 
 export const getCheckoutPage = checkout.getCheckoutPage
+
+export const postPlaceOrderInCheckout = checkout.postPlaceOrderInCheckout
+

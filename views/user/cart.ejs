@@ -71,34 +71,36 @@
                     <!-- Subtotal -->
                     <div class="flex justify-between items-center" id="subtotal">
                         <span>Subtotal:</span>
-                        <span class="font-bold price" id="subtotal-amount">$<%= cart.subtotal.toFixed(2) %></span>
+                        <span class="font-bold price" id="subtotal-amount">$<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
                     </div>
 
                     <!-- Discount -->
                     <% if (cart.discount) { %>
                     <div class="flex justify-between items-center text-green-600">
                         <span>Discount:</span>
-                        <span class="font-bold price" id="discount">-$<%= cart.discount.toFixed(2) %></span>
+                        <span class="font-bold price" id="discount">-$<%= cart.discount ? cart.discount.toFixed(2) : '0.00' %></span>
                     </div>
                     <% } %>
 
                     <!-- Total -->
                     <div class="flex justify-between items-center text-lg font-bold text-green-600" id="total-price">
                         <span>Total:</span>
-                        <span class="font-bold price" id="total-amount">$<%= cart.total.toFixed(2) %></span>
+                        <span class="font-bold price" id="total-amount">$<%= cart.total ? cart.total.toFixed(2) : '0.00' %></span>
                     </div>
                 </div>
 
                 <!-- Proceed to Checkout Button -->
-                <div class="mt-8">
-                    <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
-                        Proceed to Checkout
-                    </a>
-                </div>
+                <% if (cart.items.length > 0) { %>
+                    <div class="mt-8">
+                        <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                            Proceed to Checkout
+                        </a>
+                    </div>
+                <% } %>
 
                 <!-- Continue Shopping Button -->
                 <div class="mt-4 text-center">
-                    <a href="/shop" class="text-gray-500 underline">
+                    <a href="/" class="text-gray-500 underline">
                         Continue Shopping
                     </a>
                 </div>

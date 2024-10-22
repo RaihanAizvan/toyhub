@@ -8,5 +8,6 @@ router.use(middleware.redirectToLoginIfNotAUser)
 
 //routes
 router.get('/' , checkout.getCheckoutPage)
+router.post('/' , checkout.postPlaceOrderInCheckout)
 
 export default router

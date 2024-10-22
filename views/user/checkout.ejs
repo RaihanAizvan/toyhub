@@ -97,7 +97,7 @@
 
                 <!-- Place Order Button -->
                 <div class="mt-8">
-                    <form action="/checkout/complete" method="POST">
+                    <form action="/checkout" method="POST">
                         <input type="hidden" name="selectedAddress" value="<%= user.addresses[0]._id %>">
                         <input type="hidden" name="paymentMethod" value="razorpay">
                         <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
