@@ -38,15 +38,34 @@
     router.post('/category/edit/:id', isAdmin.isAdmin, upload.single('image'), adminController.postEditCategory);
     router.post('/category/delete/:id', isAdmin.isAdmin, adminController.postDeleteCategory);
 
-    //!-----------------------------/!/
+    //!----------------------------------/!/
     //todo: define user list routes here/!/
-    //!---------------------------/!/
-
+    //!--------------------------------/!/
+    
     //router for retrieve all users
     router.get("/users", isAdmin.isAdmin, adminController.getUserlist)
-    //router for block  users
     router.post('/blockUser/:id', isAdmin.isAdmin, adminController.postBlock)
+
+    //!-----------------------------------/!/
+    //todo: define order list routes here/!/
+    //!---------------------------------/!/
+
+
+    router.get('/orders', adminController.getAdminOrders);
+    router.post('/orders/:orderId/status', adminController.postUpdateOrderStatus);
+
+
+    
 
     export default router
 
 
+
+    //^duehuiwehuif
+    //todo: define order routes here/!/
+    //!-------------------------------/!/
+    //?router for retrieve all orders
+    //*pode
+    //&poda pdiodaada
+    //~vedhjvgej
+    //todo

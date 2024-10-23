@@ -30,11 +30,14 @@ import category from "./adminModules/addCategory.js"
 
 //todo: -----------------User list Routes-----------------!
 
-// Importinf the User module which contains get user related functions
 import user from "./adminModules/users.js"
 
-//This is for blocking the user nad also unbloacking
 import block from "./adminModules/block.js"
+
+//todo: -----------------Order list Routes-----------------!
+
+import order from "./adminModules/order.js"
+
 
 //! ------------------------------------------------------!
 //                                                        |                                        
@@ -87,8 +90,13 @@ export const getUserlist = user.getUserList
 
 //todo: -----------------User block Routes-----------------!
 
-// exporting the getUserlist function to show the user details
 export const postBlock = block.postBlock
 
+//todo: -----------------Order list Routes-----------------!
 
+export const getAdminOrders = order.getAdminOrders
+
+export const postUpdateOrderStatus = order.postUpdateOrderStatus
+
+    
 
