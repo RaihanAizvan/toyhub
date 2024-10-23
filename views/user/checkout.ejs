@@ -62,49 +62,59 @@
 
                 <!-- List of Products in the Cart -->
                 <div class="space-y-4">
-                    <% cart.items.forEach(item => { %>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-4">
-                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-contain rounded-md">
-                                <div>
-                                    <h3 class="font-semibold"><%= item.product.name %></h3>
-                                    <p class="text-gray-500">Qty: <%= item.quantity %></p>
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <% cart.items.forEach(item => { %>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-4">
+                                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-contain rounded-md">
+                                    <div>
+                                        <h3 class="font-semibold"><%= item.product.name %></h3>
+                                        <p class="text-gray-500">Qty: <%= item.quantity %></p>
+                                    </div>
                                 </div>
+                                <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %></p>
                             </div>
-                            <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %></p>
-                        </div>
-                        <hr>
-                    <% }) %>
+                            <hr>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="text-gray-500">No items in the cart.</p>
+                    <% } %>
                 </div>
 
                 <!-- Price Details -->
                 <div class="mt-6 space-y-2">
                     <div class="flex justify-between">
                         <span>Subtotal</span>
-                        <span class="font-bold">$<%= cart.subtotal.toFixed(2) %></span>
+                        <span class="font-bold">$<%= cart ? cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
                     </div>
-                    <% if (cart.discount) { %>
+                    <% if (cart && cart.discount) { %>
                     <div class="flex justify-between text-green-600">
                         <span>Discount</span>
-                        <span class="font-bold">-$<%= cart.discount.toFixed(2) %></span>
+                        <span class="font-bold">-$<%= cart.discount ? cart.discount.toFixed(2) : '0.00' %></span>
                     </div>
                     <% } %>
                     <div class="flex justify-between text-lg font-bold text-green-600">
                         <span>Total</span>
-                        <span class="font-bold">$<%= cart.total.toFixed(2) %></span>
+                        <span class="font-bold">$<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %></span>
                     </div>
                 </div>
 
                 <!-- Place Order Button -->
-                <div class="mt-8">
-                    <form action="/checkout" method="POST">
-                        <input type="hidden" name="selectedAddress" value="<%= user.addresses[0]._id %>">
-                        <input type="hidden" name="paymentMethod" value="razorpay">
-                        <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
-                            Place Order
-                        </button>
-                    </form>
-                </div>
+                <% if (cart && cart.items && cart.items.length > 0) { %>
+                    <div class="mt-8">
+                        <form action="/checkout" method="POST">
+                            <input type="hidden" name="selectedAddress" value="<%= user.addresses[0]._id %>">
+                            <input type="hidden" name="paymentMethod" value="razorpay">
+                            <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                                Place Order
+                            </button>
+                        </form>
+                    </div>
+                <% } else { %>
+                    <script>
+                        toastr.error('Your cart is empty. Please add items to proceed to checkout.');
+                    </script>
+                <% } %>
             </div>
         </div>
     </div>

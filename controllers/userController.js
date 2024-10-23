@@ -111,6 +111,20 @@ export const postUpdateName = profile.postUpdateName
 
 export const postUpdatePhone = profile.postUpdatePhone
 
+export const getOrderHistory = profile.getOrderHistory
+
+export const getOrderDetail = profile.getOrderDetail    
+
+export const postOrderCancel = profile.postOrderCancel    
+
+export const getCancelReason = profile.getCancelReason    
+
+export const postItemCancel = profile.postItemCancel
+
+
+
+
+
 //* -----------------------------------------!                                         
 //s     Exporting address                    |
 //* -----------------------------------------!      
@@ -128,6 +142,8 @@ export const postDeleteAddress = address.postDeleteAddress
 export const getChangePassword = address.getChangePassword
 
 export const postChangePassword = address.postChangePassword
+
+
 
 
 //* -----------------------------------------!                                         

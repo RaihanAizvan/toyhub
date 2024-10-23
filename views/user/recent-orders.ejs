@@ -1,0 +1,63 @@
+<%- include('header') %>
+<div class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto md:w-10/12 py-8">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">My Orders</h1>
+
+        <!-- Check if there are any orders -->
+        <% if (orders.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr class="w-full bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">SL No.</th>
+                            <th class="py-3 px-6 text-left">Items</th>
+                            <th class="py-3 px-6 text-left">Order ID</th>
+                            <th class="py-3 px-6 text-left">Order Date</th>
+                            <th class="py-3 px-6 text-left">Total Amount</th>
+                            <th class="py-3 px-6 text-left">Order Status</th>
+                            <th class="py-3 px-6 text-left">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm font-light">
+                        <% orders.forEach((order, index) => { %>
+                            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <td class="py-3 px-6 text-left"><%= index + 1 %></td>
+                                <td class="py-3 px-6 text-left">
+                                    <div class="flex items-center">
+                                        <img src="<%= order.items[0].product.images[0] %>" alt="<%= order.items[0].product.name %>" class="w-16 h-16 object-contain rounded-md mr-2">
+                                        <span class="text-gray-600">Total Products: <%= order.items.length %></span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-6 text-left">
+                                    <a href="/account/orders/<%= order._id %>" class="text-blue-500 hover:underline"><%= order._id %></a>
+                                </td>
+                                <td class="py-3 px-6 text-left"><%= new Date(order.orderDate).toLocaleString() %></td>
+                                <td class="py-3 px-6 text-left font-semibold">$<%= order.totalAmount %></td>
+                                <td class="py-3 px-6 text-left font-bold <%= order.status === 'Cancelled' ? 'text-red-500' : order.status === 'pending' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-green-500' : 'text-yellow-500' %>"><%= order.status %></td>
+                                <td class="py-3 px-6 text-left font-semibold">
+                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
+                                    <a href="/account/orders/<%= order._id %>/cancel-reason" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-3 rounded">
+                                        Cancel Order
+                                    </a>
+                                <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p class="text-gray-600">No orders found.</p>
+        <% } %>
+    </div>
+</div>
+<%- include('footer') %>
+
+<% if (locals.toastr) { %>
+    <script>
+        toastr["<%= req.toastr.type %>"]("<%= req.toastr.message %>");
+    </script>
+<% } %>
+
+
+

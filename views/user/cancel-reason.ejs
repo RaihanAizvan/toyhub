@@ -1,0 +1,50 @@
+<%- include('header') %>
+
+<div class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto w-8/12 bg-white shadow-md rounded-lg p-6">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6">Cancellation Reason</h1>
+
+        <p class="text-lg text-gray-700 mb-4">Your order has been canceled. Please let us know why:</p>
+
+        <!-- Form for submitting cancellation reason -->
+        <form action="/account/orders/<%= order._id %>/cancel-reason" method="POST">
+            <!-- Reason options -->
+            <div class="mb-6">
+                <div class="mb-4">
+                    <input type="radio" id="reason1" name="cancelReason" value="Changed my mind" required>
+                    <label for="reason1" class="text-gray-700">Changed my mind</label>
+                </div>
+                <div class="mb-4">
+                    <input type="radio" id="reason2" name="cancelReason" value="Found a better price" required>
+                    <label for="reason2" class="text-gray-700">Found a better price</label>
+                </div>
+                <div class="mb-4">
+                    <input type="radio" id="reason3" name="cancelReason" value="Product not needed" required>
+                    <label for="reason3" class="text-gray-700">Product not needed anymore</label>
+                </div>
+                <div class="mb-4">
+                    <input type="radio" id="reason4" name="cancelReason" value="Order by mistake" required>
+                    <label for="reason4" class="text-gray-700">Ordered by mistake</label>
+                </div>
+                <div class="mb-4">
+                    <input type="radio" id="reason5" name="cancelReason" value="Other" required>
+                    <label for="reason5" class="text-gray-700">Other</label>
+                </div>
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit" class="bg-green-500 text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-600 transition duration-200">
+                Submit Reason
+            </button>
+        </form>
+
+        <!-- Back button -->
+        <div class="mt-6">
+            <a href="/account/orders/<%= order._id %>" class="bg-primary text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                Back to Order Details
+            </a>
+        </div>
+    </div>
+</div>
+
+<%- include('footer') %>

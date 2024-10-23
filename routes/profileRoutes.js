@@ -16,4 +16,11 @@ router.post('/delete-address/:id', profile.postDeleteAddress);
 router.get('/change-password', profile.getChangePassword);
 router.post('/change-password', profile.postChangePassword);
 
+router.get('/orders', profile.getOrderHistory)
+router.get('/orders/:id', profile.getOrderDetail);
+router.get('/orders/:id/cancel-reason', profile.getCancelReason);
+router.post('/orders/:id/cancel-reason', profile.postOrderCancel);
+router.post('/orders/:orderId/cancel-item', profile.postItemCancel);
+
+
 export default router
