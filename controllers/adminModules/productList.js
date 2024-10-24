@@ -1,22 +1,26 @@
 import Product from "../../models/product.models.js";   
 import mongoose from "mongoose";  
+
+
+
+
+
 // Function to render the product list page with pagination
 export async function getProductList(req, res) {
   if (!req.session.sAdminEmail) {
       return res.redirect("/admin");
   }
-
   const page = parseInt(req.query.page) || 1; // Current page number
   const pageSize = parseInt(req.query.limit) || 10; // Number of products per page
-
   try {
       const totalProducts = await Product.countDocuments();
-      const products = await Product.find({})
+      const products = await Product.find({}).populate('category')
           .skip((page - 1) * pageSize) // Skip products for previous pages
           .limit(pageSize) // Limit the number of products per page
           .exec();
 
       res.set("Cache-Control", "no-store");
+      console.log(products);
       res.render("admin/productList", {
           products,
           title: 'Product List',
@@ -147,7 +151,7 @@ async function postBlockProduct(req, res) {
             return res.status(404).send({ message: 'Product not found' });
         }
 
-        // Toggle the `isBlocked` field: if true, set to false; if false, set to true
+        // Toggle the `isBlocked` field: if true, set to falseb; if false, set to true
         product.isBlocked = !product.isBlocked;
 
         // Save the updated product
