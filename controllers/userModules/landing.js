@@ -13,7 +13,7 @@ async function getLandingPage(req, res) {
         
         // Fetch the latest active products for "Popular Products"
         const popularProducts = await Product.find({ isBlocked: false })
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 }).limit(20)
             
         // Fetch the best-selling active products sorted by "sold" field
         const bestSellerProducts = await Product.find({ isBlocked: false })
@@ -21,13 +21,35 @@ async function getLandingPage(req, res) {
             .limit(10);  // Limit to 10 products (adjustable)
 
         // Fetch all categories (no need for isBlocked filter here unless categories have a similar field)
-        const categories = await Category.find({}).sort({ createdAt: -1 }).limit(5)
+        const categories = await Category.find({}).sort({ createdAt: -1 }).limit(10)
 
         // Check if the user is authenticated
         const user = req.user || req.session.user;  // Assuming you're using session or authentication middleware
 
+        const slides = [
+            {
+              image: "/images/Banner/banner-4.jpg",  // Path to the image
+              title: "Welcome to ToyHub",
+              description: "Find the best toys for all ages!",
+              buttonLink: "/shop"  // Link for the slider button
+            },
+            {
+              image: "/images/Banner/banner-4.jpg",
+              title: "Educational Toys",
+              description: "Enhance learning with fun toys!",
+              buttonLink: "/educational-toys"
+            },
+            {
+              image: "/images/Banner/banner-4.jpg",
+              title: "New Arrivals",
+              description: "Check out the latest additions!",
+              buttonLink: "/new-arrivals"
+            }
+          ];
+
         if (user) {
             res.render('user/home', {
+                slides,
                 title: "ToyHub",
                 auth: true,
                 name: user.name,

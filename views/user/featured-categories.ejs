@@ -4,9 +4,9 @@
         <div class="flex space-x-6 overflow-x-scroll no-scrollbar">
             <% if(locals.categories ) { %>
                 <% categories.forEach(category=> { %> 
-                    <div class="bg-white shadow-lg rounded-lg p-4 w-80">
+                    <div class="bg-white shadow-lg rounded-lg p-4 w-96">
                         <a href="/user/category/<%= category.id %>">
-                            <img src="<%= category.image %>" alt="<%= category.name %>" class="h-24 w-full object-cover rounded-t-lg">
+                            <img src="<%= category.image %>" alt="<%= category.name %>" class="h-20 w-full object-contain rounded-t-lg">
                             <h3 class="text-lg font-semibold mt-2">
                                 <%= category.name %>
                             </h3>
