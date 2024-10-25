@@ -79,6 +79,7 @@ export const updateQuantity = async (req, res) => {
 export const postRemoveItemFromCartHandler = async (req, res) => {
     try {
         const { cartId, productId } = req.body;
+        
 
         const cart = await Cart.findById(cartId);
         if (!cart) {

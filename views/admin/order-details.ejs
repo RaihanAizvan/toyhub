@@ -1,0 +1,297 @@
+<div class="min-h-screen flex flex-col justify-stretch">
+    <div class="flex bg-gray-200">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white p-4 hidden sm:block">
+            <div class="flex items-center justify-between px-6 py-4">
+                <span class="text-xl font-semibold">ToyHub</span>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/admin"
+                            class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg">
+                            Dashboard </a>
+                    </li>
+                    <li>
+                        <a href="/admin/products"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all  p-2 text-gray-700"> All
+                            Products </a>
+                    </li>
+                    <li>
+                        <a href="/admin/orders" class="flex items-center bg-primary rounded p-2 text-gray-700">
+                            <span class="ml-3">Order List</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/users"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all  p-2 text-gray-700">User
+                            List</a>
+                    </li>
+                    <li>
+                        <a href="/admin/category"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all  p-2 text-gray-700">Category
+                            Management</a>
+                    </li>
+                    <li>
+                        <a href="/admin/addProduct"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all  p-2 text-gray-700">Add
+                            Products</a>
+                    </li>
+                    <li>
+                        <a href="/admin/banner"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all  p-2 text-gray-700">Banner</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold ">Categories</h3>
+                <hr>
+                <ul class="mt-2 space-y-2">
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            1</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            2</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            3</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li>
+                        <form action="/admin/logout" method="POST">
+                            <a href="/admin/logout">
+                                <button type="submit"
+                                    class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  "
+                                    id="logoutLink">Logout</Button>
+                            </a>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="bg-gray-100 w-screen">
+            <div class="p-6">
+                <!-- Breadcrumb -->
+                <div class="text-sm text-gray-600 mb-4">
+                    <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > 
+                    <a href="/admin/orders" class="text-gray-600 hover:text-gray-800">Order List</a> > 
+                    <span>Order Details</span>
+                </div>
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">Order Details - <%= order._id %>
+                    </h1>
+                    <a href="/admin/orders" class="text-blue-600 hover:underline">Back to Order List</a>
+                </div>
+                <!-- Order Details -->
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <!-- Customer Info -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-4">Customer Information</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p><strong>Name:</strong>
+                                    <%= order.user.name %>
+                                </p>
+                                <p><strong>Email:</strong>
+                                    <%= order.user.email %>
+                                </p>
+                                <p><strong>Joined Date:</strong>
+                                    <%= new Date(order.user.joined_date).toLocaleDateString() %>
+                                </p>
+                            </div>
+                            <div>
+                                <p><strong>Phone:</strong>
+                                    <%= order.user.phone_number %>
+                                </p>
+                                <p><strong>Address: <br></strong>
+                                    <%= order.address.name %>,<br> <%= order.address.street %>, <%= order.address.city %>, <br><%= order.address.state %>, <%= order.address.zip %>, Phone: <%= order.address.phone %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Order Status -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Status</h2>
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                        <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
+                                    </div>
+                                    <div class="relative flex justify-between">
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                            <span class="text-xs font-medium text-gray-900">1</span>
+                                        </span>
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                            <span class="text-xs font-medium text-gray-900">2</span>
+                                        </span>
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                            <span class="text-xs font-medium text-gray-900">3</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-2">
+                            <span class="text-sm font-medium text-gray-600">Pending</span>
+                            <span class="text-sm font-medium text-gray-600">Shipped</span>
+                            <span class="text-sm font-medium text-gray-600">Delivered</span>
+                        </div>
+                        <% if (order.status === 'Cancelled') { %>
+                            <div class="mt-4">
+                                <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
+                            </div>
+                        <% } %>
+                        <!-- Status Selection Dropdown -->
+                        <div class="mt-4">
+                            <select id="orderStatusSelect" class="border border-gray-300 rounded p-2 text-gray-700">
+                                <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Product Info -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-4">Product Information</h2>
+                        <div class="bg-gray-100 rounded-lg p-4">
+                            <table class="min-w-full table-auto">
+                                <thead class="bg-gray-200 text-gray-600 text-sm uppercase leading-normal">
+                                    <tr>
+                                        <th class="py-3 px-6 text-left">Image</th>
+                                        <th class="py-3 px-6 text-left">Product</th>
+                                        <th class="py-3 px-6 text-left">Quantity</th>
+                                        <th class="py-3 px-6 text-left">Price</th>
+                                        <th class="py-3 px-6 text-left">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-600 text-sm font-light">
+                                    <% order.items.forEach(item=> { %> <tr
+                                            class="border-b border-gray-200 hover:bg-gray-100">
+                                            <td class="py-3 px-6">
+                                                <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-10 h-10 object-cover ">
+                                            </td>
+                                            <td class="py-3 px-6">
+                                                <%= item.product.name %>
+                                            </td>
+                                            <td class="py-3 px-6">
+                                                <%= item.quantity %>
+                                            </td>
+                                            <td class="py-3 px-6">$<%= item.price.toFixed(2) %>
+                                            </td>
+                                            <td class="py-3 px-6">$<%= (item.quantity * item.price).toFixed(2) %>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Order Summary -->
+                    <div class="mt-6">
+                        <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Summary</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p><strong>Order Date:</strong>
+                                    <%= order.orderDate.toLocaleDateString() %>
+                                </p>
+                                <p><strong>Status:</strong>
+                                    <%= order.status %>
+                                </p>
+                            </div>
+                            <div>
+                                <p><strong>Subtotal:</strong> $<%= //order.subtotal.toFixed(2) %>
+                                </p>
+                                <p><strong>Discount:</strong> $<%= //order.discount.toFixed(2) %>
+                                </p>
+                                <p><strong>Total:</strong> $<%= order.totalAmount.toFixed(2) %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('orderStatusSelect').addEventListener('change', function () {
+        const selectedStatus = this.value;
+        
+        // Show confirmation alert using SweetAlert
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to update the status to ${selectedStatus}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#00A845',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, update it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Send AJAX request to update order status using axios
+                axios.post(`/admin/orders/updateStatus/<%= order._id %>`, {
+                    status: selectedStatus
+                })
+                .then(response => {
+                    if (response.data.success) {
+                        Swal.fire(
+                            'Updated!',
+                            'Order status has been updated.',
+                            'success'
+                        );
+                        // Update the ring color dynamically
+                        const statusElements = document.querySelectorAll('.border-2');
+                        statusElements.forEach(element => {
+                            element.classList.remove('border-green-500', 'border-red-500', 'border-gray-300', 'border-4');
+                            if (selectedStatus === 'pending') {
+                                element.classList.add('border-green-500', 'border-4');
+                            } else if (selectedStatus === 'Shipped') {
+                                element.classList.add('border-green-500', 'border-4');
+                            } else if (selectedStatus === 'Delivered') {
+                                element.classList.add('border-green-500', 'border-4');
+                            } else if (selectedStatus === 'Cancelled') {
+                                element.classList.add('border-red-500');
+                            } else {
+                                element.classList.add('border-gray-300');
+                            }
+                        });
+                        // Ensure previous green status is removed
+                        const previousGreenElements = document.querySelectorAll('.border-green-500');
+                        previousGreenElements.forEach(element => {
+                            if (!element.classList.contains('border-4')) {
+                                element.classList.remove('border-green-500');
+                            }
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            'There was a problem updating the status.',
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'Could not update the status.',
+                        'error'
+                    );
+                });
+            } else {
+                // Reset to the previous status if not confirmed
+                this.value = '<%= order.status %>';
+            }
+        });
+    });
+</script>

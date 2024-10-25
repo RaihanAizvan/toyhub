@@ -96,7 +96,10 @@ export const postBlock = block.postBlock
 
 export const getAdminOrders = order.getAdminOrders
 
+export const getAdminOrderDetails = order.getAdminOrderDetails
+
 export const postUpdateOrderStatus = order.postUpdateOrderStatus
+
 
     
 

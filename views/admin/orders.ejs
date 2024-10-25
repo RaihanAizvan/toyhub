@@ -1,4 +1,4 @@
-<div class="min-h-screen flex flex-col justify-stretch">
+  <div class="min-h-screen flex flex-col justify-stretch">
     <div class="flex bg-gray-200">
       <!-- Sidebar -->
       <div class="w-64 bg-white p-4 hidden sm:block">
@@ -98,6 +98,7 @@
             <table class="min-w-full table-auto">
               <thead class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                 <tr>
+                  <th class="py-3 px-6 text-left">Sl. No</th>
                   <th class="py-3 px-6 text-left">Order ID</th>
                   <th class="py-3 px-6 text-left">Customer Name</th>
                   <th class="py-3 px-6 text-left">Date</th>
@@ -107,18 +108,17 @@
                 </tr>
               </thead>
               <tbody class="text-gray-600 text-sm font-light">
-                <% orders.forEach(order => { %> 
+                <% orders.forEach((order, index) => { %> 
                   <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left"><%= (locals.currentPage - 1) * 10 + index + 1 %></td>
                     <td class="py-3 px-6 text-left"><%= order._id %></td>
                     <td class="py-3 px-6 text-left"><%= order.user.name %></td>
                     <% const formattedDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Invalid Date'; %>
                     <td class="py-3 px-6 text-left"><%= formattedDate %></td>
                     <td class="py-3 px-6 text-left">$<%= order.totalAmount %></td>
-                    <td class="py-3 px-6 text-left"><%= order.status %></td>
+                    <td class="py-3 px-6 text-left <%= order.status === 'Cancelled' ? 'text-red-500' : '' %>"><%= order.status %></td>
                     <td class="py-3 px-6 text-left">
                       <a href="/admin/orders/view/<%= order._id %>" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-lg text-xs">View</a>
-                      <a href="/admin/orders/edit/<%= order._id %>" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-3 rounded-lg text-xs">Edit</a>
-                      <button onclick="deleteOrder('<%= order._id %>')" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg text-xs">Delete</button>
                     </td>
                   </tr>
                 <% }); %>
@@ -153,4 +153,3 @@
       </div>
     </footer>
   </div>
-  

@@ -52,7 +52,8 @@
 
 
     router.get('/orders', adminController.getAdminOrders);
-    router.post('/orders/:orderId/status', adminController.postUpdateOrderStatus);
+    router.get('/orders/view/:orderId', adminController.getAdminOrderDetails);
+   router.post('/orders/updateStatus/:id', adminController.postUpdateOrderStatus);
 
 
     
