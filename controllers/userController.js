@@ -91,6 +91,8 @@ export const getProductsByCategory = category.getProductsByCategory
 
 export const getCategoryList = category.getCategoryList
 
+export const viewAllCategories = category.viewAllCategories
+
 //* -----------------------------------------!                                         
 //s     Exporting singleproductPage          |
 //* -----------------------------------------!      
@@ -98,7 +100,9 @@ export const getCategoryList = category.getCategoryList
 
 export const getSingleProduct = singleProduct.getSingleProduct
 
-export const viewAllCategories = category.viewAllCategories
+export const searchResults = singleProduct.searchResults
+
+export const filterProducts = singleProduct.filterProducts
 
 
 //* -----------------------------------------!                                         

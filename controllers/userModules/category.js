@@ -43,9 +43,11 @@ async function viewAllCategories(req, res) {
   }
 }
 
+
+
 // Add this line to export the new function
 export default {
   getProductsByCategory,
   getCategoryList,
-  viewAllCategories
+  viewAllCategories,
 }
