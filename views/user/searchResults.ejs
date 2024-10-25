@@ -1,0 +1,87 @@
+<%- include('./header') %>
+
+<div class="grid grid-cols-1 md:grid-cols-8  pb-16 gap-6 mx-6">
+    <!-- Filter Options Section -->
+    <div class="filter-options space-y-6 border-r pr-10 ml-10 box-content md:col-span-1 my-10">
+        <div class="filter-section">
+            <h3 class="text-lg font-semibold mb-4">Filter Options</h3>
+            <div class="filter-checkboxes space-y-2">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input id="checkbox-1" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out" checked>
+                    <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: Low to High</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input id="checkbox-2" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                    <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: High to Low</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input id="checkbox-3" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                    <span class="ml-3 block text-gray-500 sm:text-  sm sm:leading-5">New Arrivals</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input id="checkbox-4" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                    <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Best Sellers</span>
+                </label>
+            </div>
+            <div class="filter-categories space-y-2 mt-4">
+                <h4 class="text-lg font-semibold mb-2">Categories</h4>
+                <% categories.forEach(category => { %>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input id="<%= category._id %>" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out">
+                    <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5"><%= category.name %></span>
+                </label>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Listing Section -->
+    <div class="search-results md:col-span-7 ml-5 space-y-6 mt-10">
+        <h2 class="text-2xl font-bold mb-4">Search Results for "<%= locals.query %>"</h2>
+        <% results.forEach(product => { %>
+            <a href="/product/<%= product._id %>">
+
+                <div class="product-list-item flex items-start hover:bg-gray-100 border-t p-4 border-b border-gray-200">
+                    <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-24 h-24 object-cover mr-4" />
+                    <div class="product-info">
+                        <h2 class="text-lg font-semibold text-gray-800"><%= product.name %></h2>
+                        <p class="text-gray-600 mt-1"><%= product.description1 %></p>
+                        <p class="text-green-600 font-bold mt-2">Price: <span class="text-2xl">$<%= product.price %></span></p>
+                        <p class="text-gray-600 mt-1"><%= product.description2 %></p>
+                        <% if (product.stock === 0) { %>
+                            <p class="text-red-600 font-bold mt-2">Out of Stock</p>
+                        <% } else if (product.stock < 5) { %>
+                            <p class="text-yellow-600 font-bold mt-2">Few Stock Left</p>
+                        <% } %>
+                    </div>
+                </div>
+            </a>
+        <% }) %>
+    </div>
+
+    <!-- Pagination Section -->
+</div>
+<div class="pagination flex justify-center items-center space-x-4 mt-10">
+    <% if (page > 1) { %>
+        <a href="/search/results?q=<%= query %>&page=<%= page - 1 %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
+    <% } else { %>
+        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
+    <% } %>
+
+    <div class="flex space-x-1">
+        <% for (let i = 1; i <= pages; i++) { %>
+            <a href="/search/results?q=<%= query %>&page=<%= i %>" 
+               class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= page === i ? 'bg-gray-300' : '' %>">
+                <%= i %>
+            </a>
+        <% } %>
+    </div>
+
+    <% if (page < pages) { %>
+        <a href="/search/results?q=<%= query %>&page=<%= page + 1 %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
+    <% } else { %>
+        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>
+    <% } %>
+</div>
+
+<%- include('./footer') %>

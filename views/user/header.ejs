@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Main Header -->
         <header class="py-2 bg-white shadow-md">
             <div class="container mx-auto flex justify-between items-center">
@@ -46,18 +46,22 @@
                         <option>All Categories</option>
                         <!-- Add more options as needed -->
                     </select>
-                    <input type="text" placeholder="Search for items..." class="border-t border-b border-gray-300 flex-grow px-4 py-2">
+                    <input type="text" placeholder="Search for items..." class="border-t border-b border-gray-300 flex-grow px-4 py-2" oninput="handleSearchInput(this.value)">
                     <button class="bg-green-600 text-white px-4 py-2 rounded-r-lg">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 6H21M8 12H21M8 18H21M3 6H3.01M3 12H3.01M3 18H3.01"></path>
-                        </svg>
-                    </button>
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 6H21M8 12H21M8 18H21M3 6H3.01M3 12H3.01M3 18H3.01"></path>
+                    </svg>
+                </button>
+                <div id="suggestions" class="absolute w-full bg-white border border-gray-300 rounded-b-lg mt-10 z-40 shadow-lg hidden">
+                    <!-- Suggestions will be rendered here -->
                 </div>
-
-                <!-- Wishlist, Cart, Account -->
-                <div class="flex items-center space-x-6">
+            </div>
+            
+            
+            <!-- Wishlist, Cart, Account -->
+            <div class="flex items-center space-x-6">
                     <a href="#" class="flex items-center text-gray-800 hover:text-green-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -66,7 +70,7 @@
                         </svg>
                         <span class="ml-1">Wishlist</span>
                     </a>
-
+                    
                     <a href="/cart" class="flex items-center text-gray-800 hover:text-green-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -75,7 +79,7 @@
                         </svg>
                         <span class="ml-1">Cart</span>
                     </a>
-
+                    
                     <div class="relative">
                         <a href="/account" id="profilePopUp" class="flex items-center text-gray-800 hover:text-green-600 cursor-pointer">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -84,8 +88,8 @@
                             </svg>
                             <span class="ml-1"><%= locals.name %></span>
                         </a>
-                       
-                    
+                        
+                        
                         <!-- Dropdown Menu -->
                         <div id="dropdownProfile" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
                             <ul class="py-1">
@@ -99,7 +103,7 @@
                     </div>                              
                 </div>
             </div>
-
+            
             <!-- Browse Categories Button -->
             <div class="container mx-auto mt-4 flex flex-row  ">
                 <div class="relative inline-block text-left">
@@ -107,11 +111,11 @@
                         Categories
                         <svg fill="#FFFFFF" class="-mr-3 ml-2 h-3 mt-1 w-5"  version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                         viewBox="0 0 330 330" xml:space="preserve">
-                   <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393
+                        <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393
                        c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393
                        s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
                    </svg>
-                     </a>
+                </a>
                     <div class="absolute top-full left-0 w-64 bg-white shadow-lg rounded-lg mt-2 hidden">
                         <div class="grid grid-cols-2 gap-4 p-4">
                             <a href="#" class="text-gray-700 hover:text-gray-900">Home</a>
@@ -131,3 +135,39 @@
                 </div>
             </div>
         </header>
+<script>
+    function handleSearchInput(value) {
+        const suggestions = document.getElementById('suggestions');
+        if (value.length >= 2) {
+            fetch(`/search?q=${value}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Render suggestions dynamically (if needed)
+                    suggestions.innerHTML = data.map(item => `<div class="p-2 cursor-pointer hover:bg-gray-100" onclick="searchItem('${item.name}')">${item.name}</div>`).join('');
+                    suggestions.classList.remove('hidden');
+                });
+        } else {
+            suggestions.classList.add('hidden');
+        }
+    }
+
+    function searchItem(itemName) {
+        window.location.href = `/search/results?q=${itemName}`; // Redirect to results page with the selected item name
+    }
+
+    document.querySelector('input[type="text"]').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent form submission if using a form element
+            const query = this.value;
+            window.location.href = `/search/results?q=${query}`; // Redirect to results page
+        }
+    });
+    document.getElementById('profilePopUp').addEventListener('mouseover', () => {
+    document.getElementById('dropdownProfile').classList.remove('hidden');
+});
+
+document.getElementById('dropdownProfile').addEventListener('mouseleave', () => {
+    document.getElementById('dropdownProfile').classList.add('hidden');
+});
+
+</script>

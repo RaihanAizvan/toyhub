@@ -36,7 +36,8 @@
                                     <div class="flex items-center mt-2">
                                         <p class="text-gray-500 mr-2">Quantity:</p>
                                         <select class="border border-gray-300 rounded-md p-1" onchange="updateQuantity(this, '<%= item.product._id %>', <%= item.price %>)">
-                                            <% for (let i = 1; i <= 10; i++) { %>
+                                            <% let max = Math.min(item.product.stock, 10); %>
+                                            <% for (let i = 1; i <= max; i++) { %>
                                                 <option value="<%= i %>" <% if(i === item.quantity) { %> selected <% } %>><%= i %></option>
                                             <% } %>
                                         </select>
