@@ -48,15 +48,17 @@
             <p class="text-red-600 mb-4">Warnings: <%= product.warnings %></p>
             <% } %>
             <div class="flex items-center mb-4">
-                <input class="border rounded w-16 text-center py-2" type="number" value="1" />
+                <input class="border rounded w-16 text-center py-2" type="number" value="1" min="1" max="<%= product.stock > 10 ? 10 : product.stock %>" oninput="checkMaxValue(this)" />
+                
                 <% if (product.stock > 0) { %>
-                <button class="bg-green-500 text-white px-4 py-2 rounded ml-4" onclick="addToCart(event, '<%= product._id %>')">Add to cart</button>
-                <% } else { %>
-                <button class="bg-green-500 text-white px-4 py-2 rounded ml-4" disabled>Out of Stock</button>
-                <% } %>
-                <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-heart"></i></button>
-                <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-share-alt"></i></button>
-            </div>
+                    <button class="bg-green-500 text-white px-4 py-2 rounded ml-4" onclick="addToCart(event, '<%= product._id %>')">Add to cart</button>
+                    <% } else { %>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded ml-4" disabled>Out of Stock</button>
+                        <% } %>
+                        <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-heart"></i></button>
+                        <button class="border rounded px-4 py-2 ml-2"><i class="fas fa-share-alt"></i></button>
+                    </div>
+                    <p id="maxMessage" class="text-red-500 hidden">Maximum quantity reached</p>
             <div class="text-sm text-gray-600">
                 <p><span class="font-semibold">Type: </span><%= product.type %></p>
                 <% if (product.color) { %>
@@ -112,5 +114,20 @@
             lensSize: 250,
             zoomLevel:300
         });
+    }
+    function checkMaxValue(input) {
+        const max = parseInt(input.max);
+        const value = parseInt(input.value);
+        const message = document.getElementById('maxMessage');
+        if (value >= max) {
+            message.classList.remove('hidden');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Maximum Value Reached',
+                text: `The value cannot exceed ${max}.`
+            });
+        } else {
+            message.classList.add('hidden');
+        }
     }
 </script>

@@ -135,7 +135,7 @@
                         </form>
                         <div class="mb-4 flex justify-between items-center">
                             <!-- Previous Button -->
-                            <% if (currentPage > 1) { %>
+                            <% if (locals.currentPage > 1) { %>
                                 <a href="/admin/category?page=<%= currentPage - 1 %>&limit=6" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
                             <% } else { %>
                                 <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
@@ -143,7 +143,7 @@
                 
                             <!-- Page Numbers -->
                             <div class="flex space-x-1">
-                                <% for (let i = 1; i <= totalPages; i++) { %>
+                                <% for (let i = 1; i <= locals.totalPages; i++) { %>
                                     <a href="/admin/category?page=<%= i %>&limit=6"
                                        class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= currentPage === i ? 'bg-gray-300' : '' %>">
                                         <%= i %>
@@ -152,7 +152,7 @@
                             </div>
                 
                             <!-- Next Button -->
-                            <% if (currentPage < totalPages) { %>
+                            <% if (locals.currentPage < locals.totalPages) { %>
                                 <a href="/admin/category?page=<%= currentPage + 1 %>&limit=6" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
                             <% } else { %>
                                 <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>

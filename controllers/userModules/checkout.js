@@ -5,7 +5,7 @@ import User from "../../models/users.models.js"
 import Address from "../../models/address.models.js";
 
 // this is the function for showing the checkout page
-const getCheckoutPage = async function(req,res){
+const getCheckoutPage = async function (req, res) {
     try {
         const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
         const user = await User.findById(req.session.user.id).populate('addresses');
@@ -17,7 +17,7 @@ const getCheckoutPage = async function(req,res){
             user,   // User with addresses
         });
     } catch (error) {
-        
+
     }
 }
 
@@ -46,7 +46,7 @@ export const postPlaceOrderInCheckout = async (req, res) => {
 
         console.log("Calculating total amount for cart:", cart);
         const totalAmount = cart.items.reduce((total, item) => total + (item.quantity * item.product.price), 0);
-        
+
         console.log("Creating new order for user:", userId);
         const newOrder = new Order({
             user: userId,

@@ -24,8 +24,9 @@
     router.post("/addProduct", isAdmin.handleUpload,  adminController.postAddProduct)
     router.get("/products", adminController.getProductList)
     router.get('/editProduct/:id', adminController.getEditProduct);
-    router.post('/editProduct/:id', upload.single('image'), adminController.postEditProduct);
+    router.post('/editProduct/:id', adminController.postEditProduct);
     router.post('/blockProduct/:id', adminController.postBlockProduct);
+      
 
 
     //!---------------------------------/!/
@@ -38,7 +39,7 @@
     router.post('/category/edit/:id', isAdmin.isAdmin, upload.single('image'), adminController.postEditCategory);
     router.post('/category/delete/:id', isAdmin.isAdmin, adminController.postDeleteCategory);
 
-    //!----------------------------------/!/
+    //!---------------------------s-------/!/
     //todo: define user list routes here/!/
     //!--------------------------------/!/
     

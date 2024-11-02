@@ -71,8 +71,6 @@ export const getProductList = productList.getProductList
 export const getEditProduct = productList.getEditProduct
 export const postEditProduct = productList.postEditProduct
 export const postBlockProduct = productList.postBlockProduct
-
-
 //todo ----------------category Routes----------------------!
 
 export const getAddCategory = category.getAddCategory

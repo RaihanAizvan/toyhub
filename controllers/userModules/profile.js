@@ -94,20 +94,20 @@ export async function getOrderHistory(req, res) {
                 let stockStatus = "In Stock";
                 let statusColor = "green";
 
-                if (item.product.stock < 10) {
-                    stockStatus = "Low Stock";
-                    statusColor = "yellow";
-                } else if (item.product.stock === 0) {
-                    stockStatus = "Out of Stock";
-                    statusColor = "red";
-                }
-
+                // if (item.product.stock < 10) {
+                //     stockStatus = "Low Stock";
+                //     statusColor = "yellow";
+                // } else if (item.product.stock === 0) {
+                //     stockStatus = "Out of Stock";
+                //     statusColor = "red";
+                // }
+                
                 return {
                     product: item.product,
                     quantity: item.quantity,
                     stockStatus,
                     statusColor,
-                    formattedPrice: `$${item.product.price.toFixed(2)}`,
+                    // formattedPrice: `$${item.product.price.toFixed(2)}`,
                 };
             });
 

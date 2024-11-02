@@ -42,7 +42,7 @@ export const filterProducts = async (req, res) => {
     
             const filteredProducts = await Product.find().sort(query.sort);
     
-            res.status(200).json({ data: filteredProducts, page: req.body.page });
+            res.status(200).json({ data: filteredProducts });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Failed to filter products' });
