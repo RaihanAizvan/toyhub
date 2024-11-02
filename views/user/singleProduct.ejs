@@ -121,13 +121,10 @@
         const message = document.getElementById('maxMessage');
         if (value >= max) {
             message.classList.remove('hidden');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Maximum Value Reached',
-                text: `The value cannot exceed ${max}.`
-            });
+            toastr.warning(`The value cannot exceed ${max}.`, 'Maximum Value Reached');
         } else {
             message.classList.add('hidden');
         }
+       
     }
 </script>
