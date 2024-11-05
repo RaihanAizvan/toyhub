@@ -7,6 +7,7 @@ export const getSingleProduct = async (req, res) => {
 
         // Fetch the product from the database
         const product = await Product.findById(productId);
+        
 
         if (!product) {
             return res.status(404).redirect('/');

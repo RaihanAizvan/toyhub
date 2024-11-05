@@ -24,7 +24,11 @@
                                 <td class="py-3 px-6 text-left"><%= index + 1 %></td>
                                 <td class="py-3 px-6 text-left">
                                     <div class="flex items-center">
-                                        <img src="<%= order.items[0].product.images[0] %>" alt="<%= order.items[0].product.name %>" class="w-16 h-16 object-contain rounded-md mr-2">
+                                        <% if (order.items.length > 0 && order.items[0].product && order.items[0].product.images && order.items[0].product.images.length > 0) { %>
+                                            <img src="<%= order.items[0].product.images[0] %>" alt="<%= order.items[0].product.name %>" class="w-16 h-16 object-contain rounded-md mr-2">
+                                        <% } else { %>
+                                            <img src="path/to/default/image.jpg" alt="No image available" class="w-16 h-16 object-contain rounded-md mr-2"> <!-- Default image -->
+                                        <% } %>
                                         <span class="text-gray-600">Total Products: <%= order.items.length %></span>
                                     </div>
                                 </td>

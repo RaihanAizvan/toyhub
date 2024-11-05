@@ -2,24 +2,24 @@ import Order from "../../models/orders.models.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 
-export async function getProfileEdit( req , res){
-    let theName = req.session.user?.name 
-    let user = await Users.findOne({name:theName})
-    res.status(200).render('user/profile-edit',{
-        user, 
-        title:'Profile Edit',
-        name:user.name
+export async function getProfileEdit(req, res) {
+    let theName = req.session.user?.name
+    let user = await Users.findOne({ name: theName })
+    res.status(200).render('user/profile-edit', {
+        user,
+        title: 'Profile Edit',
+        name: user.name
     })
 }
 
-export async function postUpdateName(req,res){
+export async function postUpdateName(req, res) {
     let userId = req.session.user?.id
-    const {name} = req.body
+    const { name } = req.body
     if (!name) {
         return res.status(400).render('user/profile-edit', {
             error: "Name is required",
             user: req.session.user, // Send the current user session back
-            classes: 'profile-information', 
+            classes: 'profile-information',
             title: 'Profile Edit'
         });
     }
@@ -33,16 +33,16 @@ export async function postUpdateName(req,res){
 
         // Redirect back to the profile or re-render the page with the updated data
         return res.redirect('/account');
-    }  catch (error) {
+    } catch (error) {
         console.error(error);
         return res.status(500).render('user/profile-edit', {
             error: "An error occurred while updating the name.",
-            user: req.session.user, 
-            classes: 'profile-information', 
+            user: req.session.user,
+            classes: 'profile-information',
             title: 'Profile Edit'
         });
     }
-    
+
 }
 
 export async function postUpdatePhone(req, res) {
@@ -53,7 +53,7 @@ export async function postUpdatePhone(req, res) {
         return res.status(400).render('user/profile-edit', {
             error: "Phone number is required",
             user: req.session.user,
-            classes: 'profile-information', 
+            classes: 'profile-information',
             title: 'Profile Edit'
         });
     }
@@ -71,8 +71,8 @@ export async function postUpdatePhone(req, res) {
         console.error(error);
         return res.status(500).render('user/profile-edit', {
             error: "An error occurred while updating the phone number.",
-            user: req.session.user, 
-            classes: 'profile-information', 
+            user: req.session.user,
+            classes: 'profile-information',
             title: 'Profile Edit'
         });
     }
@@ -88,25 +88,23 @@ export async function getOrderHistory(req, res) {
         // Fetch all orders for the logged-in user and sort them by recent date
         const orders = await Order.find({ user: userId }).populate('items.product').sort({ orderDate: -1 });
 
+        // ... existing code ...
         const ordersWithDetails = orders.map(order => {
             const formattedItems = order.items.map(item => {
                 // Determine product stock status and color
                 let stockStatus = "In Stock";
                 let statusColor = "green";
 
-                // if (item.product.stock < 10) {
-                //     stockStatus = "Low Stock";
-                //     statusColor = "yellow";
-                // } else if (item.product.stock === 0) {
-                //     stockStatus = "Out of Stock";
-                //     statusColor = "red";
-                // }
-                
+                // Check if product exists and has images
+                const productImages = item.product && item.product.images ? item.product.images : [];
+
                 return {
                     product: item.product,
                     quantity: item.quantity,
                     stockStatus,
                     statusColor,
+                    // Use the first image if available
+                    firstImage: productImages.length > 0 ? productImages[0] : null,
                     // formattedPrice: `$${item.product.price.toFixed(2)}`,
                 };
             });
@@ -117,9 +115,16 @@ export async function getOrderHistory(req, res) {
             };
         });
 
-        res.render('user/recent-orders', { 
-            orders: ordersWithDetails, 
-            name: req.session.user.name, 
+        // Log the first image of the first product in a more understandable way
+        if (ordersWithDetails.length > 0 && ordersWithDetails[0].items.length > 0) {
+            const firstImage = ordersWithDetails[0].items[0].firstImage;
+            console.log(firstImage ? firstImage : "No image available");
+        }
+        // ... existing code ...
+
+        res.render('user/recent-orders', {
+            orders: ordersWithDetails,
+            name: req.session.user.name,
             title: "My Orders",
         });
     } catch (error) {
@@ -144,14 +149,14 @@ export const getOrderDetail = async (req, res) => {
         const name = req.session.user.name
         console.log(name);
         // Render the order details EJS page with the retrieved order
-        res.render('user/order-detail', { order , name , title:'Order Detail'});
+        res.render('user/order-detail', { order, name, title: 'Order Detail' });
     } catch (error) {
         console.error("Error fetching order details:", error);
         res.status(500).send('Server Error');
     }
 };
 
-export const postOrderCancel = async (req,res) => {
+export const postOrderCancel = async (req, res) => {
     try {
         const orderId = req.params.id;
         console.log(`Attempting to cancel order with ID: ${orderId}`); // Debugging log
@@ -194,19 +199,19 @@ export const postOrderCancel = async (req,res) => {
     }
 }
 
-export const getCancelReason = async (req,res) =>{
+export const getCancelReason = async (req, res) => {
     const orderId = req.params.id;
     const order = await Order.findById(orderId);
     try {
-        res.render('user/cancel-reason', {title:'Cancel reason', order})
+        res.render('user/cancel-reason', { title: 'Cancel reason', order })
     } catch (error) {
         console.log(error);
     }
-} 
+}
 
 // deletion of product for individual item
 
-export const postCancelReason = async (req,res) => {
+export const postCancelReason = async (req, res) => {
     const { orderId } = req.params;
     const { itemId } = req.body;
 
@@ -263,7 +268,7 @@ export const postItemCancel = async (req, res) => {
         }
 
         // Update item status to 'Cancelled'
-        order.items[itemIndex].status = 'Cancelled'; 
+        order.items[itemIndex].status = 'Cancelled';
 
         // Optionally, update the total amount, if necessary
         order.totalAmount -= order.items[itemIndex].price * order.items[itemIndex].quantity;
