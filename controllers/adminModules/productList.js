@@ -68,10 +68,6 @@ export async function postEditProduct(req, res) {
             sale_price
         } = req.body;
 
-        console.log('Received category:', category);
-        console.log('Title is:', title);
-        console.log('Body is:', req.body);
-
         // Check if all necessary fields are present
         if (!title || !category || !regular_price) {
             return res.status(400).json({ message: 'Missing required fields' });
@@ -112,10 +108,11 @@ export async function postEditProduct(req, res) {
             { new: true, runValidators: true }
         );
 
-        res.status(200).json({
+        req.session.toast = {
             message: 'Product updated successfully',
-            product: updatedProduct
-        });
+            type: 'success'
+        };
+        res.redirect('/admin/products');
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).json({ message: 'Error updating product' });

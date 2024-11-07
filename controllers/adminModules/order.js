@@ -48,13 +48,14 @@ const getAdminOrderDetails = async(req,res) =>{
         const order = await Order.findById(orderId)
           .populate('user', 'name email phone_number joined_date') // Populate user info (name and email)
           .populate('items.product', 'name price images') // Populate product info (name and price)
-        console.log(order);
+        
         if (!order) {
           return res.status(404).send('Order not found');
         }
+        console.log(order);
     
         // Render the order detail page with the fetched order data
-        res.render('admin/order-details', { order });
+        res.render('admin/order-details', { order ,title:'Order Details'});
       } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

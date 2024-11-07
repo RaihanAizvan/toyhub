@@ -175,23 +175,30 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-gray-600 text-sm font-light">
-                                    <% order.items.forEach(item=> { %> <tr
-                                            class="border-b border-gray-200 hover:bg-gray-100">
+                                    <% order.items.forEach(item => { %>
+                                        <tr class="border-b border-gray-200 hover:bg-gray-100">
                                             <td class="py-3 px-6">
-                                                <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-10 h-10 object-cover ">
+                                                <% if (item.product) { %>
+                                                    <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-10 h-10 object-cover">
+                                                <% } else { %>
+                                                    <span class="text-gray-500">No Image</span>
+                                                <% } %>
                                             </td>
                                             <td class="py-3 px-6">
-                                                <%= item.product.name %>
+                                                <% if (item.product) { %>
+                                                    <%= item.product.name %>
+                                                <% } else { %>
+                                                    <span class="text-gray-500">No Product</span>
+                                                <% } %>
                                             </td>
                                             <td class="py-3 px-6">
                                                 <%= item.quantity %>
                                             </td>
-                                            <td class="py-3 px-6">$<%= item.price.toFixed(2) %>
-                                            </td>
-                                            <td class="py-3 px-6">$<%= (item.quantity * item.price).toFixed(2) %>
-                                            </td>
+                                            <td class="py-3 px-6">$<%= item.price.toFixed(2) %></td>
+                                            <td class="py-3 px-6">$<%= (item.quantity * item.price).toFixed(2) %></td>
                                         </tr>
                                         <% }); %>
+                                        
                                 </tbody>
                             </table>
                         </div>

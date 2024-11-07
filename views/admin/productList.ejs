@@ -79,7 +79,11 @@
                     <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
                         <td class="py-3 px-6 border-b"><%= index + 1 + (currentPage - 1) * 10 %></td>
                         <td class="py-3 px-6 border-b">
-                            <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-10 h-10 object-cover rounded-full">
+                            <% if (product.images && product.images.length > 0) { %>
+                                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-10 h-10 object-cover rounded-full">
+                            <% } else { %>
+                                <span>No Image</span>
+                            <% } %>
                         </td>
                         <td class="py-3 px-6 border-b"><%= product.name %></td>
                         <td class="py-3 px-6 border-b"><%= product.category.name %></td>
@@ -131,3 +135,4 @@
         <% } %>
     </div>
 </div>
+

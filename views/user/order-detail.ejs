@@ -21,6 +21,39 @@
             </p>
         </div>
 
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Status</h2>
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
+                        </div>
+                        <div class="relative flex justify-between">
+                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <span class="text-xs font-medium text-gray-900">1</span>
+                            </span>
+                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <span class="text-xs font-medium text-gray-900">2</span>
+                            </span>
+                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <span class="text-xs font-medium text-gray-900">3</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between mt-2">
+                <span class="text-sm font-medium text-gray-600">Pending</span>
+                <span class="text-sm font-medium text-gray-600">Shipped</span>
+                <span class="text-sm font-medium text-gray-600">Delivered</span>
+            </div>
+            <% if (order.status === 'Cancelled') { %>
+                <div class="mt-4">
+                    <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
+                </div>
+            <% } %>
+
         <!-- Items Ordered -->
         <div>
             <h3 class="text-lg font-medium text-gray-800">Items in this order:</h3>

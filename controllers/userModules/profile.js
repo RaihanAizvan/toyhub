@@ -4,29 +4,32 @@ import Product from "../../models/product.models.js"
 
 export async function getProfileEdit(req, res) {
     let theName = req.session.user?.name
+    console.log(`the name is ${theName}`);
     let user = await Users.findOne({ name: theName })
+    console.log(user);
     res.status(200).render('user/profile-edit', {
         user,
         title: 'Profile Edit',
-        name: user.name
+        name: theName //thename is the name of the user which is stored in the session
     })
 }
 
-export async function postUpdateName(req, res) {
+export async function postUpdateName(req, res) { //this function is used to update the name of the user
     let userId = req.session.user?.id
     const { name } = req.body
     if (!name) {
-        return res.status(400).render('user/profile-edit', {
+        return res.status(400).render('user/profile-edit', {//if the name is not provided then it will render the profile edit page with the error message
             error: "Name is required",
             user: req.session.user, // Send the current user session back
-            classes: 'profile-information',
+            classes: 'profile-information', //this is the class of the profile edit page which is used to style the page dyhnamically
             title: 'Profile Edit'
         });
     }
+    
 
     try {
         // Update user name
-        let updatedUser = await Users.findByIdAndUpdate(userId, { name: name }, { new: true });
+        let updatedUser = await Users.findByIdAndUpdate(userId, { name: name }, { new: true }); //this is used to update the name of the user in the database
 
         // Update session data with the new name
         req.session.user.name = updatedUser.name;
@@ -42,6 +45,7 @@ export async function postUpdateName(req, res) {
             title: 'Profile Edit'
         });
     }
+
 
 }
 
@@ -81,7 +85,7 @@ export async function postUpdatePhone(req, res) {
 
 
 //function for showing order history
-export async function getOrderHistory(req, res) {
+export async function getOrderHistory(req, res) { //this function is used to show the order history of the user
     try {
         const userId = req.session.user.id;
 
@@ -278,7 +282,7 @@ export const postItemCancel = async (req, res) => {
 
         // If all items are cancelled, mark the order as cancelled
         if (allCancelled) {
-            order.status = 'Cancelled';
+            order.status = 'Cancelled'; //this is used to mark the order as cancelled in the database
         }
 
         // Save the updated order
@@ -288,7 +292,7 @@ export const postItemCancel = async (req, res) => {
         res.redirect(`/account/orders/${orderId}?message=Item cancelled successfully`);
     } catch (error) {
         console.error(error);
-        res.status(500).send('Internal server error');
+        res.status(500).send('server error');
     }
 }
 
