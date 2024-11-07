@@ -54,8 +54,17 @@
 
     router.get('/orders', adminController.getAdminOrders);
     router.get('/orders/view/:orderId', adminController.getAdminOrderDetails);
-   router.post('/orders/updateStatus/:id', adminController.postUpdateOrderStatus);
+    router.post('/orders/updateStatus/:id', adminController.postUpdateOrderStatus);
 
+
+    //!------------------------------------/!/
+    //todo: define coupon list routes here/!/
+    //!---------------------------------/!/
+
+    router.get('/coupons', adminController.getCoupon);
+    router.get('/addCoupon', adminController.getAddCoupon);
+    router.post('/addCoupon', adminController.postAddCoupon);
+    
 
     
 

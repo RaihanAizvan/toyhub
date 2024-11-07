@@ -15,7 +15,7 @@ async function getUserList(req, res) {
             users: usersData, 
             currentPage: page,
             totalPages: totalPages
-        });
+        }); 
     } catch (error) {
         console.error(`Oops, something went wrong: ${error.message}`);
     }
