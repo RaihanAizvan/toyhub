@@ -12,7 +12,8 @@
         </li>
         <li>
           <a href="/admin/products"
-            class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all bg-primary  p-2 text-gray-700"><span class="ml-3">Add Product</span></a>
+            class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all  p-2 text-gray-700">All
+            Products</a>
         </li>
         <li>
           <a href="/admin/orders"
@@ -30,8 +31,8 @@
             Product Details</a>
         </li>
         <li>
-          <a href="/admin/addProduct" class="flex items-center  rounded transition-all  p-2 text-gray-700">
-            Add product</a>
+          <a href="/admin/addProduct" class="flex items-center bg-primary rounded transition-all  p-2 text-gray-700">
+            <span class="ml-3">Add Product</span></a>
         </li>
         <li>
           <a href="/admin/banner"
@@ -69,17 +70,13 @@
       </ul>
     </div>
   </div>
-  <!-- Content Area -->
+  <!-- End of Sidebar -->
   <div class="flex-1 p-8">
     <h1 class="text-2xl font-semibold">Edit Product</h1>
-    <p class="text-sm text-gray-500 mb-8">
-      <a href="/admin">Home</a> &gt; 
-      <a href="/admin/products">All Products</a> &gt; 
-      <a href="/admin/editProduct">Edit Product</a> &gt; 
-    </p>
+    <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Edit Product</p>
     <!-- Form container -->
     <div class="bg-white p-8 rounded-lg shadow-md">
-        <form id="productForm" class="grid grid-cols-2 gap-6" method="post" enctype="multipart/form-data">
+        <form id="productForm" class="grid grid-cols-2 gap-6">
             <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
                 <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md" placeholder="Type name here" value="<%= product.name %>">
@@ -147,128 +144,42 @@
                 <label class="block text-sm font-medium text-gray-700" for="sale-price">Sale Price</label>
                 <input type="text" id="sale-price" name="sale_price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹450" value="<%= product.price %>">
             </div>
-            <!-- Image Section -->
-            <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-4">Current Images</label>
-                <div class="grid grid-cols-4 gap-4 mb-6">
-                    <% if (product.images && product.images.length > 0) { %>
-                        <% product.images.forEach((image, index) => { %>
-                            <div class="relative group" id="image-container-<%= index %>">
-                                <img src="<%= image %>" alt="Product image <%= index + 1 %>"
-                                     class="w-52  object-cover rounded-lg border">
-                                <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button type="button" 
-                                            onclick="handleDeleteImage('<%= image %>', <%= index %>)"
-                                            class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <input type="hidden" name="deletedImages" id="deleted-image-<%= index %>">
-                            </div>
-                        <% }) %>
-                    <% } %>
-                </div>
-
-                <!-- New Image Upload -->
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Add New Images</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" 
-                               class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.26a5 5 0 1 0-9.48 0A4.5 4.5 0 0 0 5 13H2"/>
-                                </svg>
-                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p class="text-xs text-gray-500">PNG, JPG or WEBP (MAX. 800x800px)</p>
-                            </div>
-                            <input id="dropzone-file" name="images" type="file" class="hidden" multiple accept="image/*" />
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Image Preview -->
-                <div id="image-preview" class="grid grid-cols-4 gap-4 mt-4"></div>
-            </div>
-
-            <!-- Submit Button -->
             <div class="col-span-2 flex justify-end">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Update Product
-                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Update Product</button>
             </div>
         </form>
     </div>
 </div>  
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('dropzone-file');
-    const previewContainer = document.getElementById('image-preview');
-    const form = document.getElementById('productForm');
-    const deletedImages = new Set();
+    document.getElementById('productForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const formObject = {};
 
-    // Handle file selection
-    fileInput.addEventListener('change', function(e) {
-        const files = e.target.files;
-        
-        // Clear previous previews
-        previewContainer.innerHTML = '';
-        
-        Array.from(files).forEach((file, index) => {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'relative group';
-                previewDiv.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview" class="w-full h-32 object-cover rounded-lg border">
-                    <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button type="button" onclick="removeNewImage(this)" class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                previewContainer.appendChild(previewDiv);
-            }
-            
-            reader.readAsDataURL(file);
+        formData.forEach((value, key) => {
+            formObject[key] = value;
         });
+
+        axios.post(form.action, formObject)
+            .then(response => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Product updated successfully',
+                    showConfirmButton: false,
+                    timer: 1000
+                }).then(() => {
+                    window.location.href = '/admin/products';
+                });
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error updating product',
+                    text: 'Please try again later'
+                });
+                console.error('Error:', error);
+            });
     });
-
-    // Handle existing image deletion
-    window.handleDeleteImage = function(imagePath, index) {
-        const container = document.getElementById(`image-container-${index}`);
-        const input = document.getElementById(`deleted-image-${index}`);
-        
-        // Add image path to hidden input
-        input.value = imagePath;
-        
-        // Hide the image container
-        container.style.display = 'none';
-        
-        // Add to deleted images set
-        deletedImages.add(imagePath);
-    }
-
-    // Handle new image removal
-    window.removeNewImage = function(button) {
-        const previewDiv = button.closest('.relative');
-        previewDiv.remove();
-    }
-
-    // Sweet Alert for success/error messages
-    <% if (flashMessage) { %>
-        Swal.fire({
-            icon: '<%= flashMessage.type %>',
-            title: '<%= flashMessage.message %>',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    <% } %>
-});
 </script>
