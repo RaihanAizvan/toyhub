@@ -1,4 +1,4 @@
-<!-- views/addCoupon.ejs -->
+<!-- views/editCoupon.ejs -->
 <div class="min-h-screen flex flex-col justify-stretch">
     <div class="flex bg-gray-100">
       <!-- Sidebar -->
@@ -49,7 +49,7 @@
       </div>
       <!-- Content -->
       <div class="flex-grow p-8">
-        <h2 class="text-2xl font-bold mb-4">Add a Coupon</h2>
+        <h2 class="text-2xl font-bold mb-4">Edit Coupon</h2>
         <!-- breadcrumb -->
         <div class="text-sm text-gray-600 mb-4">
             <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > 
@@ -57,45 +57,45 @@
         </div>
         <div class="flex justify-center items-center ">
             <form id="couponForm" class="bg-white p-8 rounded shadow-md w-full max-w-lg">
-                <h2 class="text-xl font-semibold mb-4">Add New Coupon</h2>
+                <h2 class="text-xl font-semibold mb-4">Edit Coupon</h2>
           <% if (locals.error) { %>
             <p class="text-red-500 mb-4"><%= error %></p>
           <% } %>
           <div class="mb-4">
             <label class="block text-gray-700">Coupon Code</label>
-            <input type="text" name="couponCode"  class="w-full border px-3 py-2 rounded"  />
+            <input type="text" name="couponCode" value="<%= coupon.couponCode %>" class="w-full border px-3 py-2 rounded"  />
             <p class="error text-red-500 hidden" id="couponCodeError">Coupon code not contain spaces.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Start Date</label>
-            <input type="date" name="startDate" min="<%= new Date().toISOString().split('T')[0] %>" class="w-full border px-3 py-2 rounded" />
+            <input type="date" name="startDate" value="<%= coupon.startDate.toISOString().split('T')[0] %>" min="<%= new Date().toISOString().split('T')[0] %>" class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="startDateError">Start date cannot be in the past.</p>
             <p class="error text-red-500 hidden" id="startDateEmptyError">Start date is required.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">End Date</label>
-            <input type="date" name="endDate" class="w-full border px-3 py-2 rounded" />
+            <input type="date" name="endDate" value="<%= coupon.endDate.toISOString().split('T')[0] %>" class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="endDateError">End date must be after the start date.</p>
             <p class="error text-red-500 hidden" id="endDateEmptyError">End date is required.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount</label>
-            <input type="number" name="discount" min="1"  class="w-full border px-3 py-2 rounded" />
+            <input type="number" name="discount" value="<%= coupon.discount %>" min="1"  class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="discountError">Discount must be greater than zero.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Usage Limit </label>
-            <input type="number" name="usageCount" min="1"  class="w-full border px-3 py-2 rounded" />
+            <input type="number" name="usageCount" value="<%= coupon.usageCount %>" min="1"  class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be greater than zero.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount Type</label>
             <select name="discountType" class="w-full border px-3 py-2 rounded" required>
-              <option value="percentage">Percentage</option>
-              <option value="fixed">Fixed</option>
+              <option value="percentage" <%= coupon.discountType === 'percentage' ? 'selected' : '' %>>Percentage</option>
+              <option value="fixed" <%= coupon.discountType === 'fixed' ? 'selected' : '' %>>Fixed</option>
             </select>
           </div>
-                <button type="submit" class="w-full bg-primary text-white py-2 rounded">Add Coupon</button>
+                <button type="submit" class="w-full bg-primary text-white py-2 rounded">Update Coupon</button>
             </form>
         </div>
       </div>
@@ -110,7 +110,7 @@
       const startDate = form.startDate.value ? new Date(form.startDate.value) : null;
       const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
       const discount = form.discount.value;
-      const usageLimit = form.usageLimit.value;
+      const usageLimit = form.usageCount.value;
 
       let isValid = true;
 
@@ -164,20 +164,20 @@
       }
 
       if (isValid) {
-        axios.post('/admin/addCoupon', {
+        axios.post(`/admin/editCoupon/<%= coupon._id %>`, {
           couponCode: code,
           startDate: form.startDate.value,
           endDate: form.endDate.value,
           discount: discount,
           discountType: form.discountType.value,
-          usageLimit: usageLimit
+          usageCount: usageLimit
         })
         .then(response => {
-          toastr.success('Coupon added successfully');
+          toastr.success('Coupon updated successfully');
           window.location.href = '/admin/coupons';
         })
         .catch(error => {
-          toastr.error('Failed to add coupon');
+          toastr.error('Failed to update coupon');
         });
       }
     });

@@ -20,8 +20,40 @@ const postAddCoupon = async (req, res) => {
   }
   };
 
+
+const postBlockCoupon = async (req, res) => {
+    const { id } = req.params;
+    await Coupon.findByIdAndUpdate(id, { couponStatus: 'blocked' });
+    res.redirect('/admin/coupons');
+  };
+
+const postDeleteCoupon = async (req, res) => {
+    const { id } = req.params;
+    await Coupon.findByIdAndDelete(id);
+    res.redirect('/admin/coupons');
+  };
+
+const getEditCoupon = async (req, res) => {
+    const { id } = req.params;
+    const coupon = await Coupon.findById(id);
+    res.render('admin/editCoupon', { coupon });
+  };
+
+const postEditCoupon = async (req, res) => {
+    const { id } = req.params;
+    const { couponCode, startDate, endDate, discount, discountType, usageCount } = req.body;
+    await Coupon.findByIdAndUpdate(id, { couponCode, startDate, endDate, discount, discountType, usageCount });
+    res.redirect('/admin/coupons');
+  };
+
+
+
 export default {
     getCoupon,
     getAddCoupon,
-    postAddCoupon
+    postAddCoupon,
+    postBlockCoupon,
+    postDeleteCoupon,
+    getEditCoupon,
+    postEditCoupon
 };

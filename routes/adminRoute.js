@@ -64,6 +64,10 @@
     router.get('/coupons', adminController.getCoupon);
     router.get('/addCoupon', adminController.getAddCoupon);
     router.post('/addCoupon', adminController.postAddCoupon);
+    router.post('/blockCoupon/:id', adminController.postBlockCoupon);   
+    router.post('/deleteCoupon/:id', adminController.postDeleteCoupon); 
+    router.get('/editCoupon/:id', adminController.getEditCoupon);
+    router.post('/editCoupon/:id', adminController.postEditCoupon);
     
 
     

@@ -36,13 +36,19 @@ export async function getProductList(req, res) {
 
 export async function getEditProduct(req, res) {
     const productId = req.params.id;
-    // Fetch product by ID from the database
     try {
         const product = await Product.findById(productId).populate('category');
-        // Fetch all categories
         const categories = await Category.find({});
-        // Render the edit product page, passing the product, category data, and existing category
-        res.render('admin/editProduct', { product, categories, existingCategory: product.category });
+        
+        res.render('admin/editProduct', { 
+            product, 
+            categories, 
+            existingCategory: product.category,
+            flashMessage: req.session.flashMessage || null
+        });
+        
+        // Clear flash message after use
+        delete req.session.flashMessage;
     } catch (err) {
         console.log(err);
         res.redirect('/admin/products');
@@ -65,23 +71,56 @@ export async function postEditProduct(req, res) {
             sku,
             stock_quantity,
             regular_price,
-            sale_price
+            sale_price,
+            deletedImages
         } = req.body;
 
-        // Check if all necessary fields are present
+        // Validate required fields
         if (!title || !category || !regular_price) {
-            return res.status(400).json({ message: 'Missing required fields' });
+            req.session.flashMessage = {
+                type: 'error',
+                message: 'Required fields are missing'
+            };
+            return res.redirect(`/admin/editProduct/${productId}`);
         }
 
-        // Validate category ObjectId
-        if (!mongoose.Types.ObjectId.isValid(category)) {
-            return res.status(400).json({ message: 'Invalid category ID' });
-        }
-
-        // Ensure product exists
+        // Get existing product
         const existingProduct = await Product.findById(productId);
         if (!existingProduct) {
             return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Handle deleted images
+        let remainingImages = existingProduct.images;
+        if (deletedImages) {
+            const deletedImagesList = Array.isArray(deletedImages) ? deletedImages : [deletedImages];
+            
+            // Remove deleted images from storage
+            for (const imagePath of deletedImagesList) {
+                const fullPath = path.join(process.cwd(), 'public', imagePath);
+                await fs.unlink(fullPath).catch(err => console.log('Error deleting file:', err));
+            }
+            
+            // Update remaining images array
+            remainingImages = existingProduct.images.filter(img => !deletedImagesList.includes(img));
+        }
+
+        // Handle new images
+        let newImagePaths = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const filename = `product-${Date.now()}-${Math.round(Math.random() * 1E9)}.webp`;
+                const imagePath = path.join('uploads', 'products', filename);
+                const fullPath = path.join(process.cwd(), 'public', imagePath);
+
+                // Process and save image
+                await sharp(file.buffer)
+                    .resize(800, 800, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+                    .webp({ quality: 80 })
+                    .toFile(fullPath);
+
+                newImagePaths.push(imagePath);
+            }
         }
 
         // Update product data
@@ -89,33 +128,39 @@ export async function postEditProduct(req, res) {
             title,
             description1,
             description2,
-            category: new mongoose.Types.ObjectId(category), // Use 'new' keyword
+            category: new mongoose.Types.ObjectId(category),
             warning,
             type,
             color,
             weight,
             discount,
             sku,
-            stock:stock_quantity,
+            stock: stock_quantity,
             regular_price,
-            sale_price
+            sale_price,
+            images: [...remainingImages, ...newImagePaths]
         };
 
-        // Update the product in the database
-        const updatedProduct = await Product.findByIdAndUpdate(
+        // Update the product
+        await Product.findByIdAndUpdate(
             productId,
             updatedProductData,
             { new: true, runValidators: true }
         );
 
-        req.session.toast = {
-            message: 'Product updated successfully',
-            type: 'success'
+        req.session.flashMessage = {
+            type: 'success',
+            message: 'Product updated successfully'
         };
+        
         res.redirect('/admin/products');
     } catch (error) {
         console.error('Error updating product:', error);
-        res.status(500).json({ message: 'Error updating product' });
+        req.session.flashMessage = {
+            type: 'error',
+            message: 'Error updating product'
+        };
+        res.redirect(`/admin/editProduct/${req.params.id}`);
     }
 }
 

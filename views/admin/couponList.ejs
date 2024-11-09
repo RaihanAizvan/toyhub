@@ -65,15 +65,29 @@
               <th class="p-4 text-left">Start Date</th>
               <th class="p-4 text-left">End Date</th>
               <th class="p-4 text-left">Discount</th>
+              <th class="p-4 text-left">Usage Count</th>
+              <th class="p-4 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             <% coupons.forEach(coupon => { %>
               <tr class="border-b">
                 <td class="p-4"><%= coupon.couponCode %></td>
-                <td class="p-4"><%= coupon.startDate.toDateString() %></td>
-                <td class="p-4"><%= coupon.endDate.toDateString() %></td>
+                <td class="p-4"><%= new Date(coupon.startDate).toLocaleDateString() %></td>
+                <td class="p-4"><%= new Date(coupon.endDate).toLocaleDateString() %></td>
                 <td class="p-4"><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '$' + coupon.discount %></td>
+                <td class="p-4"><%= coupon.usageCount %></td>
+                <td class="p-4">
+                  <a href="#" class="text-gray-500 mx-2 hover:underline hover:text-gray-800" onclick="editCoupon('<%= coupon._id %>')">
+                    <i class="fas fa-edit"></i> 
+                  </a> 
+                  <a href="#" class="<%= coupon.couponStatus === 'blocked' ? 'text-red-500' : 'text-gray-500' %> mx-2 hover:underline hover:text-gray-800" onclick="toggleBlockCoupon('<%= coupon._id %>')">
+                    <i class="fas fa-ban"></i> 
+                  </a> 
+                  <a href="#" class="text-gray-500 mx-2 hover:underline hover:text-gray-800" onclick="confirmDelete('<%= coupon._id %>')">
+                    <i class="fas fa-trash-alt"></i> 
+                  </a>
+                </td>
               </tr>
             <% }) %>
           </tbody>
@@ -81,4 +95,54 @@
       </div>
     </div>
   </div>
-  
+  <script>
+    function toggleBlockCoupon(couponId) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to change the status of this coupon?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.post(`/admin/blockCoupon/${couponId}`)
+            .then(response => {
+              toastr.success('Coupon status updated successfully');
+              window.location.reload();
+            })
+            .catch(error => {
+              toastr.error('Failed to update coupon status');
+            });
+        }
+      });
+    }
+
+    function editCoupon(couponId) {
+      axios.get(`/admin/editCoupon/${couponId}`)
+        .then(response => {
+          toastr.success('Coupon edit page loaded successfully');
+          window.location.href = `/admin/editCoupon/${couponId}`;
+        })
+        .catch(error => {
+          toastr.error('Failed to load coupon edit page');
+        });
+    }
+
+    function confirmDelete(couponId) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#ff0000',
+        cancelButtonColor: '#808080',
+        confirmButtonText: 'Delete'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = `/admin/deleteCoupon/${couponId}`;
+        }
+      })
+    }
+  </script>
