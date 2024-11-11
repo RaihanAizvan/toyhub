@@ -94,8 +94,5 @@ export const postBlockCoupon = coupon.postBlockCoupon
 export const postDeleteCoupon = coupon.postDeleteCoupon
 export const getEditCoupon = coupon.getEditCoupon
 export const postEditCoupon = coupon.postEditCoupon
-<<<<<<< HEAD
 
-=======
->>>>>>> coupon
 

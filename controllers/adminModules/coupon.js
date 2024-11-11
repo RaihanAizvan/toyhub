@@ -32,33 +32,6 @@ const postAddCoupon = async (req, res) => {
   }
   };
 
-<<<<<<< HEAD
-
-const postBlockCoupon = async (req, res) => {
-    const { id } = req.params;
-    await Coupon.findByIdAndUpdate(id, { couponStatus: 'blocked' });
-    res.redirect('/admin/coupons');
-  };
-
-const postDeleteCoupon = async (req, res) => {
-    const { id } = req.params;
-    await Coupon.findByIdAndDelete(id);
-    res.redirect('/admin/coupons');
-  };
-
-const getEditCoupon = async (req, res) => {
-    const { id } = req.params;
-    const coupon = await Coupon.findById(id);
-    res.render('admin/editCoupon', { coupon });
-  };
-
-const postEditCoupon = async (req, res) => {
-    const { id } = req.params;
-    const { couponCode, startDate, endDate, discount, discountType, usageCount } = req.body;
-    await Coupon.findByIdAndUpdate(id, { couponCode, startDate, endDate, discount, discountType, usageCount });
-    res.redirect('/admin/coupons');
-  };
-=======
 const getEditCoupon = async (req, res) => {
   const coupon = await Coupon.findById(req.params.id);
   res.render('admin/editCoupon', { coupon });
@@ -98,7 +71,6 @@ const postBlockCoupon = async (req, res) => {
   }
 };
 
->>>>>>> coupon
 
 
 
@@ -106,15 +78,8 @@ export default {
     getCoupon,
     getAddCoupon,
     postAddCoupon,
-<<<<<<< HEAD
-    postBlockCoupon,
-    postDeleteCoupon,
-    getEditCoupon,
-    postEditCoupon
-=======
     postEditCoupon,
     postDeleteCoupon,
     postBlockCoupon,
     getEditCoupon
->>>>>>> coupon
 };
