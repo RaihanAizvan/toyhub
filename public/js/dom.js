@@ -22,64 +22,38 @@ function moveOnMax(current, nextFieldId) {
     }
 }
 
+// Get the spinner container element
+const spinnerContainer = document.getElementById('spinnerContainer');
 
-/// cart
+// Configure the spinner options
+const opts = {
+    lines: 12, // Number of lines in the spinner
+    length: 20, // Length of each line
+    width: 8, // Thickness of the lines
+    radius: 30, // Radius of the spinner
+    scale: 1, // Scale size
+    corners: 1, // Roundness of the corners
+    color: '#00A845', // Color of the spinner
+    fadeColor: 'transparent', // Fade color
+    speed: 1, // Rounds per second
+    rotate: 0, // Rotation offset
+    animation: 'spinner-line-fade-quick', // Animation type
+    direction: 1, // Clockwise rotation
+    zIndex: 2e9, // Z-index
+    position: 'absolute' // Positioning
+};
 
-// // script.js
+// Initialize the spinner (but don't spin it yet)
+const spinner = new Spinner(opts);
 
-// console.log('Script loaded');
+// Function to show the spinner
+function showSpinner() {
+    spinner.spin(spinnerContainer); // Start spinning
+    spinnerContainer.classList.remove('hidden'); // Show the container
+}
 
-// // Initialize Toastr
-// toastr.options = {
-//     closeButton: true,
-//     progressBar: true,
-//     positionClass: "toast-top-right",
-//     timeOut: 3000
-// };
-
-
-
-// function addToCart(event) {
-//     console.log('Add to cart clicked');
-//     event.preventDefault();
-//     event.stopPropagation();
-
-//     const productId = event.target.closest('.add-to-cart-btn').dataset.productId;
-//     const quantity = 1;
-
-//     console.log('Product ID:', productId);
-
-//     axios.post('/cart/addProduct', {
-//         productId: productId,
-//         quantity: quantity
-//     })
-//     .then(response => {
-//         console.log('Success:', response.data);
-//         toastr.success(response.data.message || 'Product added to cart!');
-//         if (response.data.cartItemCount !== undefined) {
-//             updateCartItemCount(response.data.cartItemCount);
-//         }
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//         toastr.error(error.response?.data?.message || 'Failed to add product to cart.');
-//     });
-// }
-
-// function updateCartItemCount(count) {
-//     const cartCountElement = document.getElementById('cart-count');
-//     if (cartCountElement) {
-//         cartCountElement.innerText = count;
-//     }
-// }
-
-// // Add event listeners to all "Add to Cart" buttons
-// document.addEventListener('DOMContentLoaded', function() {
-//     console.log('DOM loaded');
-//     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-//     addToCartButtons.forEach(button => {
-//         button.addEventListener('click', addToCart);
-//     });
-// });
-
-
+// Function to hide the spinner
+function hideSpinner() {
+    spinner.stop(); // Stop the spinner
+    spinnerContainer.classList.add('hidden'); // Hide the container
+}

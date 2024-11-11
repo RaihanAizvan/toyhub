@@ -21,7 +21,6 @@ export async function getProductList(req, res) {
             .exec();
 
         res.set("Cache-Control", "no-store");
-        console.log(products);
         res.render("admin/productList", {
             products,
             title: 'Product List',
@@ -70,13 +69,12 @@ export async function postEditProduct(req, res) {
             discount,
             sku,
             stock_quantity,
-            regular_price,
-            sale_price,
+            price,
             deletedImages
         } = req.body;
-
+        
         // Validate required fields
-        if (!title || !category || !regular_price) {
+        if (!title || !category || !price) {
             req.session.flashMessage = {
                 type: 'error',
                 message: 'Required fields are missing'
@@ -136,11 +134,9 @@ export async function postEditProduct(req, res) {
             discount,
             sku,
             stock: stock_quantity,
-            regular_price,
-            sale_price,
+            price,
             images: [...remainingImages, ...newImagePaths]
         };
-
         // Update the product
         await Product.findByIdAndUpdate(
             productId,

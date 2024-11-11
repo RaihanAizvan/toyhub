@@ -46,7 +46,7 @@
                         <option>All Categories</option>
                         <!-- Add more options as needed -->
                     </select>
-                    <input type="text" placeholder="Search for items..." class="border-t border-b border-gray-300 flex-grow px-4 py-2" oninput="handleSearchInput(this.value)">
+                    <input type="text" placeholder="Search for items..." value="<%= locals.query %>" class="border-t border-b border-gray-300 flex-grow px-4 py-2" oninput="handleSearchInput(this.value)">
                     <button class="bg-green-600 text-white px-4 py-2 rounded-r-lg">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
@@ -139,12 +139,15 @@
     function handleSearchInput(value) {
         const suggestions = document.getElementById('suggestions');
         if (value.length >= 2) {
-            fetch(`/search?q=${value}`)
-                .then(response => response.json())
-                .then(data => {
+            axios.get(`/search?q=${value}`)
+                .then(response => {
+                    const data = response.data;
                     // Render suggestions dynamically (if needed)
                     suggestions.innerHTML = data.map(item => `<div class="p-2 cursor-pointer hover:bg-gray-100" onclick="searchItem('${item.name}')">${item.name}</div>`).join('');
                     suggestions.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching search suggestions:', error);
                 });
         } else {
             suggestions.classList.add('hidden');
@@ -152,22 +155,23 @@
     }
 
     function searchItem(itemName) {
-        window.location.href = `/search/results?q=${itemName}`; // Redirect to results page with the selected item name
+        const query = itemName || '';
+        window.location.href = `/search/results?q=${query}`; // Redirect to results page with the selected item name
     }
 
     document.querySelector('input[type="text"]').addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault(); // Prevent form submission if using a form element
-            const query = this.value;
+            const query = this.value || '';
             window.location.href = `/search/results?q=${query}`; // Redirect to results page
         }
     });
     document.getElementById('profilePopUp').addEventListener('mouseover', () => {
-    document.getElementById('dropdownProfile').classList.remove('hidden');
-});
+        document.getElementById('dropdownProfile').classList.remove('hidden');
+    });
 
-document.getElementById('dropdownProfile').addEventListener('mouseleave', () => {
-    document.getElementById('dropdownProfile').classList.add('hidden');
-});
+    document.getElementById('dropdownProfile').addEventListener('mouseleave', () => {
+        document.getElementById('dropdownProfile').classList.add('hidden');
+    });
 
 </script>

@@ -10,10 +10,7 @@ router.get('/product', home.getSingleProduct);
 
 router.get('/categories/all', home.viewAllCategories);
 
-router.get('/search/results', home.searchResults);
-
-router.post('/api/filter-products', home.filterProducts);
-
+router.get('/search/results', home.searchAndFilterProducts);
 
 
 export default router

@@ -14,7 +14,6 @@
     <!-- ---------------------------------custom styles----------------------------->
     
     <link rel="stylesheet" href="/css/styles.css">
-    
 
     <!------------------------    - link for font awesome----------------------- -->
 
@@ -39,10 +38,14 @@
 </head>
 
 <body>
+    <!-- ------------------------------Loading Spinner-------------------------------------->
+    <div id="spinnerContainer" class="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 hidden"></div>
+
+ 
     <!-- ---------------------------------body-------------------------------------->
-    
     <%- body %>
 
+    
     
     <!-- Load jQuery first -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
@@ -61,6 +64,10 @@
 
     <!-- ---------------------------------SweetAlert-------------------------------------->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- ---------------------------------Spinner-------------------------------------->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.0.0/spin.min.js"></script>
+
 
     <script src="/js/dom.js"></script>
 

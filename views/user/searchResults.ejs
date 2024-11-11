@@ -1,64 +1,66 @@
 <%- include('./header') %>
-    <div class="grid grid-cols-1 md:grid-cols-8 pb-16 gap-6 mx-6">
-        <!-- Filter Options Section -->
-        <div class="filter-options space-y-6 border-r pr-10 ml-10 box-content md:col-span-1 my-10">
-            <div class="filter-section">
-                <h3 class="text-lg font-semibold mb-4">Filter By price</h3>
-                <form id="filterForm">
-                    <!-- Filter Checkboxes -->
-                    <div class="filter-checkboxes space-y-2">
+<div class="grid grid-cols-1 md:grid-cols-8 pb-16 gap-6 mx-6">
+    <!-- Filter Options Section -->
+    <div class="filter-options space-y-6 border-r pr-10 ml-10 box-content md:col-span-1 my-10">
+        <div class="filter-section">
+            <h3 class="text-lg font-semibold mb-4">Filter By Price</h3>
+            <form id="filterForm">
+                <!-- Filter Checkboxes -->
+                <div class="filter-checkboxes space-y-2">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input id="checkbox-1" name="sort" type="radio" value="lowToHigh"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+                            onclick="handleFilters()">
+                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: Low to High</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input id="checkbox-2" name="sort" type="radio" value="highToLow"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+                            onclick="handleFilters()">
+                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: High to Low</span>
+                    </label>
+                </div>
+                <!-- Filter by Name -->
+                <div class="filter-checkboxes space-y-2 mt-4">
+                    <h3 class="text-lg font-semibold mb-4">Filter By Name</h3>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input id="checkbox-3" name="sort" type="radio" value="atoz"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+                            onclick="handleFilters()">
+                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: A to Z</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input id="checkbox-4" name="sort" type="radio" value="ztoa"
+                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+                            onclick="handleFilters()">
+                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: Z to A</span>
+                    </label>
+                </div>
+                <!-- Categories Filter -->
+                <div class="filter-categories space-y-2 mt-4">
+                    <h4 class="text-lg font-semibold mb-2">Categories</h4>
+                    <% categories.forEach(category => { %>
                         <label class="inline-flex items-center cursor-pointer">
-                            <input id="checkbox-1" name="sort" type="radio" value="lowToHigh"
+                            <input type="checkbox" name="category" value="<%= category._id %>"
                                 class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                onclick="submitFilter()">
-                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: Low to High</span>
+                                onclick="handleFilters()">
+                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">
+                                <%= category.name %>
+                            </span>
                         </label>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input id="checkbox-2" name="sort" type="radio" value="highToLow"
-                                class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                onclick="submitFilter()">
-                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: High to Low</span>
-                        </label>
-                        <!-- Add more filter options as needed -->
-                    </div>
-                    <!-- Filter by Name -->
-                    <div class="filter-checkboxes space-y-2 mt-4">
-                        <h3 class="text-lg font-semibold mb-4">Filter By Name</h3>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input id="checkbox-3" name="sort" type="radio" value="atoz"
-                                class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                onclick="submitFilter()">
-                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: A to Z</span>
-                        </label>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input id="checkbox-4" name="sort" type="radio" value="ztoa"
-                                class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                onclick="submitFilter()">
-                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: Z to A</span>
-                        </label>
-                    </div>
-                    <!-- Categories Filter -->
-                    <div class="filter-categories space-y-2 mt-4">
-                        <h4 class="text-lg font-semibold mb-2">Categories</h4>
-                        <% categories.forEach(category=> { %> <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="category" value="<%= category._id %>"
-                                    class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                    onclick="submitFilter()">
-                                <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">
-                                    <%= category.name %>
-                                </span>
-                            </label>
-                            <% }) %>
-                    </div>
-                </form>
-            </div>
+                    <% }) %>
+                </div>
+            </form>
         </div>
-        <!-- Product Listing Section -->
-        <div class="search-results md:col-span-7 ml-5 space-y-6 mt-10">
-            <h2 class="text-2xl font-bold mb-4">Search Results for "<%= locals.query %>"</h2>
-            <% results.forEach(product=> { %> <a href="/product/<%= product._id %>">
-                    <div
-                        class="product-list-item flex items-start hover:bg-gray-100 border-t p-4 border-b border-gray-200">
+    </div>
+
+    <!-- Product Listing Section -->
+    <div class="search-results md:col-span-7 ml-5 space-y-6 mt-10">
+        <h2 class="text-2xl font-bold mb-4">Search Results for "<%= locals.query %>"</h2>
+        <% if (results.length > 0) { %>
+            <% results.forEach(product => { %>
+                <a href="/product/<%= product._id %>">
+                    <div class="product-list-item flex items-start hover:bg-gray-100 border-t p-4 border-b border-gray-200">
                         <img src="<%= product.images[0] %>" alt="<%= product.name %>"
                             class="w-24 h-24 object-cover mr-4" />
                         <div class="product-info">
@@ -68,8 +70,7 @@
                             <p class="text-gray-600 mt-1">
                                 <%= product.description1 %>
                             </p>
-                            <p class="text-green-600 font-bold mt-2">Price: <span class="text-2xl">$<%= product.price %>
-                                        </span></p>
+                            <p class="text-green-600 font-bold mt-2">Price: <span class="text-2xl">$<%= product.price %></span></p>
                             <p class="text-gray-600 mt-1">
                                 <%= product.description2 %>
                             </p>
@@ -81,73 +82,106 @@
                         </div>
                     </div>
                 </a>
-                <% }) %>
+            <% }) %>
+        <% } else { %>
+            <p class="text-gray-600 font-semibold mt-4">No products found matching your criteria.</p>
+        <% } %>
+    </div>
+</div>
+
+<!-- Pagination Section -->
+<div class="pagination flex justify-center items-center space-x-4 mt-10">
+    <% if (page > 1) { %>
+        <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page - 1 %>&sort=<%= sort %>&category=<%= category %>"
+           class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
+    <% } else { %>
+        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
+    <% } %>
+
+    <% if (pages > 1) { %>
+        <div class="flex space-x-1">
+            <% for (let i = 1; i <= pages; i++) { %>
+                <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= i %>&sort=<%= sort %>&category=<%= category %>"
+                   class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= page === i ? 'bg-gray-300' : '' %>">
+                    <%= i %>
+                </a>
+            <% } %>
         </div>
-    </div>
-    <div class="pagination flex justify-center items-center space-x-4 mt-10">
-        <!-- Previous Button -->
-        <% if (page > 1) { %>
-            <a href="/search/results?q=<%= query %>&page=<%= page - 1 %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
-        <% } else { %>
-            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
-        <% } %>
+    <% } %>
 
-        <!-- Page Numbers -->
-        <% if (pages > 1) { %>
-            <div class="flex space-x-1">
-                <% for (let i = 1; i <= pages; i++) { %>
-                    <a href="/search/results?q=<%= query %>&page=<%= i %>" 
-                       class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= page === i ? 'bg-gray-300' : '' %>">
-                        <%= i %>
-                    </a>
-                <% } %>
-            </div>
-        <% } %>
+    <% if (page < pages) { %>
+        <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page + 1 %>&sort=<%= sort %>&category=<%= category %>"
+           class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
+    <% } else { %>
+        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>
+    <% } %>
+</div>
 
-        <!-- Next Button -->
-        <% if (page < pages) { %>
-            <a href="/search/results?q=<%= query %>&page=<%= page + 1 %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
-        <% } else { %>
-            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>
-        <% } %>
-    </div>
-    <%- include('./footer') %>
-        <script>
-            function submitFilter() {
-                const form = document.getElementById('filterForm');
-                const formData = new FormData(form);
-                const filterData = Object.fromEntries(formData.entries());
+<%- include('./footer') %>
 
-                axios.post('/api/filter-products', filterData)
-                    .then(response => {
-                        // Update the frontend with filtered results
-                        const resultsSection = document.querySelector('.search-results');
-                        resultsSection.innerHTML = ''; // Clear the existing results
-                        if (Array.isArray(response.data.data)) {
-                            response.data.data.forEach(product => {
-                                const resultHTML = `
-                            <a href="/product/${product._id}">
-                                <div class="product-list-item flex items-start hover:bg-gray-100 border-t p-4 border-b border-gray-200">
-                                    <img src="${product.images[0]}" alt="${product.name}" class="w-24 h-24 object-cover mr-4" />
-                                    <div class="product-info">
-                                        <h2 class="text-lg font-semibold text-gray-800">${product.name}</h2>
-                                        <p class="text-gray-600 mt-1">${product.description1}</p>
-                                        <p class="text-green-600 font-bold mt-2">Price: <span class="text-2xl">$${product.price}</span></p>
-                                        <p class="text-gray-600 mt-1">${product.description2}</p>
-                                        ${product.stock === 0 ? '<p class="text-red-600 font-bold mt-2">Out of Stock</p>' : ''}
-                                        ${product.stock < 5 ? '<p class="text-yellow-600 font-bold mt-2">Few Stock Left</p>' : ''}
-                                    </div>
-                                </div>
-                            </a>
-                        `;
-                                resultsSection.innerHTML += resultHTML;
-                            });
-                        } else {
-                            console.error('Response data is not an array:', response.data);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching filtered products:', error);
-                    });
-            }
-        </script>
+<script>
+    const handleFilters = () => {
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    // Preserve search query
+    const searchQuery = searchParams.get('q');
+    if (searchQuery) {
+        formData.append('q', searchQuery);
+    }
+
+    // Get selected categories
+    const selectedCategories = Array.from(form.querySelectorAll('input[name="category"]:checked'))
+        .map(input => input.value);
+    
+    if (selectedCategories.length > 0) {
+        formData.set('category', selectedCategories.join(','));
+    }
+
+    // Get sort option
+    const sortOption = form.querySelector('input[name="sort"]:checked');
+    if (sortOption) {
+        formData.set('sort', sortOption.value);
+    }
+
+    // Reset to first page when filters change
+    formData.set('page', '1');
+
+    // Build and navigate to URL
+    const queryString = new URLSearchParams(formData).toString();
+    window.location.href = `/search/results?${queryString}`;
+};
+
+// Initialize filters based on URL parameters
+const initializeFilters = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    // Set sort radio buttons
+    const sortValue = searchParams.get('sort');
+    if (sortValue) {
+        const sortRadio = document.querySelector(`input[name="sort"][value="${sortValue}"]`);
+        if (sortRadio) sortRadio.checked = true;
+    }
+
+    // Set category checkboxes
+    const categories = searchParams.get('category');
+    if (categories) {
+        categories.split(',').forEach(category => {
+            const checkbox = document.querySelector(`input[name="category"][value="${category}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+};
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    initializeFilters();
+    
+    // Add change event listeners to all filter inputs
+    document.querySelectorAll('#filterForm input').forEach(input => {
+        input.addEventListener('change', handleFilters);
+    });
+});
+
+</script>

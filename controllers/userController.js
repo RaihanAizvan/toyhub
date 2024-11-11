@@ -100,9 +100,8 @@ export const viewAllCategories = category.viewAllCategories
 
 export const getSingleProduct = singleProduct.getSingleProduct
 
-export const searchResults = singleProduct.searchResults
+export const searchAndFilterProducts = singleProduct.searchAndFilterProducts
 
-export const filterProducts = singleProduct.filterProducts
 
 
 //* -----------------------------------------!                                         

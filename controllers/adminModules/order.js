@@ -8,7 +8,7 @@ const getAdminOrders = async (req, res) => {
         const skip = (page - 1) * limit;
 
         // Fetch orders with pagination
-        const orders = await Order.find().populate('user').skip(skip).limit(limit).exec();
+        const orders = await Order.find().populate('user').sort({ createdAt: -1 }).skip(skip).limit(limit).exec();
         const totalOrders = await Order.countDocuments();
 
         res.render('admin/orders', {
