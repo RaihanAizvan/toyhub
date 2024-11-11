@@ -171,3 +171,5 @@ export const getCheckoutPage = checkout.getCheckoutPage
 
 export const postPlaceOrderInCheckout = checkout.postPlaceOrderInCheckout
 
+export const applyCoupon = checkout.applyCoupon
+

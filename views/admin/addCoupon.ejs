@@ -63,7 +63,7 @@
           <% } %>
           <div class="mb-4">
             <label class="block text-gray-700">Coupon Code</label>
-            <input type="text" name="couponCode"  class="w-full border px-3 py-2 rounded"  />
+            <input type="text" name="couponCode" class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="couponCodeError">Coupon code not contain spaces.</p>
           </div>
           <div class="mb-4">
@@ -80,12 +80,16 @@
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount</label>
-            <input type="number" name="discount" min="1"  class="w-full border px-3 py-2 rounded" />
+            <input type="number" name="discount" min="1" class="w-full border px-3 py-2 rounded" />
             <p class="error text-red-500 hidden" id="discountError">Discount must be greater than zero.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Usage Limit </label>
+<<<<<<< HEAD
             <input type="number" name="usageCount" min="1"  class="w-full border px-3 py-2 rounded" />
+=======
+            <input type="number" name="usageLimit" min="1" class="w-full border px-3 py-2 rounded" />
+>>>>>>> coupon
             <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be greater than zero.</p>
           </div>
           <div class="mb-4">
@@ -106,7 +110,7 @@
     document.getElementById('couponForm').addEventListener('submit', function(event) {
       event.preventDefault();
       const form = event.target;
-      const code = form.couponCode.value;
+      const code = form.couponCode.value.toUpperCase(); // Convert to uppercase
       const startDate = form.startDate.value ? new Date(form.startDate.value) : null;
       const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
       const discount = form.discount.value;
