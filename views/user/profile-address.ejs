@@ -1,4 +1,4 @@
-<%- include('header') %>
+    <%- include('header') %>
 <div class="bg-gray-100 pt-4 w-full text-sm">
     <div class="flex min-h-screen md:w-8/12 mx-auto">
         <!-- Sidebar -->
@@ -17,31 +17,37 @@
 
                 <!-- Hidden Form (Initially Hidden) -->
                 <div id="addAddressForm" class="hidden mt-4">
-                    <form action="/account/add-address" method="POST" class="bg-white p-4 shadow-md">
+                    <form id="addressForm" action="/account/add-address" method="POST" class="bg-white p-4 shadow-md" onsubmit="return validateAddressForm()">
                         <div class="grid grid-cols-1 gap-4">
                             <div>
                                 <label class="block text-gray-600">Contact Name</label>
-                                <input type="text" name="name" class="w-full border p-2 rounded-lg" placeholder="Mohammed Raihan" required>
+                                <input type="text" name="name" class="w-full border p-2 rounded-lg" placeholder="Mohammed Raihan" oninput="validateName()">
+                                <p class="error text-red-500" id="nameError"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-600">Street Address</label>
-                                <input type="text" name="street" class="w-full border p-2 rounded-lg" placeholder="123 Main Street, Anytown, USA, 12345" required>
+                                <input type="text" name="street" class="w-full border p-2 rounded-lg" placeholder="123 Main Street, Anytown, USA, 12345" oninput="validateStreet()">
+                                <p class="error text-red-500" id="streetError"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-600">City</label>
-                                <input type="text" name="city" class="w-full border p-2 rounded-lg" placeholder="Trivandrum" required>
+                                <input type="text" name="city" class="w-full border p-2 rounded-lg" placeholder="Trivandrum" oninput="validateCity()">
+                                <p class="error text-red-500" id="cityError"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-600">State</label>
-                                <input type="text" name="state" class="w-full border p-2 rounded-lg" placeholder="Kerla" required>
+                                <input type="text" name="state" class="w-full border p-2 rounded-lg" placeholder="Kerla" oninput="validateState()">
+                                <p class="error text-red-500" id="stateError"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-600">Postal Code</label>
-                                <input type="text" name="zip" class="w-full border p-2 rounded-lg" placeholder="695505" required>
+                                <input type="text" name="zip" class="w-full border p-2 rounded-lg" placeholder="695505" oninput="validateZip()">
+                                <p class="error text-red-500" id="zipError"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-600">Phone Number</label>
-                                <input type="text" name="phone" class="w-full border p-2 rounded-lg" placeholder="9876543210" required>
+                                <input type="text" name="phone" class="w-full border p-2 rounded-lg" placeholder="9876543210" oninput="validatePhone()">
+                                <p class="error text-red-500" id="phoneError"></p>
                             </div>
                         </div>
                         <div class="flex justify-end mt-4">
@@ -101,6 +107,121 @@
         const form = document.getElementById('addAddressForm');
         form.classList.toggle('hidden');
     }
+
+    // Function to validate the Add Address form
+    function validateAddressForm() {
+        return validateName() && validateStreet() && validateCity() && validateState() && validateZip() && validatePhone();
+    }
+
+    function validateName() {
+        const name = document.forms["addressForm"]["name"].value;
+        const nameError = document.getElementById('nameError');
+        const namePattern = /^[a-zA-Z\s]+$/;
+
+        if (!name) {
+            nameError.textContent = 'Contact Name is required.';
+            toastr.error('Contact Name is required.');
+            return false;
+        } else if (!namePattern.test(name)) {
+            nameError.textContent = 'Contact Name should only contain letters and spaces.';
+            toastr.error('Contact Name should only contain letters and spaces.');
+            return false;
+        } else {
+            nameError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateStreet() {
+        const street = document.forms["addressForm"]["street"].value;
+        const streetError = document.getElementById('streetError');
+
+        if (!street) {
+            streetError.textContent = 'Street Address is required.';
+            toastr.error('Street Address is required.');
+            return false;
+        } else {
+            streetError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateCity() {
+        const city = document.forms["addressForm"]["city"].value;
+        const cityError = document.getElementById('cityError');
+        const cityPattern = /^[a-zA-Z\s]+$/;
+
+        if (!city) {
+            cityError.textContent = 'City is required.';
+            toastr.error('City is required.');
+            return false;
+        } else if (!cityPattern.test(city)) {
+            cityError.textContent = 'City should only contain letters and spaces.';
+            toastr.error('City should only contain letters and spaces.');
+            return false;
+        } else {
+            cityError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateState() {
+        const state = document.forms["addressForm"]["state"].value;
+        const stateError = document.getElementById('stateError');
+        const statePattern = /^[a-zA-Z\s]+$/;
+
+        if (!state) {
+            stateError.textContent = 'State is required.';
+            toastr.error('State is required.');
+            return false;
+        } else if (!statePattern.test(state)) {
+            stateError.textContent = 'State should only contain letters and spaces.';
+            toastr.error('State should only contain letters and spaces.');
+            return false;
+        } else {
+            stateError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateZip() {
+        const zip = document.forms["addressForm"]["zip"].value;
+        const zipError = document.getElementById('zipError');
+        const zipPattern = /^[0-9]{5}(?:-[0-9]{4})?$/;
+
+        if (!zip) {
+            zipError.textContent = 'Postal Code is required.';
+            toastr.error('Postal Code is required.');
+            return false;
+        } else if (!zipPattern.test(zip)) {
+            zipError.textContent = 'Invalid postal code format.';
+            toastr.error('Invalid postal code format.');
+            return false;
+        } else {
+            zipError.textContent = '';
+            return true;
+        }
+    }
+
+    function validatePhone() {
+        const phone = document.forms["addressForm"]["phone"].value;
+        const phoneError = document.getElementById('phoneError');
+        const phonePattern = /^[0-9]{10}$/;
+
+        if (!phone) {
+            phoneError.textContent = 'Phone Number is required.';
+            toastr.error('Phone Number is required.');
+            return false;
+        } else if (!phonePattern.test(phone)) {
+            phoneError.textContent = 'Invalid phone number format.';
+            toastr.error('Invalid phone number format.');
+            return false;
+        } else {
+            phoneError.textContent = '';
+            return true;
+        }
+    }
+
     // Select all forms that handle address deletion
     const deleteForms = document.querySelectorAll('.delete-address-form');
 

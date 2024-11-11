@@ -37,9 +37,11 @@
                         </div>
                     
                         <!-- Submit Button -->
+                        <% if (!user.googleId) { %>
                         <div class="flex justify-end mt-4">
                             <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md">Change Password</button>
                         </div>
+                        <% } %>
                     </form>
                 </div>
 

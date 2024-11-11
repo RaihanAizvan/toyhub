@@ -30,6 +30,24 @@ const OrderSchema = new mongoose.Schema({
     default: 0
   },
   address: {
+    user:{
+      name: {
+        type: String,
+        required: true
+      },
+      email: {
+        type: String,
+        required: true
+      },
+      joined_date: {
+        type: Date,
+        default: Date.now
+      },
+      phone_number: {
+        type: Number,
+        required: true
+      },
+    },
     name: {
       type: String,
       required: true

@@ -53,12 +53,15 @@
                             <!-- Remove Icon -->
                             <form id="removeForm">
                                 <input type="hidden" id="cartId" name="cartId" value="<%= cart._id %>">
-                                <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" class="ml-5 hover:text-gray-500 text-red-500">
+                                <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" class="ml-5 hover:text-gray-500 text-red-500" disabled>
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
                         </div>
                     <% }) %>
+                    <% if (cart.items.some(item => item.product.stock <= 0)) { %>
+                        <p class="text-red-500 text-lg">Some products are out of stock. Please adjust your cart before proceeding to checkout.</p>
+                    <% } %>
                 <% } else { %>
                     <p class="text-gray-500 text-lg">Your cart is empty.</p>
                 <% } %>
@@ -91,7 +94,7 @@
                 </div>
 
                 <!-- Proceed to Checkout Button -->
-                <% if (cart.items.length > 0) { %>
+                <% if (cart.items.length > 0 && !cart.items.some(item => item.product.stock <= 0)) { %>
                     <div class="mt-8">
                         <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
                             Proceed to Checkout

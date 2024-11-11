@@ -6,6 +6,8 @@ import Category from '../../models/categories.model.js';
 
 async function getLandingPage(req, res) {
     try {
+      console.log("the session is");
+      console.log(req.session.user);
         const flashMessage = req.session.flashMessage || null;
         if (req.session.flashMessage) {
             delete req.session.flashMessage;

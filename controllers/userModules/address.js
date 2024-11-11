@@ -145,11 +145,21 @@ const postDeleteAddress = async (req, res) => {
 
 
 const getChangePassword = (req, res) => {
+    if (req.session.user.googleId){
+        console.log(1);
+            return res.render('user/profile-changePasssword', {
+            user: req.session.user,
+            error: 'Google users cannot change their password here. Please use Google account settings.',
+            title: "Change Password",
+            name: req.session.user?.name
+        });
+    }
     res.render('user/profile-changePasssword', {
         user: req.session.user, 
         error: null,
         title:"Change Password",
-        name:req.session.user?.name
+        name:req.session.user?.name,
+        googleId: req.session.user?.googleId
     });
 };
 

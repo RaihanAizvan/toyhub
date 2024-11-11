@@ -25,22 +25,30 @@
         }
     }
 </style>
-<div class="bg-gray-100 flex items-center justify-center py-32 ">
-<div class="text-center">
-    <!-- Animated Checkmark -->
-    <svg class="mx-auto mb-8" xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#00A845" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="scale-up-center">
-        <circle cx="12" cy="12" r="10" class="checkmark" />
-        <polyline points="9 12 12 15 20 7" class="checkmark" />
-    </svg>
+<div class="bg-gray-100 flex items-center justify-center py-32">
+    <div class="text-center">
+        <!-- Animated Checkmark -->
+        <svg class="mx-auto mb-8" xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#00A845" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="scale-up-center">
+            <circle cx="12" cy="12" r="10" class="checkmark" />
+            <polyline points="9 12 12 15 20 7" class="checkmark" />
+        </svg>
 
-    <!-- Success Message -->
-    <h1 class="text-4xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h1>
-    <p class="text-lg text-gray-600 mb-8">Thank you for shopping with ToyHub. Your order is being processed.</p>
+        <!-- Success Message -->
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h1>
+        <p class="text-lg text-gray-600 mb-8">Thank you for shopping with ToyHub. Your order is being processed.</p>
 
-    <!-- Button to View Orders -->
-    <a href="/account/orders" class="bg-primary text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-600 transition-all">
-        View My Orders
-    </a>
-</div>
+        <!-- Order Summary -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Order Summary</h2>
+            <p class="text-gray-600"><strong>Order ID:</strong> <%= order._id %></p>
+            <p class="text-gray-600"><strong>Total Amount:</strong> ₹ <%= order.totalAmount %></p>
+            <p class="text-gray-600"><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+        </div>
+
+        <!-- Button to View Orders -->
+        <a href="/account/orders" class="bg-primary text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-green-600 transition-all">
+            View My Orders
+        </a>
+    </div>
 </div>
 <%- include('footer') %>

@@ -35,7 +35,6 @@ async (req, accessToken, refreshToken, profile, done) => {
             });
             await user.save();
         }
-
         // Passport will serialize the user ID and handle session storage
         return done(null, user);
     } catch (error) {

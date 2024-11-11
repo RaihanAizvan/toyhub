@@ -12,8 +12,16 @@ router.get('/google', passport.authenticate('google', {
 
 // Handling the callback after Google has authenticated the user
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), async (req, res) => {
-    // Successful authentication, redirect to home or dashboard
+    // Successful authentication, store details in session and redirect to home or dashboard
     const user = await User.findById(req.user.id);
+
+    req.session.user = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isBlocked: user.isBlocked,
+      googleId: user.googleId
+    };
     if(user.isBlocked) {
       return res.redirect('/user/login?blocked=true');
     }

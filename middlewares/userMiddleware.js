@@ -1,3 +1,5 @@
+import Cart from '../models/cart.models.js';
+
 import User from '../models/users.models.js';
 function isUser(req, res, next) {
   if (req.session.user) {
@@ -32,18 +34,27 @@ const checkBlockStatus = async (req, res, next) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-const redirectToLoginIfNotAUser = (req,res,next) =>{
+const redirectToLoginIfNotAUser = (req, res, next) => {
+  console.log(req.session);
   if (req.session.user) {
-    next()
+    next();
   } else {
-    res.status(403).redirect("/user/login")
-    console.log(`not a user.`);
+    res.status(403).redirect("/user/login");
+    console.log("not a user");
   }
+}
+
+const checkForProductStockBeforeCheckout = async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
+  if (cart.items.some(item => item.product.stock <= 0)) {
+    return res.status(400).redirect('/cart');
+  }
+  next();
 }
 
 export default {
   isUser,
   checkBlockStatus,
-  redirectToLoginIfNotAUser
+  redirectToLoginIfNotAUser,
+  checkForProductStockBeforeCheckout
 }

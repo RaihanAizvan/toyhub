@@ -1,101 +1,109 @@
 <%- include('header') %>
 
 <div class="bg-gray-100 min-h-screen py-8">
-    <div class="container mx-auto w-8/12 bg-white shadow-sm rounded-lg p-6">
-        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Order Details</h1>
+    <div class="container mx-auto w-8/12 bg-white shadow-sm rounded-lg p-6 flex">
+        <div class="flex-1">
+            <h1 class="text-3xl font-semibold text-gray-800 mb-6">Order Details</h1>
 
-        <!-- Order Info -->
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-gray-800">Order ID: <span class="text-primary"><%= order._id %></span></h2>
-            <p class="text-gray-600">Placed on: <%= new Date(order.orderDate).toLocaleDateString() %></p>
-            <p class="text-gray-600">Status: 
-                <% if (order.status === 'Cancelled') { %>
-                    <span class="font-bold text-red-600"><%= order.status %></span>
-                <% } else if (order.status === 'Pending') { %>
-                    <span class="font-bold text-green-600"><%= order.status %></span>
-                <% } else if (order.status === 'Delivered') { %>
-                    <span class="font-bold text-blue-600"><%= order.status %></span>
-                <% } else { %>
-                    <span class="font-bold text-gray-600"><%= order.status %></span>
-                <% } %>
-            </p>
-        </div>
+            <!-- Order Info -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-800">Order ID: <span class="text-primary"><%= order._id %></span></h2>
+                <p class="text-gray-600">Placed on: <%= new Date(order.orderDate).toLocaleDateString() %></p>
+            </div>
 
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Status</h2>
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                            <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
-                        </div>
-                        <div class="relative flex justify-between">
-                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                <span class="text-xs font-medium text-gray-900">1</span>
-                            </span>
-                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                <span class="text-xs font-medium text-gray-900">2</span>
-                            </span>
-                            <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                <span class="text-xs font-medium text-gray-900">3</span>
-                            </span>
-                        </div>
+            <!-- Customer Info -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Customer Information</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <p><strong>Name:</strong> <%= order.address.user.name %></p>
+                        <p><strong>Email:</strong> <%= order.address.user.email %></p>
+                        <p><strong>Joined Date:</strong> <%= new Date(order.address.user.joined_date).toLocaleDateString() %></p>
+                    </div>
+                    <div>
+                        <p><strong>Phone:</strong> <%= order.user.phone_number %></p>
+                        <p><strong>Address: <br></strong> <%= order.address.name %>,<br> <%= order.address.street %>, <%= order.address.city %>, <br><%= order.address.state %>, <%= order.address.zip %>, Phone: <%= order.address.phone %></p>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between mt-2">
-                <span class="text-sm font-medium text-gray-600">Pending</span>
-                <span class="text-sm font-medium text-gray-600">Shipped</span>
-                <span class="text-sm font-medium text-gray-600">Delivered</span>
-            </div>
-            <% if (order.status === 'Cancelled') { %>
-                <div class="mt-4">
-                    <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
-                </div>
-            <% } %>
 
-        <!-- Items Ordered -->
-        <div>
-            <h3 class="text-lg font-medium text-gray-800">Items in this order:</h3>
-            <ul class="space-y-4 mt-4">
-                <% order.items.forEach(item => { %>
-                    <li class="flex items-start justify-between border-b pb-4">
-                        <div class="flex items-center space-x-4">
-                            <!-- Product Image -->
-                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-cover rounded-md">
-                            
-                            <!-- Product Details -->
-                            <div>
-                                <h4 class="font-semibold text-gray-800"><%= item.product.name %></h4>
-                                <p class="text-gray-600">Quantity: <%= item.quantity %></p>
-                                <p class="text-gray-600">Price: ₹ <%= item.price %></p>
-                                <p class="text-gray-600">Payment Method: <%= item.paymentMethod %></p>
+            <!-- Order Status -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Status</h2>
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
+                            </div>
+                            <div class="relative flex justify-between">
+                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                    <span class="text-xs font-medium text-gray-900">1</span>
+                                </span>
+                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                    <span class="text-xs font-medium text-gray-900">2</span>
+                                </span>
+                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                    <span class="text-xs font-medium text-gray-900">3</span>
+                                </span>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-2">
+                    <span class="text-sm font-medium text-gray-600">Pending</span>
+                    <span class="text-sm font-medium text-gray-600">Shipped</span>
+                    <span class="text-sm font-medium text-gray-600">Delivered</span>
+                </div>
+                <% if (order.status === 'Cancelled') { %>
+                    <div class="mt-4">
+                        <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
+                    </div>
+                <% } %>
+            </div>
 
-                        <!-- Item Total Price -->
-                        <div class="text-right">
-                            <p class="text-lg font-bold text-gray-800">₹ <%= item.price * item.quantity %></p>
-                            
-                            <!-- Cancel Button -->
-                            
+            <!-- Items Ordered -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-800">Items in this order:</h3>
+                <div class="grid grid-cols-1 gap-4 mt-4">
+                    <% order.items.forEach(item => { %>
+                        <div class="flex flex-col bg-white shadow-md rounded-lg p-4">
+                            <div class="flex items-center space-x-4">
+                                <!-- Product Image -->
+                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-cover rounded-md">
+                                
+                                <!-- Product Details -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-800"><%= item.product.name %></h4>
+                                    <p class="text-gray-600">Quantity: <%= item.quantity %></p>
+                                    <p class="text-gray-600">Price: ₹ <%= item.price %></p>
+                                    <p class="text-gray-600">Payment Method: <%= item.paymentMethod %></p>
+                                </div>
+                            </div>
+
+                            <!-- Item Total Price -->
+                            <div class="text-right mt-4">
+                                <p class="text-lg font-bold text-gray-800">₹ <%= item.price * item.quantity %></p>
+                            </div>
                         </div>
-                    </li>
-                <% }) %>
-            </ul>
-        </div>
+                    <% }) %>
+                </div>
+            </div>
 
-        <!-- Total Amount -->
-        <div class="mt-6 text-right">
-            <p class="text-2xl font-bold text-gray-800">Total Amount: ₹ <%= order.totalAmount %></p>
-        </div>
+            <!-- Total Amount -->
+            <div class="mt-6 text-right">
+                <p class="text-2xl font-bold text-gray-800">Total Amount: ₹ <%= order.totalAmount %></p>
+            </div>
 
-        <!-- Go Back Button -->
-        <div class="mt-6">
-            <a href="/account/orders" class="bg-primary text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-200">Back to Orders</a>
+            <!-- Go Back Button -->
+            <div class="mt-6">
+                <a href="/account/orders" class="bg-primary text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-200">Back to Orders</a>
+            </div>
         </div>
+        
     </div>
+
+        <!-- Address Details -->
 </div>
 
 <%- include('footer') %>
-

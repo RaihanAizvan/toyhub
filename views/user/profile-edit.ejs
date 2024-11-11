@@ -12,11 +12,12 @@
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-4">
                             <!-- Name -->
-                            <form id="nameForm" action="/account/update-name" method="POST" class="flex items-center">
+                            <form id="nameForm" action="/account/update-name" method="POST" class="flex items-center" onsubmit="return validateName()">
                                 <div class="w-full">
                                     <label class="text-gray-600">Name</label>
                                     <input id="nameInput" type="text" name="name" class="w-full border p-2 rounded-lg"
                                         value="<%= user.name %>" disabled>
+                                    <span id="nameError" class="text-red-500 text-sm hidden"></span>
                                 </div>
                                 <div class="flex items-center">
                                     <a href="#" class="text-primary ml-2" id="nameEdit" onclick="editField('name')">
@@ -40,11 +41,12 @@
                                 </div>
                             </div>
                             <!-- Phone -->
-                            <form id="phoneForm" action="/account/update-phone" method="POST" class="flex items-center mt-5">
+                            <form id="phoneForm" action="/account/update-phone" method="POST" class="flex items-center mt-5" onsubmit="return validatePhone()">
                                 <div class="w-full">
                                     <label class="text-gray-600">Mobile Number</label>
                                     <input id="phoneInput" type="tel" name="phone_number"
                                         class="w-full border p-2 rounded-lg" value="<%= user.phone_number %>" disabled>
+                                    <span id="phoneError" class="text-red-500 text-sm hidden"></span>
                                 </div>
                                 <div class="flex items-center">
                                     <a href="#" class="text-primary ml-2" id="phoneEdit" onclick="editField('phone')">
@@ -102,5 +104,74 @@
             document.getElementById(`${field}Edit`).classList.remove('hidden');
             document.getElementById(`${field}Cancel`).classList.add('hidden');
             document.getElementById(`${field}Submit`).classList.add('hidden');
+            
+            // Change input border color on focus
+            document.getElementById(`${field}Input`).addEventListener('focus', function() {
+                this.classList.add('border-blue-500');
+            });
+
+            document.getElementById(`${field}Input`).addEventListener('blur', function() {
+                this.classList.remove('border-blue-500');
+            });
+        }
+
+        function validateName() {
+            const nameInput = document.getElementById('nameInput');
+            const nameError = document.getElementById('nameError');
+            const nameValue = nameInput.value.trim();
+            const namePattern = /^[a-zA-Z\s]{4,}$/;
+
+            if (!namePattern.test(nameValue)) {
+                nameError.textContent = 'Name must be at least 4 characters long and contain only letters and spaces.';
+                nameError.classList.remove('hidden');
+                
+                // Change border color to red
+                nameInput.classList.add('border-red-500');
+
+                // Show error in toast
+                toastr.error('Name must be at least 4 characters long and contain only letters and spaces.');
+
+                // Hide error after 2 seconds
+                setTimeout(() => {
+                    nameError.classList.add('hidden');
+                    nameInput.classList.remove('border-red-500');
+                }, 5000);
+
+                return false;
+            }
+
+            nameError.classList.add('hidden');
+            nameInput.classList.remove('border-red-500');
+            return true;
+        }
+
+        function validatePhone() {
+            const phoneInput = document.getElementById('phoneInput');
+            const phoneError = document.getElementById('phoneError');
+            const phoneValue = phoneInput.value.trim();
+            const phonePattern = /^[0-9]{10}$/;
+
+            if (!phonePattern.test(phoneValue)) {
+                phoneError.textContent = 'Phone number must be exactly 10 digits long and contain only numbers.';
+                phoneError.classList.remove('hidden');
+                
+                // Change border color to red
+                phoneInput.classList.add('border-red-500');
+
+                // Show error in toast
+                toastr.error('Phone number must be exactly 10 digits long and contain only numbers.');
+
+                // Hide error after 2 seconds
+                setTimeout(() => {
+                    phoneError.classList.add('hidden');
+                    phoneInput.classList.remove('border-red-500');
+                }, 5000);
+
+                return false;
+            }
+
+            phoneError.classList.add('hidden');
+            phoneInput.classList.remove('border-red-500');
+            return true;
         }
     </script>

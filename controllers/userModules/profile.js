@@ -116,6 +116,7 @@ export async function getOrderHistory(req, res) { //this function is used to sho
             return {
                 ...order._doc,
                 items: formattedItems,
+                
             };
         });
 

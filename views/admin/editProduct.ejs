@@ -195,7 +195,7 @@
             document.getElementById('skuError').textContent = 'SKU is required';
             isValid = false;
         }
-        if (!formData.get('stock_quantity') || formData.get('stock_quantity') <= 0) {
+        if (!formData.get('stock_quantity') || formData.get('stock_quantity') < 0) {
             document.getElementById('stockQuantityError').textContent = 'Stock Quantity is required and must be greater than 0';
             isValid = false;
         }

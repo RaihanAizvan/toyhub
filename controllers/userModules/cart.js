@@ -128,6 +128,7 @@ export const getCart = async (req, res) => {
         res.render('user/cart', {
             title: 'Cart',
             user: req.session.user,
+            name: req.session.user?.name,
             cart: {
                 ...cart.toObject(),
                 items: cartItemsWithDetails

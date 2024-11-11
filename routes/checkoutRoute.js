@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(middleware.redirectToLoginIfNotAUser)
 
 //routes
-router.get('/' , checkout.getCheckoutPage)
+router.get('/' , middleware.checkForProductStockBeforeCheckout, checkout.getCheckoutPage)
 router.post('/' , checkout.postPlaceOrderInCheckout)
 
 export default router
