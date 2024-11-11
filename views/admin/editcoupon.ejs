@@ -1,0 +1,208 @@
+<!-- views/editCoupon.ejs -->
+<div class="min-h-screen flex flex-col justify-stretch">
+    <div class="flex bg-gray-100">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white p-4 hidden sm:block">
+            <div class="flex items-center justify-between px-6 py-4">
+                <span class="text-xl font-semibold">ToyHub</span>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li><a href="/admin"
+                            class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg">Dashboard</a>
+                    </li>
+                    <li><a href="/admin/products"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">All
+                            Products</a></li>
+                    <li><a href="/admin/orders" class="flex items-center rounded p-2 text-gray-700">Order List</a></li>
+                    <li><a href="/admin/users"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">User
+                            List</a></li>
+                    <li><a href="/admin/category"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Category
+                            Management</a></li>
+                    <li><a href="/admin/addProduct"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Add
+                            Products</a></li>
+                    <li><a href="/admin/banner"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Banner</a>
+                    </li>
+                    <li><a href="/admin/coupons"
+                            class="flex items-center rounded hover:bg-gray-200 bg-primary transition-all p-2 text-gray-700">Coupons</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold ">Categories</h3>
+                <hr>
+                <ul class="mt-2 space-y-2">
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            1</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            2</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
+                            3</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li>
+                        <form action="/admin/logout" method="POST">
+                            <a href="/admin/logout">
+                                <button type="submit"
+                                    class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  "
+                                    id="logoutLink">Logout</Button>
+                            </a>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- Content -->
+        <div class="flex-grow p-8">
+            <h2 class="text-2xl font-bold mb-4">Edit Coupon</h2>
+            <!-- breadcrumb -->
+            <div class="text-sm text-gray-600 mb-4">
+                <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
+                    class="text-gray-600 hover:text-gray-800">Coupons</a>
+            </div>
+            <div class="flex justify-center items-center ">
+                <form action="/admin/editCoupon/<%= coupon._id %>" method="POST"
+                    class="bg-white p-8 rounded shadow-md w-full max-w-lg" id="couponForm">
+                    <h2 class="text-xl font-semibold mb-4">Edit Coupon</h2>
+                    <% if (locals.error) { %>
+                        <p class="text-red-500 mb-4">
+                            <%= error %>
+                        </p>
+                        <% } %>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Coupon Code</label>
+                                <input type="text" name="couponCode" value="<%= coupon.couponCode %>"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="couponCodeError">Coupon code not contain
+                                    spaces.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Start Date</label>
+                                <input type="date" name="startDate"
+                                    value="<%= coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : '' %>"
+                                    min="<%= new Date().toISOString().split('T')[0] %>"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="startDateError">Start date cannot be in the
+                                    past.</p>
+                                <p class="error text-red-500 hidden" id="startDateEmptyError">Start date is required.
+                                </p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">End Date</label>
+                                <input type="date" name="endDate"
+                                    value="<%= coupon.endDate ? new Date(coupon.endDate).toISOString().split('T')[0] : '' %>"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="endDateError">End date must be after the start
+                                    date.</p>
+                                <p class="error text-red-500 hidden" id="endDateEmptyError">End date is required.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Discount</label>
+                                <input type="number" name="discount" value="<%= coupon.discount %>" min="1"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="discountError">Discount must be greater than
+                                    zero.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Usage Limit </label>
+                                <input type="number" name="usageLimit" value="<%= coupon.usageLimit %>" min="1"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be greater
+                                    than zero.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700">Discount Type</label>
+                                <select name="discountType" class="w-full border px-3 py-2 rounded" required>
+                                    <option value="percentage" <%=coupon.discountType==='percentage' ? 'selected' : ''
+                                        %>>Percentage</option>
+                                    <option value="fixed" <%=coupon.discountType==='fixed' ? 'selected' : '' %>>Fixed
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-white py-2 rounded">Update Coupon</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('couponForm').addEventListener('submit', function(event) {
+        const form = event.target;
+        const code = form.couponCode.value.toUpperCase(); // Convert to uppercase
+        const startDate = form.startDate.value ? new Date(form.startDate.value) : null;
+        const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
+        const discount = form.discount.value;
+        const usageLimit = form.usageLimit.value;
+
+        let isValid = true;
+
+        if (code.trim() === '') {
+            isValid = false;
+            document.getElementById('couponCodeError').classList.remove('hidden');
+        } else {
+            document.getElementById('couponCodeError').classList.add('hidden');
+        }
+
+        if (!startDate) {
+            isValid = false;
+            document.getElementById('startDateEmptyError').classList.remove('hidden');
+        } else {
+            document.getElementById('startDateEmptyError').classList.add('hidden');
+        }
+
+        if (startDate && startDate < new Date().setHours(0, 0, 0, 0)) {
+            isValid = false;
+            document.getElementById('startDateError').classList.remove('hidden');
+        } else {
+            document.getElementById('startDateError').classList.add('hidden');
+        }
+
+        if (!endDate) {
+            isValid = false;
+            document.getElementById('endDateEmptyError').classList.remove('hidden');
+        } else {
+            document.getElementById('endDateEmptyError').classList.add('hidden');
+        }
+
+        if (endDate && startDate && endDate <= startDate) {
+            isValid = false;
+            document.getElementById('endDateError').classList.remove('hidden');
+        } else {
+            document.getElementById('endDateError').classList.add('hidden');
+        }
+
+        if (!usageLimit || usageLimit <= 0) {
+            isValid = false;
+            document.getElementById('usageLimitError').classList.remove('hidden');
+        } else {
+            document.getElementById('usageLimitError').classList.add('hidden');
+        }
+
+        if (discount <= 0) {
+            isValid = false;
+            document.getElementById('discountError').classList.remove('hidden');
+        } else {
+            document.getElementById('discountError').classList.add('hidden');
+        }
+
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+</script>

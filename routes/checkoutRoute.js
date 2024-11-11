@@ -9,5 +9,6 @@ router.use(middleware.redirectToLoginIfNotAUser)
 //routes
 router.get('/' , checkout.getCheckoutPage)
 router.post('/' , checkout.postPlaceOrderInCheckout)
+router.post('/apply-coupon' , checkout.applyCoupon)
 
 export default router

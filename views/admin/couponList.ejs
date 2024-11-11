@@ -65,20 +65,122 @@
               <th class="p-4 text-left">Start Date</th>
               <th class="p-4 text-left">End Date</th>
               <th class="p-4 text-left">Discount</th>
+              <th class="p-4 text-left">Usage Left</th>
+              <th class="p-4 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             <% coupons.forEach(coupon => { %>
-              <tr class="border-b">
+              <tr class="border-b <%= coupon.isBlocked ? 'bg-gray-200' : '' %>">
                 <td class="p-4"><%= coupon.couponCode %></td>
                 <td class="p-4"><%= coupon.startDate.toDateString() %></td>
                 <td class="p-4"><%= coupon.endDate.toDateString() %></td>
                 <td class="p-4"><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '$' + coupon.discount %></td>
+                <td class="p-4"><%= coupon.usageLimit %></td>
+                <td class="p-4">
+                  <a href="/admin/editCoupon/<%= coupon._id %>" class="text-blue-500 mx-2 hover:underline">Edit</a>
+                  <button onclick="manageCoupon('delete', '<%= coupon._id %>')" class="text-red-500 mx-2 hover:underline">Delete</button>
+                  <button onclick="manageCoupon('<%= coupon.isBlocked ? 'unblock' : 'block' %>', '<%= coupon._id %>')" class="<%= coupon.isBlocked ? 'text-green-500' : 'text-red-500' %> mx-2 hover:underline"><%= coupon.isBlocked ? 'Unblock' : 'Block' %></button>
+                </td>
               </tr>
             <% }) %>
           </tbody>
         </table>
+      <div class="mt-4 flex justify-between items-center">
+        <!-- Previous Button -->
+        <% if (currentPage > 1) { %>
+            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="changePage(<%= currentPage - 1 %>)">Previous</button>
+        <% } else { %>
+            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Previous</button>
+        <% } %>
+
+        <!-- Page Numbers -->
+        <div class="flex space-x-1">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <button class="px-3 py-1 mx-1 <%= currentPage === i ? 'bg-primary text-white' : 'bg-gray-300 text-gray-700' %> rounded" onclick="changePage(<%= i %>)"><%= i %></button>
+            <% } %>
+        </div>
+
+        <!-- Next Button -->
+        <% if (currentPage < totalPages) { %>
+            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="changePage(<%= currentPage + 1 %>)">Next</button>
+        <% } else { %>
+            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Next</button>
+        <% } %>
       </div>
     </div>
   </div>
-  
+  <script>
+    function changePage(page) {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('page', page);
+      window.location.search = urlParams.toString();
+    }
+  </script>
+
+  <script>
+    async function manageCoupon(action, id) {
+      let title, text, confirmButtonText, successMessage, errorMessage, postUrl, updateRow;
+
+      if (action === 'delete') {
+        title = 'Are you sure?';
+        text = 'You won\'t be able to revert this!';
+        confirmButtonText = 'Yes, delete it!';
+        successMessage = 'Coupon deleted successfully.';
+        errorMessage = 'Failed to delete coupon.';
+        postUrl = `/admin/deleteCoupon/${id}`;
+        updateRow = (couponRow) => {
+          if (couponRow) couponRow.remove();
+        };
+      } else if (action === 'block' || action === 'unblock') {
+        const isBlocking = action === 'block';
+        title = 'Are you sure?';
+        text = isBlocking ? 'You won\'t be able to revert this!' : 'You want to unblock this coupon!';
+        confirmButtonText = isBlocking ? 'Yes, block it!' : 'Yes, unblock it!';
+        successMessage = isBlocking ? 'Coupon blocked successfully.' : 'Coupon unblocked successfully.';
+        errorMessage = isBlocking ? 'Failed to block coupon.' : 'Failed to unblock coupon.';
+        postUrl = `/admin/blockCoupon/${id}`;
+        updateRow = (couponRow) => {
+          if (couponRow) {
+            if (isBlocking) {
+              couponRow.classList.add('bg-gray-200');
+            } else {
+              couponRow.classList.remove('bg-gray-200');
+            }
+            const blockButton = couponRow.querySelector(`button[onclick="manageCoupon('${action}', '${id}')"]`);
+            if (blockButton) {
+              blockButton.textContent = isBlocking ? 'Unblock' : 'Block';
+              blockButton.classList.toggle('text-red-500', !isBlocking);
+              blockButton.classList.toggle('text-green-500', isBlocking);
+              blockButton.setAttribute('onclick', `manageCoupon('${isBlocking ? 'unblock' : 'block'}', '${id}')`);
+            }
+          }
+        };
+      }
+
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: confirmButtonText
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.post(postUrl)
+            .then(response => {
+              toastr.success(successMessage);
+              const couponRow = document.querySelector(`button[onclick="manageCoupon('${action}', '${id}')"]`).closest('tr');
+              updateRow(couponRow);
+            })
+            .catch(error => {
+              toastr.error(errorMessage);
+              console.error(`Error during ${action} coupon:`, error);
+            });
+        }
+      });
+    }
+  </script>
+
+  </script>
