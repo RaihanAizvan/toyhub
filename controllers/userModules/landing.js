@@ -23,7 +23,7 @@ async function getLandingPage(req, res) {
             .limit(10);  // Limit to 10 products (adjustable)
 
         // Fetch all categories (no need for isBlocked filter here unless categories have a similar field)
-        const categories = await Category.find({}).sort({ createdAt: -1 }).limit(10)
+        const categories = await Category.find({}).sort({ createdAt: -1 }).limit(6)
 
         // Check if the user is authenticated
         const user = req.user || req.session.user;  // Assuming you're using session or authentication middleware
