@@ -13,7 +13,8 @@ const itemSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true
+        required: true,
+        default:0
     },
     discountPrice: {
         type: Number,
@@ -40,6 +41,7 @@ const cartSchema = new mongoose.Schema({
     subtotal:{
         type: Number,
         required: true,
+        default:0
     },
     total: {
         type: Number,

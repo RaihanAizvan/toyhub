@@ -72,7 +72,6 @@
 </section>
 <script>
     console.log('Script loaded');
-
     function toggleWishlist(event, productId) {
         console.log('Toggle wishlist clicked');
         console.log(productId);
@@ -80,12 +79,12 @@
         const button = event.currentTarget;
         const isInWishlist = button.classList.contains('text-red-500');
 
-        const url = isInWishlist ? '/wishlist/' + productId : '/wishlist/';
+        const url = isInWishlist ? `/wishlist/` : `/wishlist/${productId}`;
         const method = isInWishlist ? 'delete' : 'post';
 
         axios({
             method: method,
-            url: "/account" + url,
+            url: '/account' + url,
             data: { productId: productId }
         })
         .then(response => {

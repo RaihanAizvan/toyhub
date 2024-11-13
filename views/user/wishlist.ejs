@@ -11,25 +11,29 @@
                             <h2 class="text-xl font-semibold text-gray-800">Wishlist</h2>
                         </div>
                         <div class="grid grid-cols-1 gap-4 mt-4">
-                            <% if (wishlistItems.length > 0) { %>
-                                <% wishlistItems.forEach(item => { %>
+                            <% if (wishlistItems.length> 0) { %> <% wishlistItems.forEach(item=> { %> 
+                                <a href="/product/<%= item._id %>">
                                     <div class="bg-white p-4 shadow-md flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <img src="<%= item.images[0] %>" alt="<%= item.name %>" class="w-16 h-16 object-cover rounded-lg">
+                                            <img src="<%= item.images[0] %>" alt="<%= item.name %>"
+                                                class="w-16 h-16 object-cover rounded-lg">
                                             <div class="ml-4">
-                                                <h3 class="text-lg font-semibold text-gray-800"><%= item.name %></h3>
-                                                <p class="text-gray-600 font-bold text-lg">$<%= item.price %></p>
-                                                <p class="text-gray-600"><%= item.description1 %></p>
+                                                <h3 class="text-lg font-semibold text-gray-800">
+                                                    <%= item.name %>
+                                                </h3>
+                                                <p class="text-gray-600 font-bold text-lg">$<%= item.price %>
+                                                </p>
+                                                <p class="text-gray-600">
+                                                    <%= item.description1 %>
+                                                </p>
                                             </div>
                                         </div>
-                                        <form action="/account/wishlist/<%= item._id %>/delete" method="POST">
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="text-red-500 hover:text-red-700"
+                                            onclick="deleteWishlistItem('<%= item._id %>')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </div>
+                                </a>
                                 <% }) %>
                             <% } else { %>
                                 <p class="text-gray-600">Your wishlist is currently empty.</p>
@@ -41,14 +45,34 @@
                         <div class="mt-4 space-y-4">
                             <div>
                                 <h4 class="font-semibold text-gray-600">How to add items to your wishlist?</h4>
-                                <p class="text-gray-500">Browse through our products and click on the heart icon to add items to your wishlist.</p>
+                                <p class="text-gray-500">Browse through our products and click on the heart icon to add
+                                    items to your wishlist.</p>
                             </div>
                             <div>
                                 <h4 class="font-semibold text-gray-600">Why use a wishlist?</h4>
-                                <p class="text-gray-500">A wishlist helps you keep track of items you love and plan to purchase in the future.</p>
+                                <p class="text-gray-500">A wishlist helps you keep track of items you love and plan to
+                                    purchase in the future.</p>
                             </div>
                         </div>
                     </div>
                 </div>
         </div>
     </div>
+    <script>
+        function deleteWishlistItem(productId) {
+            axios.delete('/account/wishlist', { data: { productId: productId } })
+                .then(response => {
+                    console.log('Success:', response.data);
+                    toastr.success(response.data.message || 'Product removed from wishlist!');
+                    // Remove the item from the DOM
+                    const itemElement = document.querySelector(`[onclick="deleteWishlistItem('${productId}')"]`).closest('.flex');
+                    if (itemElement) {
+                        itemElement.remove();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error(error.response?.data?.message || 'Failed to remove product from wishlist.');
+                });
+        }
+    </script>

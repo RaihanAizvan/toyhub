@@ -1,13 +1,10 @@
 import Product from '../../models/product.models.js'
 import User from '../../models/users.models.js';
-import users from '../adminModules/users.js';
 import Category from '../../models/categories.model.js';
 
 
 async function getLandingPage(req, res) {
     try {
-      console.log("the session is");
-      console.log(req.session.user);
         const flashMessage = req.session.flashMessage || null;
         if (req.session.flashMessage) {
             delete req.session.flashMessage;
@@ -20,8 +17,8 @@ async function getLandingPage(req, res) {
         // Fetch the best-selling active products sorted by "sold" field
         const bestSellerProducts = await Product.find({ isBlocked: false })
             .sort({ sold: -1 })  // Sorting by sold units, descending (most sold)
-            .limit(10);  // Limit to 10 products (adjustable)
-
+            .limit(10)  // Limit to 10 products (adjustable)
+            
         // Fetch all categories (no need for isBlocked filter here unless categories have a similar field)
         const categories = await Category.find({}).sort({ createdAt: -1 }).limit(6)
 
@@ -32,7 +29,6 @@ async function getLandingPage(req, res) {
         if (req.session.user) {
             const userWithWishlist = await User.findById(req.session.user.id);
             wishlist = userWithWishlist ? userWithWishlist.wishlist : [];
-            console.log(wishlist);
         }
 
         if (user) {

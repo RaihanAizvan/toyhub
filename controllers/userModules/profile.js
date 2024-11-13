@@ -26,7 +26,7 @@ export async function postUpdateName(req, res) { //this function is used to upda
             title: 'Profile Edit'
         });
     }
-    
+
 
     try {
         // Update user name
@@ -117,7 +117,7 @@ export async function getOrderHistory(req, res) { //this function is used to sho
             return {
                 ...order._doc,
                 items: formattedItems,
-                
+
             };
         });
 
@@ -306,7 +306,7 @@ export const getWishlist = async (req, res) => {
     try {
         // Populate the 'wishlist' field in the User model, which contains references to 'Product'
         const user = await Users.findById(userId).populate('wishlist');
-        
+
         // Log the fetched wishlist
         console.log('Fetched wishlist:', user.wishlist);
 
@@ -323,15 +323,16 @@ export const getWishlist = async (req, res) => {
 
 
 export const postWishlist = async (req, res) => {
-    const {productId} = req.body;
-    try{
+    const { productId } = req.body;
+    console.log(productId)
+    try {
         const user = await Users.findById(req.session.user.id)
 
 
         //check if the product is alreadyu in the wishlist
-        if(user.wishlist &&user.wishlist.includes(productId)){
+        if (user.wishlist && user.wishlist.includes(productId)) {
             return res.status(400).json({
-                message:"product already in whishlist"
+                message: "product already in whishlist"
             })
         }
 
@@ -340,13 +341,13 @@ export const postWishlist = async (req, res) => {
         user.wishlist.push(productId);
         await user.save();
 
-        return res.status(200).json({message:"product added to whishlist"})
+        return res.status(200).json({ message: "product added to whishlist" })
     }
-    catch(err){
+    catch (err) {
         console.log(err)
-        return res.status(500).json({message:"internal server error"})
+        return res.status(500).json({ message: "internal server error" })
     }
-    }
+}
 
 
 

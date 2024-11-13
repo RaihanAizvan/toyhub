@@ -1,22 +1,30 @@
 import Product from "../../models/product.models.js"
 import Category from '../../models/categories.model.js'
+import User from '../../models/users.models.js'
 export const getSingleProduct = async (req, res) => {
     try {
         // Get the product ID from the URL params
         const productId = req.params.id;
 
         // Fetch the product from the database
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId).populate('category');
         
 
         if (!product) {
             return res.status(404).redirect('/');
         }
 
+        let wishlist = [];
+        if (req.session.user) {
+            const userWithWishlist = await User.findById(req.session.user.id);
+            wishlist = userWithWishlist ? userWithWishlist.wishlist : [];
+        }
+
         // Render the product page with dynamic data
         res.render('user/singleProduct', {
             title: product.name,
             product,
+            wishlist
         });
     } catch (error) {
         console.error("Error fetching product:", error);
