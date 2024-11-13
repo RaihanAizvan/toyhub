@@ -60,7 +60,7 @@
     //!------------------------------------/!/
     //todo: define coupon list routes here/!/
     //!---------------------------------/!/
-
+    
     router.get('/coupons', adminController.getCoupon);
     router.get('/addCoupon', adminController.getAddCoupon);
     router.post('/addCoupon', adminController.postAddCoupon);
@@ -69,6 +69,19 @@
     router.post('/deleteCoupon/:id', adminController.postDeleteCoupon);
     router.post('/blockCoupon/:id', adminController.postBlockCoupon);
     
+    //!------------------------------------/!/
+    //todo: define  offer  routes here   /!/
+    //!---------------------------------/!/
+
+
+    router.get('/offers' , adminController.getOffers)
+    router.get('/addOffer' , adminController.getAddOffer)
+    router.post('/addOffer' , adminController.postAddOffer)
+    router.get('/editOffer/:id' , adminController.getEditOffer)
+    router.post('/editOffer/:id' , adminController.postEditOffer)
+    router.post('/blockOffer/:id' , adminController.postBlockOffer)
+    router.post('/deleteOffer/:id' , adminController.deleteOffer)
+
 
     
 

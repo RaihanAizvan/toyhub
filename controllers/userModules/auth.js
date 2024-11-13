@@ -219,6 +219,7 @@ async function postResendOtp(req, res) {
 function getLogin(req,res) {       
     const isBlocked = req.query.blocked
     if (req.session.user) {
+        req.session.poda = "patti"
         return res.redirect("/")
     }
     res.render("user/login",{title:'Login',message:isBlocked?"Sorry You are Blocked" : ""})

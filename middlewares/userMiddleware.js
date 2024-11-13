@@ -35,7 +35,6 @@ const checkBlockStatus = async (req, res, next) => {
   }
 };
 const redirectToLoginIfNotAUser = (req, res, next) => {
-  console.log(req.session);
   if (req.session.user) {
     next();
   } else {

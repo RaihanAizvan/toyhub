@@ -35,6 +35,11 @@ import order from "./adminModules/order.js"
 
 import coupon from "./adminModules/coupon.js"
 
+//todo: -----------------Offer Routes-----------------------!
+
+import offer from "./adminModules/offer.js"
+
+
 
 //! ------------------------------------------------------!
 //                                                        |                                        
@@ -94,5 +99,15 @@ export const postBlockCoupon = coupon.postBlockCoupon
 export const postDeleteCoupon = coupon.postDeleteCoupon
 export const getEditCoupon = coupon.getEditCoupon
 export const postEditCoupon = coupon.postEditCoupon
+
+//todo: -----------------Coupon list Routes-----------------!\
+
+export const getOffers  = offer.getOffers
+export const getAddOffer = offer.getAddOffer
+export const postAddOffer = offer.postAddOffer
+export const getEditOffer = offer.getEditOffer
+export const postEditOffer = offer.postEditOffer
+export const postBlockOffer = offer.postBlockOffer
+export const deleteOffer = offer.deleteOffer
 
 

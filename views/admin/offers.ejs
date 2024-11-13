@@ -1,4 +1,4 @@
-<!-- views/couponList.ejs -->
+<!-- views/offers.ejs -->
 <div class="min-h-screen flex flex-col justify-stretch">
     <div class="flex bg-gray-100">
       <!-- Sidebar -->
@@ -15,8 +15,8 @@
             <li><a href="/admin/category" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Category Management</a></li>
             <li><a href="/admin/addProduct" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Add Products</a></li>
             <li><a href="/admin/banner" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Banner</a></li>
-            <li><a href="/admin/coupons" class="flex items-center rounded bg-primary hover:bg-gray-200 transition-all p-2 text-gray-700"><span class="ml-3">Coupons</span></a></li>
-            <li><a href="/admin/offers" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Offers</a></li>
+            <li><a href="/admin/coupons" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Coupons</a></li>
+            <li><a href="/admin/offers" class="flex items-center rounded bg-primary hover:bg-gray-200 transition-all p-2 text-gray-700"><span class="ml-3">Offers</span></a></li>
           </ul>
         </nav>
         <div class="mt-6">
@@ -52,37 +52,47 @@
       <div class="flex-grow p-8">
           <div class="text-sm text-gray-600 mb-4">
               <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
-                class="text-gray-600 hover:text-gray-800">Order List</a>
+                class="text-gray-600 hover:text-gray-800">Offer List</a>
             </div>
         <div class="flex justify-between items-center">
-          <h2 class="text-2xl font-semibold">Coupon Management</h2>
-          <a href="/admin/addCoupon" class="px-4 py-2 bg-primary text-white rounded">Add Coupon</a>
+          <h2 class="text-2xl font-semibold">Offer Management</h2>
+          <a href="/admin/addOffer" class="px-4 py-2 bg-primary text-white rounded">Add Offer</a>
         </div>
         <table class="min-w-full mt-6 bg-white rounded shadow-md">
           <thead class="bg-gray-200">
             <tr>
-              <th class="p-4 text-left">Code</th>
+              <th class="p-4 text-left">Name</th>
+              <th class="p-4 text-left">Description</th>
               <th class="p-4 text-left">Start Date</th>
               <th class="p-4 text-left">End Date</th>
-              <th class="p-4 text-left">Discount</th>
-              <th class="p-4 text-left">Usage Left</th>
-              <th class="p-4 text-left">Min Spend</th>
+              <th class="p-4 text-left">Offer </th>
+              <th class="p-4 text-left">Offer Type</th>
+              <th class="p-4 text-left">Applied Items</th>
               <th class="p-4 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <% coupons.forEach(coupon => { %>
-              <tr class="border-b <%= coupon.isBlocked ? 'bg-gray-200' : '' %>">
-                <td class="p-4"><%= coupon.couponCode %></td>
-                <td class="p-4"><%= new Date(coupon.startDate).toLocaleDateString() %></td>
-                <td class="p-4"><%= new Date(coupon.endDate).toLocaleDateString() %></td>
-                <td class="p-4"><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '$' + coupon.discount %></td>
-                <td class="p-4"><%= coupon.usageLimit %></td>
-                <td class="p-4">$<%= coupon.minSpend %></td>
+            <% offers.forEach(offer => { %>
+              <tr class="border-b <%= offer.isBlocked ? 'bg-gray-200' : '' %>">
+                <td class="p-4"><%= offer.name %></td>
+                <td class="p-4"><%= offer.description.length > 50 ? offer.description.substring(0, 50) + '...' : offer.description %></td>
+                <td class="p-4"><%= new Date(offer.startDate).toLocaleDateString() %></td>
+                <td class="p-4"><%= new Date(offer.endDate).toLocaleDateString() %></td>
+                <td class="p-4"><%= offer.offerPercentage %>%</td>
+                <td class="p-4"><%= offer.offerType == 'all' ? 'All Products' : offer.offerType == 'product' ? 'Products' : 'Categories' %></td>
                 <td class="p-4">
-                  <a href="/admin/editCoupon/<%= coupon._id %>" class="text-blue-500 mx-2 hover:underline">Edit</a>
-                  <button onclick="manageCoupon('delete', '<%= coupon._id %>')" class="text-red-500 mx-2 hover:underline">Delete</button>
-                  <button onclick="manageCoupon('<%= coupon.isBlocked ? 'unblock' : 'block' %>', '<%= coupon._id %>')" class="<%= coupon.isBlocked ? 'text-green-500' : 'text-red-500' %> mx-2 hover:underline"><%= coupon.isBlocked ? 'Unblock' : 'Block' %></button>
+                  <% if (offer.offerType === 'product') { %>
+                    <%= offer.applicableProducts.length %> Products
+                  <% } else if (offer.offerType === 'category') { %>
+                    <%= offer.applicableCategories.length %> Categories
+                  <% } else { %>
+                    All Products
+                  <% } %>
+                </td>
+                <td class="p-4">
+                  <a href="/admin/editOffer/<%= offer._id %>" class="text-blue-500 mx-2 hover:underline">Edit</a>
+                  <button onclick="manageOffer('delete', '<%= offer._id %>')" class="text-red-500 mx-2 hover:underline">Delete</button>
+                  <button onclick="manageOffer('<%= offer.isBlocked ? 'unblock' : 'block' %>', '<%= offer._id %>')" class="<%= offer.isBlocked ? 'text-green-500' : 'text-red-500' %> mx-2 hover:underline"><%= offer.isBlocked ? 'Unblock' : 'Block' %></button>
                 </td>
               </tr>
             <% }) %>
@@ -121,40 +131,40 @@
   </script>
 
   <script>
-    async function manageCoupon(action, id) {
+    async function manageOffer(action, id) {
       let title, text, confirmButtonText, successMessage, errorMessage, postUrl, updateRow;
 
       if (action === 'delete') {
         title = 'Are you sure?';
         text = 'You won\'t be able to revert this!';
         confirmButtonText = 'Yes, delete it!';
-        successMessage = 'Coupon deleted successfully.';
-        errorMessage = 'Failed to delete coupon.';
-        postUrl = `/admin/deleteCoupon/${id}`;
-        updateRow = (couponRow) => {
-          if (couponRow) couponRow.remove();
+        successMessage = 'Offer deleted successfully.';
+        errorMessage = 'Failed to delete offer.';
+        postUrl = `/admin/deleteOffer/${id}`;
+        updateRow = (offerRow) => {
+          if (offerRow) offerRow.remove();
         };
       } else if (action === 'block' || action === 'unblock') {
         const isBlocking = action === 'block';
         title = 'Are you sure?';
-        text = isBlocking ? 'You won\'t be able to revert this!' : 'You want to unblock this coupon!';
+        text = isBlocking ? 'You won\'t be able to revert this!' : 'You want to unblock this offer!';
         confirmButtonText = isBlocking ? 'Yes, block it!' : 'Yes, unblock it!';
-        successMessage = isBlocking ? 'Coupon blocked successfully.' : 'Coupon unblocked successfully.';
-        errorMessage = isBlocking ? 'Failed to block coupon.' : 'Failed to unblock coupon.';
-        postUrl = `/admin/blockCoupon/${id}`;
-        updateRow = (couponRow) => {
-          if (couponRow) {
+        successMessage = isBlocking ? 'Offer blocked successfully.' : 'Offer unblocked successfully.';
+        errorMessage = isBlocking ? 'Failed to block offer.' : 'Failed to unblock offer.';
+        postUrl = `/admin/blockOffer/${id}`;
+        updateRow = (offerRow) => {
+          if (offerRow) {
             if (isBlocking) {
-              couponRow.classList.add('bg-gray-200');
+              offerRow.classList.add('bg-gray-200');
             } else {
-              couponRow.classList.remove('bg-gray-200');
+              offerRow.classList.remove('bg-gray-200');
             }
-            const blockButton = couponRow.querySelector(`button[onclick="manageCoupon('${action}', '${id}')"]`);
+            const blockButton = offerRow.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`);
             if (blockButton) {
               blockButton.textContent = isBlocking ? 'Unblock' : 'Block';
               blockButton.classList.toggle('text-red-500', !isBlocking);
               blockButton.classList.toggle('text-green-500', isBlocking);
-              blockButton.setAttribute('onclick', `manageCoupon('${isBlocking ? 'unblock' : 'block'}', '${id}')`);
+              blockButton.setAttribute('onclick', `manageOffer('${isBlocking ? 'unblock' : 'block'}', '${id}')`);
             }
           }
         };
@@ -173,29 +183,29 @@
           axios.post(postUrl)
             .then(response => {
               toastr.success(successMessage);
-              const couponRow = document.querySelector(`button[onclick="manageCoupon('${action}', '${id}')"]`).closest('tr');
-              updateRow(couponRow);
+              const offerRow = document.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`).closest('tr');
+              updateRow(offerRow);
             })
             .catch(error => {
               toastr.error(errorMessage);
-              console.error(`Error during ${action} coupon:`, error);
+              console.error(`Error during ${action} offer:`, error);
             });
         }
       });
     }
 
-    function editCoupon(couponId) {
-      axios.get(`/admin/editCoupon/${couponId}`)
+    function editOffer(offerId) {
+      axios.get(`/admin/editOffer/${offerId}`)
         .then(response => {
-          toastr.success('Coupon edit page loaded successfully');
-          window.location.href = `/admin/editCoupon/${couponId}`;
+          toastr.success('Offer edit page loaded successfully');
+          window.location.href = `/admin/editOffer/${offerId}`;
         })
         .catch(error => {
-          toastr.error('Failed to load coupon edit page');
+          toastr.error('Failed to load offer edit page');
         });
     }
 
-    function confirmDelete(couponId) {
+    function confirmDelete(offerId) {
       Swal.fire({
         title: 'Are you sure?',
         text: "This action cannot be undone!",
@@ -206,7 +216,7 @@
         confirmButtonText: 'Delete'
       }).then((result) => {
         if (result.isConfirmed) {
-          window.location.href = `/admin/deleteCoupon/${couponId}`;
+          window.location.href = `/admin/deleteOffer/${offerId}`;
         }
       })
     }
