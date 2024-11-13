@@ -85,12 +85,13 @@
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Usage Limit </label>
-<<<<<<< HEAD
-            <input type="number" name="usageCount" min="1"  class="w-full border px-3 py-2 rounded" />
-=======
             <input type="number" name="usageLimit" min="1" class="w-full border px-3 py-2 rounded" />
->>>>>>> coupon
             <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be greater than zero.</p>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700">Min Spend </label>
+            <input type="number" name="minSpend" min="1" class="w-full border px-3 py-2 rounded" />
+            <p class="error text-red-500 hidden" id="minSpendError">Min spend must be greater than zero.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount Type</label>
@@ -115,6 +116,8 @@
       const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
       const discount = form.discount.value;
       const usageLimit = form.usageLimit.value;
+      const minSpend = form.minSpend.value;
+
 
       let isValid = true;
 
@@ -167,6 +170,13 @@
         document.getElementById('discountError').classList.add('hidden');
       }
 
+      if (!minSpend || minSpend <= 0) {
+        isValid = false;
+        document.getElementById('minSpendError').classList.remove('hidden');
+      } else {
+        document.getElementById('minSpendError').classList.add('hidden');
+      }
+
       if (isValid) {
         axios.post('/admin/addCoupon', {
           couponCode: code,
@@ -174,7 +184,8 @@
           endDate: form.endDate.value,
           discount: discount,
           discountType: form.discountType.value,
-          usageLimit: usageLimit
+          usageLimit: usageLimit,
+          minSpend: minSpend
         })
         .then(response => {
           toastr.success('Coupon added successfully');

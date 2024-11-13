@@ -46,7 +46,7 @@ const redirectToLoginIfNotAUser = (req, res, next) => {
 
 const checkForProductStockBeforeCheckout = async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
-  if (cart.items.some(item => item.product.stock <= 0)) {
+  if (cart &&cart.items.some(item => item.product.stock <= 0)) {
     return res.status(400).redirect('/cart');
   }
   next();

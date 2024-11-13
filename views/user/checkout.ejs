@@ -3,237 +3,249 @@
 <div class="bg-gray-200 py-6 w-full text-sm">
     <div class="md:w-8/12 mx-auto bg-gray-100 p-6 mb-16 rounded-lg shadow-xl">
         <h1 class="text-2xl font-bold text-center mb-6">Checkout</h1>
-        <div class="grid grid-cols-1 bg-gray-50 md:grid-cols-3 gap-6 ">
-            <!-- Left Section: Address, Coupon, and Payment -->
-            <div class="col-span-2 space-y-6">
-                <!-- Address Selector -->
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h2 class="font-semibold text-lg mb-4">Select Delivery Address</h2>
-                    <% if (user.addresses && user.addresses.length > 0) { %>
-                        <% user.addresses.forEach((address, index) => { %>
-                            <div class="flex items-start space-x-4 mb-4">
-                                <input type="radio" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> class="mt-1">
-                                <label for="address-<%= index %>" class="w-full">
-                                    <p class="font-semibold"><%= address.name %></p>
-                                    <p><%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%= address.postalCode %></p>
-                                    <p class="text-gray-500"><%= address.phone %></p>
-                                </label>
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <p class="text-gray-500">No address found. Please add one from your profile.</p>
-                    <% } %>
-                </div>
-                <div class="flex justify-end mt-4">
-                    <a href="/user/addAddress" class="bg-primary text-white px-4 py-2 rounded-md">Add New Address</a>
-                </div>
-                <!-- Coupon Code Entry -->
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h2 class="font-semibold text-lg mb-4">Apply Coupon</h2>
-                    <div class="flex">
-                        <select id="couponCode" class="border border-gray-300 p-2 rounded-l-md w-full">
-                            <option value="" disabled selected>Select a Coupon</option>
-                            <% if (coupons && coupons.length > 0) { %>
-                                <% coupons.forEach(coupon => { %>
-                                    <option value="<%= coupon.couponCode %>"><%= coupon.couponCode %> - <%= coupon.discount %><%= coupon.discountType === 'percentage' ? '%' : '$' %></option>
-                                <% }) %>
-                            <% } else { %>
-                                <option value="" disabled>No coupons available</option>
-                            <% } %>
-                        </select>
-                        <button onclick="applyCoupon()" id="applyCouponButton" class="bg-primary text-white p-2 rounded-r-md">Apply</button>
-                    </div>
-                    <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
-                </div>
-
-                <!-- Payment Methods -->
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h2 class="font-semibold text-lg mb-4">Payment Method</h2>
-                    <div class="space-y-2">
-                        <div class="flex items-center">
-                            <input type="radio" name="paymentMethod" id="razorpay" value="razorpay" class="mr-2">
-                            <label for="razorpay" class="text-gray-600">Razorpay</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="mr-2">
-                            <label for="cod" class="text-gray-600">Cash on Delivery</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="radio" name="paymentMethod" id="wallet" value="wallet" class="mr-2">
-                            <label for="wallet" class="text-gray-600">Wallet</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Section: Order Summary -->
-            <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
-                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-
-                <!-- List of Products in the Cart -->
-                <div class="space-y-4">
-                    <% if (cart && cart.items && cart.items.length > 0) { %>
-                        <% cart.items.forEach(item => { %>
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center space-x-4">
-                                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-contain rounded-md">
-                                    <div>
-                                        <h3 class="font-semibold"><%= item.product.name %></h3>
-                                        <p class="text-gray-500">Qty: <%= item.quantity %></p>
-                                    </div>
+        <form action="/checkout" method="POST">
+            <div class="grid grid-cols-1 bg-gray-50 md:grid-cols-3 gap-6">
+                <div class="col-span-2 space-y-6">
+                    <!-- Address Selector -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="font-semibold text-lg mb-4">Select Delivery Address</h2>
+                        <% if (user.addresses && user.addresses.length > 0) { %>
+                            <% user.addresses.forEach((address, index) => { %>
+                                <div class="flex items-start space-x-4 mb-4">
+                                    <input type="radio" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> class="mt-1">
+                                    <label for="address-<%= index %>" class="w-full">
+                                        <p class="font-semibold"><%= address.name %></p>
+                                        <p><%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%= address.postalCode %></p>
+                                        <p class="text-gray-500"><%= address.phone %></p>
+                                    </label>
                                 </div>
-                                <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %></p>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-gray-500">No address found. Please add one from your profile.</p>
+                        <% } %>
+                    </div>
+                    <div class="flex justify-end mt-4">
+                        <a href="/account/address" class="bg-primary text-white px-4 py-2 rounded-md">Add New Address</a>
+                    </div>
+
+                    <!-- Coupon Code Entry -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="font-semibold text-lg mb-4">Apply Coupon</h2>
+                        <div class="flex">
+                            <select id="couponCode" name="couponCode" class="border border-gray-300 p-2 rounded-l-md w-full">
+                                <option value="" disabled selected>Select a Coupon</option>
+                                <% if (coupons && coupons.length > 0) { %>
+                                    <% coupons.forEach(coupon => { %>
+                                        <option value="<%= coupon.couponCode %>"><%= coupon.couponCode %> - <%= coupon.discount %><%= coupon.discountType === 'percentage' ? '%' : '$' %> - Min Spend: $<%= coupon.minSpend %></option>
+                                    <% }) %>
+                                <% } else { %>
+                                    <option value="" disabled>No coupons available</option>
+                                <% } %>
+                            </select>
+                            <button type="button" onclick="applyCoupon()" id="applyCouponButton" class="bg-primary text-white p-2">Apply</button>
+                            <button type="button" onclick="clearCoupon()" id="removeCouponButton" class="bg-red-500 text-white p-2 ml-2">Remove</button>
+                        </div>
+                        <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
+                        <p id="couponError" class="text-red-600 hidden">Coupon cannot be applied. Minimum spend required: $<%= coupons.minSpend %></p> <!-- Error message for coupon -->
+
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="font-semibold text-lg mb-4">Payment Method</h2>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="radio" name="paymentMethod" id="razorpay" value="razorpay" class="mr-2">
+                                <label for="razorpay" class="text-gray-600">Razorpay</label>
                             </div>
-                            <hr>
-                        <% }) %>
-                    <% } else { %>
-                        <p class="text-gray-500">No items in the cart.</p>
-                    <% } %>
-                </div>
-
-                <!-- Price Details -->
-                <div class="mt-6 space-y-2">
-                    <div class="flex justify-between">
-                        <span>Subtotal</span>
-                        <span class="font-bold" id="subtotal">$<%= cart ? cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
-                    </div>
-                    <div class="flex justify-between text-green-600 hidden" id="couponDiscountContainer">
-                        <span>Coupon Discount</span>
-                        <span class="font-bold" id="couponDiscount">-$0.00</span>
-                    </div>
-                    <div class="flex justify-between text-lg font-bold text-green-600">
-                        <span>Total</span>
-                        <span class="font-bold" id="total">$<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %></span>
+                            <div class="flex items-center">
+                                <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="mr-2">
+                                <label for="cod" class="text-gray-600">Cash on Delivery</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" name="paymentMethod" id="wallet" value="wallet" class="mr-2">
+                                <label for="wallet" class="text-gray-600">Wallet</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Place Order Button -->
-                <% if (cart && cart.items && cart.items.length > 0) { %>
-                    <div class="mt-8">
-                        <form action="/checkout" method="POST" onsubmit="clearCoupon();">
-                            <input type="hidden" name="selectedAddress" value="<%= user.addresses[0]._id %>">
-                            <input type="hidden" name="paymentMethod" value="razorpay">
+                <!-- Right Section: Order Summary -->
+                <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+
+                    <!-- List of Products in the Cart -->
+                    <div class="space-y-4">
+                        <% if (cart && cart.items && cart.items.length > 0) { %>
+                            <% cart.items.forEach(item => { %>
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center space-x-4">
+                                        <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-contain rounded-md">
+                                        <div>
+                                            <h3 class="font-semibold"><%= item.product.name %></h3>
+                                            <p class="text-gray-500">Qty: <%= item.quantity %></p>
+                                        </div>
+                                    </div>
+                                    <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %></p>
+                                </div>
+                                <hr>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-gray-500">No items in the cart.</p>
+                        <% } %>
+                    </div>
+
+                    <!-- Price Details -->
+                    <div class="mt-6 space-y-2">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span class="font-bold" id="subtotal">$<%= cart ? cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
+                        </div>
+                        <div class="flex justify-between text-green-600 hidden" id="couponDiscountContainer">
+                            <span>Coupon Discount</span>
+                            <span class="font-bold" id="couponDiscount">-$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold text-green-600">
+                            <span>Total</span>
+                            <span class="font-bold" id="total">$<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %></span>
+                            <input type="hidden" name="totalAmount" id="totalAmount" value="<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %>">
+                        </div>
+                    </div>
+
+                    <!-- Place Order Button -->
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <div class="mt-8">
                             <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
                                 Place Order
                             </button>
-                        </form>
-                    </div>
-                <% } else { %>
-                    <script>
-                        toastr.error('Your cart is empty. Please add items to proceed to checkout.');
-                    </script>
-                <% } %>
+                        </div>
+                    <% } else { %>
+                        <script>
+                            toastr.error('Your cart is empty. Please add items to proceed to checkout.');
+                        </script>
+                    <% } %>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
+</div>
 
 <%- include('footer') %>
 
 <script>
-// Apply Coupon Feedback
-async function applyCoupon() {
-    const couponCode = document.getElementById('couponCode').value;
-    const couponFeedbackElement = document.getElementById('couponFeedback');
-    const subtotalElement = document.getElementById('subtotal');
-    const couponDiscountElement = document.getElementById('couponDiscount');
-    const couponDiscountContainer = document.getElementById('couponDiscountContainer');
-    const totalElement = document.getElementById('total');
-    const totalAmount = parseFloat(subtotalElement.textContent.replace('$', ''));
-    const couponDropdown = document.getElementById('couponCode'); 
-    const applyButton = document.getElementById('applyCouponButton'); 
-
-    try {
-        const response = await axios.post('/checkout/apply-coupon', { couponCode, totalAmount });
-        if (response.data.success) {
-            const { discountAmount, discountedTotal, coupon } = response.data;
-
-            // Update the coupon discount and total fields
-            couponDiscountElement.textContent = `-$${discountAmount.toFixed(2)}`;
-            totalElement.textContent = `$${discountedTotal.toFixed(2)}`;
-            couponDiscountContainer.classList.remove('hidden');
-
-            couponFeedbackElement.textContent = `Coupon applied successfully! (${coupon.discountType})`;
-            couponFeedbackElement.classList.remove('hidden');
-            couponFeedbackElement.classList.add('text-green-600');
-            toastr.success(`Coupon applied successfully! (${coupon.discountType})`);
-
-            // Disable the coupon dropdown and apply button
-            if (couponDropdown) {
-                couponDropdown.disabled = true;
+    // Apply Coupon Feedback
+    async function applyCoupon() {
+        const couponCode = document.getElementById('couponCode').value;
+        
+        try {
+            const subtotalAmount = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
+            const response = await axios.post('/checkout/apply-coupon', { couponCode, totalAmount: subtotalAmount });
+            
+            if (response.data.success) {
+                const { discountAmount, discountedTotal, coupon } = response.data;
+                
+                // Check minimum spend requirement
+                if (subtotalAmount < coupon.minSpend) {
+                    displayCouponError(`Coupon cannot be applied. Minimum spend required: $${coupon.minSpend}`);
+                    return;
+                }
+                
+                // Update success display and disable fields
+                updateCouponSuccess(discountAmount, discountedTotal, coupon);
+                
+                // Calculate total amount as subtotal minus discount
+                const totalAmount = subtotalAmount - discountAmount;
+                await axios.post('/cart/update-total', { totalAmount, discount: discountAmount });
+    
+                // Disable input fields and save applied coupon to local storage
+                document.getElementById('applyCouponButton').disabled = true;
+                document.getElementById('couponCode').disabled = true;
+                localStorage.setItem('couponApplied', JSON.stringify({ couponCode, discountAmount, discountedTotal }));
+            } else {
+                displayCouponError(response.data.message || 'Invalid coupon code.');
             }
-            if (applyButton) {
-                applyButton.disabled = true;
-            }
-
-            // Store coupon application state in local storage
-            localStorage.setItem('couponApplied', JSON.stringify({
-                appliedCouponCode: couponCode,
-                discountAmount: discountAmount
-            }));
+        } catch (error) {
+            displayCouponError('Error applying coupon.');
+        }
+    }
+    
+    // Centralized function to get current total from the DOM
+    function getCurrentTotalAmount() {
+        return parseFloat(document.getElementById('total').textContent.replace('$', ''));
+    }
+    
+    function clearCoupon() {
+        // Clear local storage and reset fields
+        localStorage.removeItem('couponApplied');
+        document.getElementById('couponCode').disabled = false;
+        document.getElementById('applyCouponButton').disabled = false;
+        
+        const couponDiscountElement = document.getElementById('couponDiscount');
+        const totalElement = document.getElementById('total');
+        const couponDiscountContainer = document.getElementById('couponDiscountContainer');
+        const couponFeedbackElement = document.getElementById('couponFeedback');
+    
+        // Reset displayed values
+        couponDiscountElement.textContent = '-$0.00';
+        totalElement.textContent = document.getElementById('subtotal').textContent;
+        couponDiscountContainer.classList.add('hidden');
+        couponFeedbackElement.classList.add('hidden');
+    }
+    
+    // Reload coupon application on page load if previously applied
+    window.addEventListener('load', () => {
+        // Check if the cart has items to determine if it's a new order
+        const cartHasItems = <%= cart && cart.items && cart.items.length > 0 %>; // Dynamic check based on cart state
+        if (!cartHasItems) {
+            clearCoupon(); // Clear coupon if no items in cart
         } else {
-            toastr.error(response.data.message || 'Invalid coupon code.');
-            couponFeedbackElement.textContent = response.data.message || 'Invalid coupon code.';
-            couponFeedbackElement.classList.remove('hidden');
-            couponFeedbackElement.classList.add('text-red-600');
+            const couponApplied = JSON.parse(localStorage.getItem('couponApplied'));
+            if (couponApplied) {
+                document.getElementById('couponCode').disabled = true;
+                document.getElementById('applyCouponButton').disabled = true;
+
+                // Set the selected coupon in the dropdown
+                const couponSelect = document.getElementById('couponCode');
+                for (let i = 0; i < couponSelect.options.length; i++) {
+                    if (couponSelect.options[i].value === couponApplied.couponCode) {
+                        couponSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+
+                // Use the stored discounted total to initialize totalAmount
+                updateCouponSuccess(couponApplied.discountAmount, couponApplied.discountedTotal, { discountType: 'stored' });
+            }
         }
-    } catch (error) {
-        console.error('Error applying coupon:', error.message);
-        const errorMessage = error.response && error.response.data && error.response.data.message 
-            ? error.response.data.message 
-            : 'An error occurred while applying the coupon.';
-
-        // Log detailed error information for debugging
-        console.error('Detailed error:', error);
-
-        toastr.error(errorMessage);
-        couponFeedbackElement.textContent = errorMessage;
+    });
+    
+    function displayCouponError(message) {
+        const couponErrorElement = document.getElementById('couponError');
+        couponErrorElement.textContent = message;
+        couponErrorElement.classList.remove('hidden');
+        toastr.error(message);
+    
+        // Hide error message after 5 seconds
+        setTimeout(() => {
+            couponErrorElement.classList.add('hidden');
+        }, 5000);
+    }
+    
+    function updateCouponSuccess(discountAmount, discountedTotal, coupon) {
+        const couponDiscountElement = document.getElementById('couponDiscount');
+        const totalElement = document.getElementById('total');
+        const couponDiscountContainer = document.getElementById('couponDiscountContainer');
+        const couponFeedbackElement = document.getElementById('couponFeedback');
+    
+        // Update displayed discount and total values
+        couponDiscountElement.textContent = `-$${discountAmount.toFixed(2)}`;
+        totalElement.textContent = `$${discountedTotal.toFixed(2)}`; // Ensure total displays discounted amount
+    
+        // Show coupon feedback
+        couponDiscountContainer.classList.remove('hidden');
+        couponFeedbackElement.textContent = `Coupon applied successfully! (${coupon.discountType})`;
         couponFeedbackElement.classList.remove('hidden');
-        couponFeedbackElement.classList.add('text-red-600');
+        toastr.success(`Coupon applied successfully! (${coupon.discountType})`);
     }
-}
-
-// Function to clear coupon from local storage and reset coupon dropdown
-function clearCoupon() {
-    localStorage.removeItem('couponApplied');
-    const couponDropdown = document.getElementById('couponCode');
-    const applyButton = document.getElementById('applyCouponButton'); // Assuming there's an apply button with this ID
-    if (couponDropdown) {
-        couponDropdown.disabled = false; // Re-enable the coupon dropdown
-        couponDropdown.selectedIndex = 0; // Reset to the default option
-    }
-    if (applyButton) {
-        applyButton.disabled = false; // Re-enable the apply button
-    }
-}
-
-// Check if coupon was applied on page load
-window.addEventListener('load', () => {
-    const couponData = localStorage.getItem('couponApplied');
-    const couponDropdown = document.getElementById('couponCode');
-    const subtotalElement = document.getElementById('subtotal');
-    const totalElement = document.getElementById('total');
-    const applyButton = document.getElementById('applyCouponButton'); // Assuming there's an apply button with this ID
-
-    if (couponData) {
-        const { appliedCouponCode, discountAmount } = JSON.parse(couponData);
-
-        // Disable the coupon dropdown and apply button
-        if (couponDropdown) {
-            couponDropdown.disabled = true;
-            couponDropdown.value = appliedCouponCode; // Set the selected coupon code
-        }
-        if (applyButton) {
-            applyButton.disabled = true;
-        }
-
-        // Update the coupon discount and total fields
-        if (discountAmount) {
-            const subtotal = parseFloat(subtotalElement.textContent.replace('$', ''));
-            const discountedTotal = subtotal - parseFloat(discountAmount);
-            document.getElementById('couponDiscount').textContent = `-$${parseFloat(discountAmount).toFixed(2)}`;
-            totalElement.textContent = `$${discountedTotal.toFixed(2)}`;
-            document.getElementById('couponDiscountContainer').classList.remove('hidden');
-        }
-    }
-});
 </script>
+    

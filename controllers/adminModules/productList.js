@@ -132,6 +132,7 @@ export async function postEditProduct(req, res) {
             color,
             weight,
             discount,
+            priceAfterDiscount: Math.ceil(price * (1 - discount / 100)),
             sku,
             stock: stock_quantity,
             price,

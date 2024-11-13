@@ -17,7 +17,7 @@ export const postAddProductToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ user: userId });
         if (!cart) {
-            cart = new Cart({ user: userId, items: [] });
+            cart = new Cart({ user: userId, items: [] ,subtotal:product.price});
         }
 
         const existingItemIndex = cart.items.findIndex(item => item.product.toString() === productId);
@@ -29,6 +29,7 @@ export const postAddProductToCart = async (req, res) => {
                 product: productId,
                 quantity,
                 price: product.price,
+                priceAfterDiscount: product.priceAfterDiscount || product.price,
                 discountPrice: product.discountPrice || product.price,
                 image: product.images[0]
             });
@@ -140,11 +141,26 @@ export const getCart = async (req, res) => {
     }
 };
 
+export const postUpdateTotal = async (req, res) => {
+    try {   
+        const { totalAmount, discount } = req.body;
+        console.log('totalAmount is', totalAmount);
+        console.log('discount is', discount);
+        const cart = await Cart.findOneAndUpdate({ user: req.session.user.id }, { total: totalAmount, discount });
+        console.log('cart is', cart);
+        res.status(200).json({ message: 'Total amount updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
 
 
 export default{
     getCart,
     postAddProductToCart,
     updateQuantity,
-    postRemoveItemFromCartHandler
+    postRemoveItemFromCartHandler,
+    postUpdateTotal
 }

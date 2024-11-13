@@ -44,10 +44,10 @@
                             <p class="text-green-500 text-2xl font-bold mt-2">$<%= product.price %></p>
                         </a>
                         <div class="flex justify-between mt-2">
-                            <button class="bg-transparent border-0 <%= product.inWishlist ? 'text-red-500' : 'text-green-500' %> hover:text-red-700 transition duration-300">
+                            <button type="button" class="wishlist-btn bg-transparent border-0 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %> hover:text-red-700 transition duration-300" data-product-id="<%= product._id %>" onclick="toggleWishlist(event, '<%= product._id %>')">
                                 <i class="fas fa-heart"></i>
                             </button>
-                            <button type="button" class="add-to-cart-btn text-green-500 font-bold py-1 px-4 rounded-xl flex items-center justify-center" data-product-id="<%= product._id %>" onclick="addToCart(event, '<%= product._id %>')">
+                            <button type="button" class="add-to-cart-btn text-green-500 font-bold py-1 px-4 rounded-xl flex items-center justify-center" data-product-id="<%= product._id %>" data-product-stock="<%= product.stock %>" onclick="addToCart(event, '<%= product._id %>')">
                                 <i class="fas fa-shopping-cart mr-2"></i> Cart
                             </button>
                         </div>
@@ -73,6 +73,33 @@
 <script>
     console.log('Script loaded');
 
+    function toggleWishlist(event, productId) {
+        console.log('Toggle wishlist clicked');
+        console.log(productId);
+
+        const button = event.currentTarget;
+        const isInWishlist = button.classList.contains('text-red-500');
+
+        const url = isInWishlist ? '/wishlist/' + productId : '/wishlist/';
+        const method = isInWishlist ? 'delete' : 'post';
+
+        axios({
+            method: method,
+            url: "/account" + url,
+            data: { productId: productId }
+        })
+        .then(response => {
+            console.log('Success:', response.data);
+            toastr.success(response.data.message || (isInWishlist ? 'Product removed from wishlist!' : 'Product added to wishlist!'));
+            button.classList.toggle('text-red-500');
+            button.classList.toggle('text-green-500');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
+        });
+    }
+
 // Initialize Toastr
 toastr.options = {
     closeButton: true,
@@ -82,9 +109,16 @@ toastr.options = {
 };
 
 function addToCart(event, productId) {
-    console.log('Add to cart clicked');
     event.preventDefault();
     event.stopPropagation();
+    const productStock = event.target.getAttribute('data-product-stock');
+    console.log(productStock);
+
+    if (productStock == 0) {
+        console.error('Error: Product is out of stock.');
+        toastr.error('Product is out of stock and cannot be added to the cart.');
+        return;
+    }
 
     const quantity = 1;
 

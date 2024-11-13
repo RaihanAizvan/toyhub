@@ -124,6 +124,11 @@ export const getCancelReason = profile.getCancelReason
 
 export const postItemCancel = profile.postItemCancel
 
+export const getWishlist = profile.getWishlist
+
+export const postWishlist = profile.postWishlist
+
+export const deleteWishlist = profile.deleteWishlist
 
 
 
@@ -161,6 +166,7 @@ export const postAddProductToCart = cart.postAddProductToCart
 
 export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
 
+export const postUpdateTotal = cart.postUpdateTotal
 
 //* -----------------------------------------!                                         
 //s          Exporting checkout              |

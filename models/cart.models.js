@@ -33,14 +33,13 @@ const cartSchema = new mongoose.Schema({
         unique: true
     },
     items: [itemSchema],
-    subtotal: {
-        type: Number,
-        required: true,
-        default: 0
-    },
     discount: {
         type: Number,
         default: 0
+    },
+    subtotal:{
+        type: Number,
+        required: true,
     },
     total: {
         type: Number,

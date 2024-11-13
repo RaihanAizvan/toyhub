@@ -1,57 +1,59 @@
-<div class="relative h-1/12 rounded-xl flex items-center py-20 mt-10 w-10/12 mx-auto px-20  bg-cover  .slide"
-            style="background-image: linear-gradient(to right, rgba(0, 0, 10, 1), rgba(0, 0, 0, 0)), url('/images/Banner/ai-generated-banner (2).png');">
-            <div class="container mx-auto px-6">
-                <div class="w-full md:w-2/3 lg:w-1/2">
-                    <h1 class="text-5xl text-white font-bold leading-tight"> High Quality Toys <br />Big Discount </h1>
-                    <p class="text-white text-lg mt-4">Save up to 50% off on your first order</p>
-                    <form class="mt-8">
-                        <div class="flex">
-                            <input type="email" placeholder="Your email address"
-                                class="w-full px-4 py-2 text-gray-900 rounded-l-lg border border-gray-300 focus:outline-none" />
-                            <button
-                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-r-lg transition duration-300">
-                                Subscribe </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <!-- Slider controls -->
-            <div class="absolute top-1/2 transform -translate-y-1/2 left-10 flex items-center">
-                <button class="bg-white p-2 rounded-full shadow-lg" onclick="prevSlide()">
-                    <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
-                        </path>
-                    </svg>
-                </button>
-            </div>
-            <div class="absolute top-1/2 transform -translate-y-1/2 right-10 flex items-center">
-                <button class="bg-white p-2 rounded-full shadow-lg" onclick="nextSlide()">
-                    <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </button>
+<div class="bg-gradient-to-b from-gray-100 to-gray-300 py-10" >
+    <div class="relative h-1/12 rounded-xl flex items-center py-20 mt-10 w-10/12 mx-auto px-20  bg-cover  .slide"
+        style="background-image: linear-gradient(to right, rgba(0, 0, 10, 1), rgba(0, 0, 0, 0)), url('/images/Banner/ai-generated-banner (2).png');">
+        <div class="container mx-auto px-6">
+            <div class="w-full md:w-2/3 lg:w-1/2">
+                <h1 class="text-5xl text-white font-bold leading-tight"> High Quality Toys <br />Big Discount </h1>
+                <p class="text-white text-lg mt-4">Save up to 50% off on your first order</p>
+                <form class="mt-8">
+                    <div class="flex">
+                        <input type="email" placeholder="Your email address"
+                            class="w-full px-4 py-2 text-gray-900 rounded-l-lg border border-gray-300 focus:outline-none" />
+                        <button
+                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-r-lg transition duration-300">
+                            Subscribe </button>
+                    </div>
+                </form>
             </div>
         </div>
-        <script>
-            let currentSlide = 0;
-            const slides = document.querySelectorAll('.slide'); // Assuming you have slide elements
+        <!-- Slider controls -->
+        <div class="absolute top-1/2 transform -translate-y-1/2 left-10 flex items-center">
+            <button class="bg-white p-2 rounded-full shadow-lg" onclick="prevSlide()">
+                <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div class="absolute top-1/2 transform -translate-y-1/2 right-10 flex items-center">
+            <button class="bg-white p-2 rounded-full shadow-lg" onclick="nextSlide()">
+                <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide'); // Assuming you have slide elements
 
-            function showSlide(index) {
-                slides.forEach((slide, i) => {
-                    slide.style.display = (i === index) ? 'block' : 'none';
-                });
-            }
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.style.display = (i === index) ? 'block' : 'none';
+        });
+    }
 
-            function nextSlide() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
-            }
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
 
-            function prevSlide() {
-                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-                showSlide(currentSlide);
-            }
-            showSlide(currentSlide); // Initialize the first slide
-        </script>
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(currentSlide);
+    }
+    showSlide(currentSlide); // Initialize the first slide
+</script>

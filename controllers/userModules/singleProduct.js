@@ -86,7 +86,7 @@ export const searchAndFilterProducts = async (req, res) => {
         const categories = await Category.find({});
 
         // Fetch filtered and sorted products
-        const products = await Product.find(query)
+        const products = await Product.find({ ...query, isBlocked: false })
             .collation({ locale: 'en', strength: 2 })
             .sort(sortOptions)
             .skip(skip)
@@ -119,6 +119,7 @@ export const searchAndFilterProducts = async (req, res) => {
             query: q || '',
             categories,
             pagination,
+            
             page,
             pages: totalPages,
             sort,

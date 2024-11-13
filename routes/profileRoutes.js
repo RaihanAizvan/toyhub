@@ -22,5 +22,9 @@ router.get('/orders/:id/cancel-reason', profile.getCancelReason);
 router.post('/orders/:id/cancel-reason', profile.postOrderCancel);
 router.post('/orders/:orderId/cancel-item', profile.postItemCancel);
 
+router.get('/wishlist', profile.getWishlist);
+router.post('/wishlist/:id', profile.postWishlist);
+router.delete('/wishlist', profile.deleteWishlist);
+
 
 export default router

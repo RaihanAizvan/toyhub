@@ -10,6 +10,7 @@ const ProductSchema = new mongoose.Schema({
   color: { type: String },
   weight: { type: Number },
   discount: { type: Number },
+  priceAfterDiscount: { type: Number },
   SKU: { type: String },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true }, // Establish reference to Category
   images: [String],

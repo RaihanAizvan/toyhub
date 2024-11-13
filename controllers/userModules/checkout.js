@@ -33,11 +33,10 @@ const getCheckoutPage = async function (req, res) {
 }
 
 // this is a handler function for sending post request to /checkout
-export const postPlaceOrderInCheckout = async (req, res) => {
+const postPlaceOrderInCheckout = async (req, res) => {
     try {
         const userId = req.session.user.id;
-        const { selectedAddress, paymentMethod } = req.body;
-
+        const { selectedAddress, paymentMethod, couponCode } = req.body;
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ message: 'Cart is empty' });
@@ -48,19 +47,20 @@ export const postPlaceOrderInCheckout = async (req, res) => {
             return res.status(400).json({ message: 'Invalid address' });
         }
 
-        const totalAmount = cart.items.reduce((total, item) => total + (item.quantity * item.product.price), 0);
-
         const user = await User.findById(userId);
-
+        console.log('cart items are',cart.items)
+        //create new order
         const newOrder = new Order({
             user: userId,
             items: cart.items.map(item => ({
                 product: item.product._id,
                 quantity: item.quantity,
-                price: item.product.price
+                price: item.product.price,
+                paymentMethod:paymentMethod
             })),
-            totalAmount,
-            discount: cart.discount || 0,
+            discount: cart.discount,
+            totalAmount:cart.total,
+            subtotal:cart.subtotal,
             address: {
                 user: {
                     name: user.name,
@@ -76,16 +76,12 @@ export const postPlaceOrderInCheckout = async (req, res) => {
                 phone: address.phone
             },
             paymentMethod,
+            couponCode,
             status: 'pending'
         });
 
-        console.log("Removing items from browser session storage for user:", userId);
-        res.cookie('cart', '', { expires: new Date(0) });
-        res.clearCookie('cart');
-        res.clearCookie('couponApplied');
-
-        console.log("Saving order in the database:", newOrder);
         await newOrder.save();
+        await Cart.findOneAndDelete({ user: userId });
 
         for (const item of cart.items) {
             const product = await Product.findById(item.product._id);
@@ -93,11 +89,12 @@ export const postPlaceOrderInCheckout = async (req, res) => {
             await product.save();
         }
 
-        await Cart.findOneAndDelete({ user: userId });
-
-        res.status(200).render('user/order-successfull',{order:newOrder});
+        res.clearCookie('cart');
+        res.clearCookie('couponApplied');
+        res.status(200).render('user/order-successfull', { order: newOrder });
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.error("Error in postPlaceOrderInCheckout:", error);
+        res.status(500).render('user/order-failed', { message: 'Internal Server Error' });
     }
 };
 
@@ -111,7 +108,12 @@ const applyCoupon = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Coupon code not found.' });
         }
 
-        
+        //store total amount in session 
+        req.session.totalAmount = totalAmount;
+        // Check if the coupon is active and has not been used before
+        if (coupon.isBlocked || coupon.usageLimit <= 0) {
+            return res.status(400).json({ success: false, message: 'Coupon is not active or has been used too many times.' });
+        }
 
         // Check minimum purchase requirement
         if (totalAmount < coupon.minPurchase) {
@@ -133,9 +135,8 @@ const applyCoupon = async (req, res) => {
         // Calculate the new total after discount
         const discountedTotal = totalAmount - discountAmount;
 
-        // Update the coupon usage count
-        coupon.usageLimit -= 1;
-        await coupon.save();
+        
+        
 
         // Return success response with the discount details
         res.status(200).json({

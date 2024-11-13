@@ -29,6 +29,10 @@ const OrderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  subtotal: {
+    type: Number,
+    required: true
+  },
   address: {
     user:{
       name: {
@@ -76,6 +80,10 @@ const OrderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: true
+  },
+  couponCode: {
+    type: String,
+    default: null
   },
   status: {
     type: String,

@@ -28,42 +28,28 @@ async function getLandingPage(req, res) {
         // Check if the user is authenticated
         const user = req.user || req.session.user;  // Assuming you're using session or authentication middleware
 
-        const slides = [
-            {
-              image: "/images/Banner/banner-4.jpg",  // Path to the image
-              title: "Welcome to ToyHub",
-              description: "Find the best toys for all ages!",
-              buttonLink: "/shop"  // Link for the slider button
-            },
-            {
-              image: "/images/Banner/banner-4.jpg",
-              title: "Educational Toys",
-              description: "Enhance learning with fun toys!",
-              buttonLink: "/educational-toys"
-            },
-            {
-              image: "/images/Banner/banner-4.jpg",
-              title: "New Arrivals",
-              description: "Check out the latest additions!",
-              buttonLink: "/new-arrivals"
-            }
-          ];
+        let wishlist = [];
+        if (req.session.user) {
+            const userWithWishlist = await User.findById(req.session.user.id);
+            wishlist = userWithWishlist ? userWithWishlist.wishlist : [];
+            console.log(wishlist);
+        }
 
         if (user) {
             res.render('user/home', {
-                slides,
+                wishlist,
                 title: "ToyHub",
                 auth: true,
                 name: user.name,
-                userId:user.id,
+                userId: user.id,
                 popularProducts,
                 bestSellerProducts,
                 categories,
                 flashMessage: flashMessage ? { message: flashMessage, type: type } : null
             });
-            
         } else {
             res.render('user/home', {
+                wishlist,
                 title: "ToyHub",
                 auth: false,
                 name: 'Login',  // Show "Login" if not authenticated
@@ -71,7 +57,6 @@ async function getLandingPage(req, res) {
                 bestSellerProducts,
                 categories,
                 flashMessage: flashMessage ? { message: flashMessage, type: type } : null,
-                
             });
         }
     } catch (error) {

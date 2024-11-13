@@ -124,6 +124,11 @@
                                     than zero.</p>
                             </div>
                             <div class="mb-4">
+                                <label class="block text-gray-700">Min Spend </label>
+                                <input type="number" name="minSpend" value="<%= coupon.minSpend %>" min="1" class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="minSpendError">Min spend must be greater than zero.</p>
+                            </div>
+                            <div class="mb-4">
                                 <label class="block text-gray-700">Discount Type</label>
                                 <select name="discountType" class="w-full border px-3 py-2 rounded" required>
                                     <option value="percentage" <%=coupon.discountType==='percentage' ? 'selected' : ''
@@ -149,7 +154,7 @@
         const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
         const discount = form.discount.value;
         const usageLimit = form.usageLimit.value;
-
+        const minSpend = form.minSpend.value;
         let isValid = true;
 
         if (code.trim() === '') {
@@ -199,6 +204,13 @@
             document.getElementById('discountError').classList.remove('hidden');
         } else {
             document.getElementById('discountError').classList.add('hidden');
+        }
+
+        if (!minSpend || minSpend <= 0) {
+            isValid = false;
+            document.getElementById('minSpendError').classList.remove('hidden');
+        } else {
+            document.getElementById('minSpendError').classList.add('hidden');
         }
 
         if (!isValid) {

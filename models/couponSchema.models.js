@@ -11,6 +11,10 @@ discount: {
     type: Number,
     required: true,
 },
+minSpend:{
+    type:Number,
+    default:0,
+},
 discountType: {
     type: String,
     enum: ['percentage', 'fixed'],

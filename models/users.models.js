@@ -50,7 +50,11 @@ const UserSchema = new Schema({
   coupons: [{
     type: Schema.Types.ObjectId,
     ref: 'Coupon'
-  }]  // Reference to Coupons
+  }],  // Reference to Coupons
+  wishlist: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Product'
+  }]
 });
 
 const User = mongoose.model('User', UserSchema);

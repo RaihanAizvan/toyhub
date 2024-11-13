@@ -21,10 +21,10 @@ const getAddCoupon = (req, res) => {
   };
 
 const postAddCoupon = async (req, res) => {
-  let { couponCode, startDate, endDate, discount, discountType, usageLimit } = req.body;
+  let { couponCode, startDate, endDate, discount, discountType, usageLimit, minSpend } = req.body;
   couponCode = couponCode.toUpperCase();
   try {
-    const newCoupon = new Coupon({ couponCode, startDate, endDate, discount, discountType, usageLimit });
+    const newCoupon = new Coupon({ couponCode, startDate, endDate, discount, discountType, usageLimit, minSpend });
     await newCoupon.save();
     res.redirect('/admin/coupons');
   } catch (error) {
@@ -39,9 +39,9 @@ const getEditCoupon = async (req, res) => {
 
 const postEditCoupon = async (req, res) => {
   try {
-    let { couponCode, startDate, endDate, discount, discountType, usageLimit } = req.body;
+    let { couponCode, startDate, endDate, discount, discountType, usageLimit, minSpend } = req.body;
     couponCode = couponCode.toUpperCase();
-    await Coupon.findByIdAndUpdate(req.params.id, { couponCode, startDate, endDate, discount, discountType, usageLimit });
+    await Coupon.findByIdAndUpdate(req.params.id, { couponCode, startDate, endDate, discount, discountType, usageLimit, minSpend });
     res.redirect('/admin/coupons');
   } catch (error) {
     res.render('admin/editCoupon', { coupon: req.body, error: error.message });
@@ -83,3 +83,4 @@ export default {
     postBlockCoupon,
     getEditCoupon
 };
+

@@ -49,7 +49,7 @@ app.use((req, res, next) => {
   next(); 
 });
 app.use((req, res, next) => {
-  req.session.user = { id: '66d72a6ea0c029810e11757b', name: 'Achuuu' };
+  req.session.user = { id: '66d72a6ea0c029810e11757b', name: 'Achuu' };
   next(); 
 });
 
@@ -77,6 +77,10 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.locals.flashMessage = req.session.flashMessage;
   delete req.session.flashMessage;
+  next();
+});
+app.use((req, res, next) => {
+  res.locals.name = req.session.user?.name
   next();
 });
 

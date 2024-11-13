@@ -1,6 +1,7 @@
 import Order from "../../models/orders.models.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
+import Wishlist from "../../models/wishlist.models.js"
 
 export async function getProfileEdit(req, res) {
     let theName = req.session.user?.name
@@ -297,6 +298,86 @@ export const postItemCancel = async (req, res) => {
     }
 }
 
+//wishlist
+export const getWishlist = async (req, res) => {
+    const userId = req.session.user.id; // Log the user ID
+    console.log(`Fetching wishlist for user ID: ${userId}`);
+
+    try {
+        // Populate the 'wishlist' field in the User model, which contains references to 'Product'
+        const user = await Users.findById(userId).populate('wishlist');
+        
+        // Log the fetched wishlist
+        console.log('Fetched wishlist:', user.wishlist);
+
+        res.render('user/wishlist', {
+            title: 'Wishlist',
+            name: req.session.user?.name,
+            wishlistItems: user.wishlist || []
+        });
+    } catch (error) {
+        console.error('Error fetching wishlist:', error);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+export const postWishlist = async (req, res) => {
+    const {productId} = req.body;
+    try{
+        const user = await Users.findById(req.session.user.id)
+
+
+        //check if the product is alreadyu in the wishlist
+        if(user.wishlist &&user.wishlist.includes(productId)){
+            return res.status(400).json({
+                message:"product already in whishlist"
+            })
+        }
+
+        // if not add the product to the wishlist
+
+        user.wishlist.push(productId);
+        await user.save();
+
+        return res.status(200).json({message:"product added to whishlist"})
+    }
+    catch(err){
+        console.log(err)
+        return res.status(500).json({message:"internal server error"})
+    }
+    }
+
+
+
+
+export const deleteWishlist = async (req, res) => {
+    console.log('Delete wishlist item');
+    const { productId } = req.body;
+
+    try {
+        const user = await Users.findById(req.session.user.id);
+
+        console.log(user.wishlist)
+        console.log(productId)
+        // Check if the product is in the wishlist
+        if (!user.wishlist.includes(productId)) {
+            return res.status(400).json({
+                message: "Product not found in wishlist"
+            });
+        }
+
+        // Remove the product from the wishlist
+        user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+        await user.save();
+
+        return res.status(200).json({ message: "Product removed from wishlist" });
+    } catch (error) {
+        console.error('Error removing product from wishlist:', error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 
 
 
@@ -308,5 +389,8 @@ export default {
     getOrderDetail,
     postOrderCancel,
     getCancelReason,
-    postItemCancel
+    postItemCancel,
+    getWishlist,
+    postWishlist,
+    deleteWishlist
 }
