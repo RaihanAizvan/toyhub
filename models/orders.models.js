@@ -19,7 +19,11 @@ const OrderSchema = new mongoose.Schema({
     price: {
       type: Number,
       required: true,
-      
+    },
+    paymentMethod: {
+      type: String,
+      required: true,
+      enum: ["razorpay", "cod", "wallet"]
     }
   }],
   totalAmount: {
@@ -30,12 +34,24 @@ const OrderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  offerDiscount: {
+    type: Number,
+    default: 0
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
+  cutoffAmount: {
+    type: Number,
+    default: 0
+  },
   subtotal: {
     type: Number,
     required: true
   },
   address: {
-    user:{
+    user: {
       name: {
         type: String,
         required: true

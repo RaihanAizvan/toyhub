@@ -28,28 +28,40 @@
                         <a href="/account/address" class="bg-primary text-white px-4 py-2 rounded-md">Add New Address</a>
                     </div>
 
+
+                    <!-- show available offers -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="font-semibold text-lg mb-4">Available Offers</h2>
+                        <% offers.forEach(offer => { %> 
+                            <p class="text-gray-600 mb-1"> <span class="font-semibold text-green-800"> <%= offer.name %> : </span> <%= offer.description %> </p>
+                        <% }) %>
+                    </div>
+
                     <!-- Coupon Code Entry -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <h2 class="font-semibold text-lg mb-4">Apply Coupon</h2>
                         <div class="flex">
-                            <select id="couponCode" name="couponCode" class="border border-gray-300 p-2 rounded-l-md w-full">
-                                <option value="" disabled selected>Select a Coupon</option>
-                                <% if (coupons && coupons.length > 0) { %>
-                                    <% coupons.forEach(coupon => { %>
-                                        <option value="<%= coupon.couponCode %>"><%= coupon.couponCode %> - <%= coupon.discount %><%= coupon.discountType === 'percentage' ? '%' : '$' %> - Min Spend: $<%= coupon.minSpend %></option>
-                                    <% }) %>
-                                <% } else { %>
-                                    <option value="" disabled>No coupons available</option>
-                                <% } %>
-                            </select>
-                            <button type="button" onclick="applyCoupon()" id="applyCouponButton" class="bg-primary text-white p-2">Apply</button>
-                            <button type="button" onclick="clearCoupon()" id="removeCouponButton" class="bg-red-500 text-white p-2 ml-2">Remove</button>
+                            <% if (cart.cutoffAmount > 0) { %>
+                                <p class="text-red-600">Coupons cannot be applied when a cutoff amount is present.</p>
+                            <% } else { %>
+                                <select id="couponCode" name="couponCode" class="border border-gray-300 p-2 rounded-l-md w-full" title="Select a Coupon">
+                                    <option value="" selected disabled>Select a Coupon</option>
+                                    <% if (coupons && coupons.length > 0) { %>
+                                        <% coupons.forEach(coupon => { %>
+                                            <option value="<%= coupon.couponCode %>"><%= coupon.couponCode %> - <%= coupon.discount %><%= coupon.discountType === 'percentage' ? '%' : '$' %> - Min Spend: $<%= coupon.minSpend %></option>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <option value="" disabled>No coupons available</option>
+                                    <% } %>
+                                </select>
+                                <button type="button" onclick="applyCoupon()" id="applyCouponButton" class="bg-primary text-white p-2">Apply</button>
+                                <button type="button" onclick="clearCoupon()" id="removeCouponButton" class="bg-red-500 text-white p-2 ml-2">Remove</button>
+                            <% } %>
                         </div>
                         <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
                         <p id="couponError" class="text-red-600 hidden">Coupon cannot be applied. Minimum spend required: $<%= coupons.minSpend %></p> <!-- Error message for coupon -->
 
                     </div>
-
                     <!-- Payment Methods -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <h2 class="font-semibold text-lg mb-4">Payment Method</h2>
@@ -105,10 +117,31 @@
                             <span>Coupon Discount</span>
                             <span class="font-bold" id="couponDiscount">-$0.00</span>
                         </div>
-                        <div class="flex justify-between text-lg font-bold text-green-600">
+                        <!-- offers -->
+                        <% if (cart.offerDiscount && cart.offerDiscount > 0) { %>
+                            <div class="flex justify-between text-green-600" id="offerDiscountContainer">
+                                <span>Offer Discount</span>
+                                <span class="font-bold" id="offerDiscount">-$<%= cart.offerDiscount.toFixed(2) %></span>
+                            </div>
+                        <% } %>
+                        <% if (cart.discount && cart.discount > 0) { %>
+                            <!-- normal discount -->
+                            <div class="flex justify-between text-green-600" id="discountContainer">
+                                <span>Discount</span>
+                                <span class="font-bold" id="discount">-$<%= cart.discount.toFixed(2) %></span>
+                            </div>
+                        <% } %>
+                        <% if (cart.cutoffAmount && cart.cutoffAmount > 0) { %>
+                            <div class="flex justify-between text-red-600" id="cutoffAmountContainer">
+                                <span>Cutoff Amount</span>
+                                <span class="font-bold" id="cutoffAmount">+$<%= cart.cutoffAmount.toFixed(2) %></span>
+                            </div>
+                        <% } %>
+                        <hr>
+                        <div class="flex justify-between text-lg font-bold ">
                             <span>Total</span>
-                            <span class="font-bold" id="total">$<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %></span>
-                            <input type="hidden" name="totalAmount" id="totalAmount" value="<%= cart ? cart.total ? cart.total.toFixed(2) : '0.00' : '0.00' %>">
+                            <span class="font-bold" id="total">$<%= cart.total.toFixed(2) %></span>
+                            <input type="hidden" name="totalAmount" id="totalAmount" value="<%= cart.total.toFixed(2) %>">
                         </div>
                     </div>
 
@@ -136,116 +169,127 @@
     // Apply Coupon Feedback
     async function applyCoupon() {
         const couponCode = document.getElementById('couponCode').value;
-        
+        const cutoffAmountElement = document.getElementById('cutoffAmount');
+        const cutoffAmount = cutoffAmountElement ? parseFloat(cutoffAmountElement.textContent.replace('+$', '')) : 0;
+
+        if (cutoffAmount > 0) {
+            displayCouponError('Coupons cannot be applied when a cutoff amount is present.');
+            toastr.error('Coupons cannot be applied when a cutoff amount is present.');
+            return;
+        }
+
+        const totalAmount = document.getElementById('totalAmount').value;
+
         try {
-            const subtotalAmount = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
-            const response = await axios.post('/checkout/apply-coupon', { couponCode, totalAmount: subtotalAmount });
-            
+            const response = await axios.post('/checkout/apply-coupon', { couponCode, totalAmount });
             if (response.data.success) {
-                const { discountAmount, discountedTotal, coupon } = response.data;
-                
-                // Check minimum spend requirement
-                if (subtotalAmount < coupon.minSpend) {
-                    displayCouponError(`Coupon cannot be applied. Minimum spend required: $${coupon.minSpend}`);
-                    return;
-                }
-                
-                // Update success display and disable fields
-                updateCouponSuccess(discountAmount, discountedTotal, coupon);
-                
-                // Calculate total amount as subtotal minus discount
-                const totalAmount = subtotalAmount - discountAmount;
-                await axios.post('/cart/update-total', { totalAmount, discount: discountAmount });
-    
-                // Disable input fields and save applied coupon to local storage
-                document.getElementById('applyCouponButton').disabled = true;
-                document.getElementById('couponCode').disabled = true;
-                localStorage.setItem('couponApplied', JSON.stringify({ couponCode, discountAmount, discountedTotal }));
+                const { discountAmount, discountedTotal } = response.data;
+                updateCouponSuccess(discountAmount, discountedTotal);
+                disableCouponInputs();
+                sessionStorage.setItem('appliedCoupon', couponCode); // Store coupon in session storage
             } else {
                 displayCouponError(response.data.message || 'Invalid coupon code.');
+                toastr.error(response.data.message || 'Invalid coupon code.');
             }
+            
         } catch (error) {
-            displayCouponError('Error applying coupon.');
+            displayCouponError('Error applying coupon. Please try again later.');
+            toastr.error('Error applying coupon. Please try again later.');
         }
     }
-    
-    // Centralized function to get current total from the DOM
-    function getCurrentTotalAmount() {
-        return parseFloat(document.getElementById('total').textContent.replace('$', ''));
-    }
-    
+
     function clearCoupon() {
-        // Clear local storage and reset fields
-        localStorage.removeItem('couponApplied');
+
+        // Reset fields
         document.getElementById('couponCode').disabled = false;
         document.getElementById('applyCouponButton').disabled = false;
-        
+
         const couponDiscountElement = document.getElementById('couponDiscount');
         const totalElement = document.getElementById('total');
         const couponDiscountContainer = document.getElementById('couponDiscountContainer');
         const couponFeedbackElement = document.getElementById('couponFeedback');
-    
+        const totalAmountInput = document.getElementById('totalAmount');
+        const offerDiscountElement = document.getElementById('offerDiscount');
+        const offerDiscountContainer = document.getElementById('offerDiscountContainer');
+
         // Reset displayed values
         couponDiscountElement.textContent = '-$0.00';
-        totalElement.textContent = document.getElementById('subtotal').textContent;
         couponDiscountContainer.classList.add('hidden');
         couponFeedbackElement.classList.add('hidden');
-    }
-    
-    // Reload coupon application on page load if previously applied
-    window.addEventListener('load', () => {
-        // Check if the cart has items to determine if it's a new order
-        const cartHasItems = <%= cart && cart.items && cart.items.length > 0 %>; // Dynamic check based on cart state
-        if (!cartHasItems) {
-            clearCoupon(); // Clear coupon if no items in cart
-        } else {
-            const couponApplied = JSON.parse(localStorage.getItem('couponApplied'));
-            if (couponApplied) {
-                document.getElementById('couponCode').disabled = true;
-                document.getElementById('applyCouponButton').disabled = true;
 
-                // Set the selected coupon in the dropdown
-                const couponSelect = document.getElementById('couponCode');
-                for (let i = 0; i < couponSelect.options.length; i++) {
-                    if (couponSelect.options[i].value === couponApplied.couponCode) {
-                        couponSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-
-                // Use the stored discounted total to initialize totalAmount
-                updateCouponSuccess(couponApplied.discountAmount, couponApplied.discountedTotal, { discountType: 'stored' });
-            }
+        // Calculate the new total amount considering other discounts and removing coupon discount
+        const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
+        const offerDiscount = offerDiscountElement ? parseFloat(offerDiscountElement.textContent.replace('-$', '')) : 0;
+        const discount = parseFloat(document.getElementById('discount').textContent.replace('-$', '')) || 0;
+        
+        // Check if cutoffAmount element exists and get its value
+        let cutoffAmount = 0;
+        const cutoffAmountElement = document.getElementById('cutoffAmount');
+        if (cutoffAmountElement) {
+            cutoffAmount = parseFloat(cutoffAmountElement.textContent.replace('+$', '')) || 0;
         }
-    });
-    
+        
+        const newTotal = subtotal - discount - offerDiscount + cutoffAmount;
+
+        // Update the total amount displayed
+        totalElement.textContent = `$${newTotal.toFixed(2)}`;
+        totalAmountInput.value = newTotal.toFixed(2);
+
+        // Ensure coupon is removed from session storage
+        sessionStorage.removeItem('appliedCoupon');
+        
+    }
+
+// Ensure the clearCoupon function is called when the remove button is clicked
+document.getElementById('removeCouponButton').addEventListener('click', clearCoupon);
+
+    function updateCouponSuccess(discountAmount, discountedTotal) {
+        const couponDiscountElement = document.getElementById('couponDiscount');
+        const couponDiscountContainer = document.getElementById('couponDiscountContainer');
+        const couponFeedbackElement = document.getElementById('couponFeedback');
+        const totalElement = document.getElementById('total');
+        const totalAmountInput = document.getElementById('totalAmount');
+        
+
+        couponDiscountElement.textContent = `-$${discountAmount.toFixed(2)}`;
+        couponDiscountContainer.classList.remove('hidden');
+        couponFeedbackElement.classList.remove('hidden');
+
+        totalElement.textContent = `$${discountedTotal.toFixed(2)}`;
+        totalAmountInput.value = discountedTotal.toFixed(2);
+    }
+
+    // Helper function to show coupon error message
     function displayCouponError(message) {
         const couponErrorElement = document.getElementById('couponError');
         couponErrorElement.textContent = message;
         couponErrorElement.classList.remove('hidden');
         toastr.error(message);
-    
-        // Hide error message after 5 seconds
-        setTimeout(() => {
-            couponErrorElement.classList.add('hidden');
-        }, 5000);
     }
-    
-    function updateCouponSuccess(discountAmount, discountedTotal, coupon) {
-        const couponDiscountElement = document.getElementById('couponDiscount');
-        const totalElement = document.getElementById('total');
-        const couponDiscountContainer = document.getElementById('couponDiscountContainer');
-        const couponFeedbackElement = document.getElementById('couponFeedback');
-    
-        // Update displayed discount and total values
-        couponDiscountElement.textContent = `-$${discountAmount.toFixed(2)}`;
-        totalElement.textContent = `$${discountedTotal.toFixed(2)}`; // Ensure total displays discounted amount
-    
-        // Show coupon feedback
-        couponDiscountContainer.classList.remove('hidden');
-        couponFeedbackElement.textContent = `Coupon applied successfully! (${coupon.discountType})`;
-        couponFeedbackElement.classList.remove('hidden');
-        toastr.success(`Coupon applied successfully! (${coupon.discountType})`);
+
+    function disableCouponInputs() {
+        document.getElementById('couponCode').disabled = true;
+        document.getElementById('applyCouponButton').disabled = true;
+    }
+
+    // Reload coupon application on page load
+    window.addEventListener('load', () => {
+        const cartHasItems = <%= cart && cart.items && cart.items.length > 0 ? 'true' : 'false' %>; // Dynamic check based on cart state
+        if (cartHasItems === 'false') {
+            clearCoupon(); // Clear coupon if no items in cart
+        } else {
+            const storedCoupon = sessionStorage.getItem('appliedCoupon');
+            if (storedCoupon) {
+                document.getElementById('couponCode').value = storedCoupon;
+                applyCoupon(); // Reapply coupon if stored
+            }
+        }
+    });
+
+    // Function to clear coupon if the cart becomes empty
+    function handleCartUpdate(cartItems) {
+        if (cartItems.length === 0) {
+            clearCoupon();
+        }
     }
 </script>
-    

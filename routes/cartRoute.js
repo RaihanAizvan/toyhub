@@ -4,8 +4,9 @@ import express from "express";
 const router = express.Router();
 
 router.use(middleware.checkBlockStatus)
+router.use(middleware.updateOfferDiscountInCart)
 
-router.get('/', cart.getCart);
+router.get('/',  cart.getCart);
 
 router.post('/update-quantity', cart.updateQuantity)
 

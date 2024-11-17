@@ -38,6 +38,14 @@ const cartSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    offerDiscount: {
+        type: Number,
+        default: 0
+    },
+    couponDiscount: {
+        type: Number,
+        default: 0
+    },
     subtotal:{
         type: Number,
         required: true,
@@ -48,22 +56,16 @@ const cartSchema = new mongoose.Schema({
         required: true,
         default: 0
     },
+    cutoffAmount: {
+        type: Number,
+        default: 0
+    },
+    appliedCoupon: {
+        type: String,
+        default: null
+    }
 }, { timestamps: true });
 
-// Method to calculate subtotal and total
-cartSchema.methods.calculateTotals = function() {
-    this.subtotal = this.items.reduce((acc, item) => {
-        return acc + (item.price * item.quantity);
-    }, 0);
-    
-    this.total = this.subtotal - this.discount;
-};
-
-// Pre-save hook to calculate totals before saving
-cartSchema.pre('save', function(next) {
-    this.calculateTotals();
-    next();
-});
 
 const Cart = mongoose.model('Cart', cartSchema);
 

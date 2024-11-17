@@ -130,24 +130,7 @@
           <!-- Recent Orders -->
           <div class="p-4 bg-white rounded-lg shadow">
             <h3 class="text-lg font-semibold">Recent Orders</h3>
-            <!--! simulating the order please change this whikle the data come from backend -->
-            <% // Temporary array to simulate data from backend const orders=[ { product: "Lorem Ipsum" ,
-              orderId: "#25426" , date: "Nov 8th, 2023" , customerName: "Kavin" , status: "Delivered" ,
-              amount: "₹200.00" }, { product: "Dolor Sit" , orderId: "#25427" , date: "Nov 9th, 2023" ,
-              customerName: "John" , status: "Pending" , amount: "₹150.00" }, { product: "Dolor Sit" , orderId: "#25427"
-              , date: "Nov 9th, 2023" , customerName: "John" , status: "Pending" , amount: "₹150.00" }, {
-              product: "Dolor Sit" , orderId: "#25427" , date: "Nov 9th, 2023" , customerName: "John" ,
-              status: "Pending" , amount: "₹150.00" }, { product: "Dolor Sit" , orderId: "#25427" ,
-              date: "Nov 9th, 2023" , customerName: "John" , status: "Pending" , amount: "₹150.00" }, {
-              product: "Dolor Sit" , orderId: "#25427" , date: "Nov 9th, 2023" , customerName: "John" ,
-              status: "Pending" , amount: "₹150.00" }, { product: "Dolor Sit" , orderId: "#25427" ,
-              date: "Nov 9th, 2023" , customerName: "John" , status: "Pending" , amount: "₹150.00" }, {
-              product: "Dolor Sit" , orderId: "#25427" , date: "Nov 9th, 2023" , customerName: "John" ,
-              status: "Pending" , amount: "₹150.00" }, { product: "Dolor Sit" , orderId: "#25427" ,
-              date: "Nov 9th, 2023" , customerName: "John" , status: "Pending" , amount: "₹150.00" }, // Add more orders
-              as needed ]; const bestSellers=[ {product:"Action toy", totalSales:213,price:"$32"}, {product:"Action
-              toy", totalSales:213,price:"$32"}, {product:"Action toy", totalSales:213,price:"$32"}, {product:"Action
-              toy", totalSales:213,price:"$32"} ] %>
+            
               <table class="min-w-full mt-4">
                 <thead>
                   <tr class="text-left">
@@ -160,27 +143,34 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y">
-                  <% orders.forEach(order=> { %> <tr>
+                  <% orders.forEach(order => { %>
+                    <tr>
                       <td>
-                        <%= order.product %>
+                        <% 
+                          let productNames = [];
+                          order.items.forEach(item => {
+                            productNames.push(item.product ? item.product.name : 'Product not found');
+                          });
+                        %>
+                        <%= productNames.join(',') %>
                       </td>
                       <td>
-                        <%= order.orderId %>
+                        <%= order._id %>
                       </td>
                       <td>
-                        <%= order.date %>
+                        <%= new Date(order.orderDate).toLocaleDateString() %>
                       </td>
                       <td>
-                        <%= order.customerName %>
+                        <%= order.address.user.name %>
                       </td>
-                      <td><span class="text-green-500">
+                      <td><span class="<%= order.status === 'completed' ? 'text-green-500' : order.status === 'Shipped' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-purple-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500' %>">
                           <%= order.status %>
                         </span></td>
                       <td>
-                        <%= order.amount %>
+                        ₹<%= order.totalAmount %>
                       </td>
                     </tr>
-                    <% }) %>
+                  <% }) %>
                 </tbody>
               </table>
           </div>
@@ -188,20 +178,21 @@
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-lg font-semibold">Best Sellers</h3>
           <ul class="mt-4 space-y-2">
-            <% bestSellers.forEach(seller=> { %> <li>
+            <% bestSellers.forEach(seller => { %>
+              <li>
                 <div class="flex items-center justify-between">
                   <span>
-                    <%= seller.product %>
+                    <%= seller.name %>
                   </span>
                   <span class="font-semibold">
-                    <%= seller.price %>
+                    ₹<%= seller.price %>
                   </span>
                 </div>
                 <div class="text-sm text-gray-500">
-                  <%= seller.totalSales %> sales
+                  <%= seller.sold %> sales
                 </div>
               </li>
-              <% }) %>
+            <% }) %>
                 <!-- More items here -->
           </ul>
           <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>

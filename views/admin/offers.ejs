@@ -1,225 +1,263 @@
 <!-- views/offers.ejs -->
 <div class="min-h-screen flex flex-col justify-stretch">
     <div class="flex bg-gray-100">
-      <!-- Sidebar -->
-      <div class="w-64 bg-white p-4 hidden sm:block">
-        <div class="flex items-center justify-between px-6 py-4">
-          <span class="text-xl font-semibold">ToyHub</span>
-        </div>
-        <nav>
-          <ul class="space-y-2">
-            <li><a href="/admin" class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg">Dashboard</a></li>
-            <li><a href="/admin/products" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">All Products</a></li>
-            <li><a href="/admin/orders" class="flex items-center rounded p-2 text-gray-700">Order List</a></li>
-            <li><a href="/admin/users" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">User List</a></li>
-            <li><a href="/admin/category" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Category Management</a></li>
-            <li><a href="/admin/addProduct" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Add Products</a></li>
-            <li><a href="/admin/banner" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Banner</a></li>
-            <li><a href="/admin/coupons" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Coupons</a></li>
-            <li><a href="/admin/offers" class="flex items-center rounded bg-primary hover:bg-gray-200 transition-all p-2 text-gray-700"><span class="ml-3">Offers</span></a></li>
-          </ul>
-        </nav>
-        <div class="mt-6">
-            <h3 class="text-sm font-semibold ">Categories</h3>
-            <hr>
-            <ul class="mt-2 space-y-2">
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
-                  1</a>
-              </li>
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
-                  2</a>
-              </li>
-              <li>
-                <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
-                  3</a>
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <form action="/admin/logout" method="POST">
-                  <a href="/admin/logout">
-                    <button type="submit"
-                      class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  " id="logoutLink">Logout</Button>
-                  </a>
-                </form>
-              </li>
-            </ul>
-          </div>
-      </div>
-      <!-- Content -->
-      <div class="flex-grow p-8">
-          <div class="text-sm text-gray-600 mb-4">
-              <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
-                class="text-gray-600 hover:text-gray-800">Offer List</a>
+        <!-- Sidebar -->
+        <div class="w-64 bg-white p-4 hidden sm:block">
+            <div class="flex items-center justify-between px-6 py-4">
+                <span class="text-xl font-semibold">ToyHub</span>
             </div>
-        <div class="flex justify-between items-center">
-          <h2 class="text-2xl font-semibold">Offer Management</h2>
-          <a href="/admin/addOffer" class="px-4 py-2 bg-primary text-white rounded">Add Offer</a>
+            <nav>
+                <ul class="space-y-2">
+                    <li><a href="/admin"
+                            class="flex items-center hover:bg-gray-200 transition-all p-2 text-gray-700 rounded-lg">Dashboard</a>
+                    </li>
+                    <li><a href="/admin/products"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">All
+                            Products</a></li>
+                    <li><a href="/admin/orders" class="flex items-center rounded p-2 text-gray-700">Order List</a></li>
+                    <li><a href="/admin/users"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">User
+                            List</a></li>
+                    <li><a href="/admin/category"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Category
+                            Management</a></li>
+                    <li><a href="/admin/addProduct"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Add
+                            Products</a></li>
+                    <li><a href="/admin/banner"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Banner</a>
+                    </li>
+                    <li><a href="/admin/coupons"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Coupons</a>
+                    </li>
+                    <li><a href="/admin/offers"
+                            class="flex items-center rounded bg-primary hover:bg-gray-200 transition-all p-2 text-gray-700"><span
+                                class="ml-3">Offers</span></a></li>
+                </ul>
+            </nav>
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold ">Categories</h3>
+                <hr>
+                <ul class="mt-2 space-y-2">
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            1</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+                            2</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
+                            3</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li>
+                        <form action="/admin/logout" method="POST">
+                            <a href="/admin/logout">
+                                <button type="submit"
+                                    class="fl x items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  "
+                                    id="logoutLink">Logout</Button>
+                            </a>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <table class="min-w-full mt-6 bg-white rounded shadow-md">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="p-4 text-left">Name</th>
-              <th class="p-4 text-left">Description</th>
-              <th class="p-4 text-left">Start Date</th>
-              <th class="p-4 text-left">End Date</th>
-              <th class="p-4 text-left">Offer </th>
-              <th class="p-4 text-left">Offer Type</th>
-              <th class="p-4 text-left">Applied Items</th>
-              <th class="p-4 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% offers.forEach(offer => { %>
-              <tr class="border-b <%= offer.isBlocked ? 'bg-gray-200' : '' %>">
-                <td class="p-4"><%= offer.name %></td>
-                <td class="p-4"><%= offer.description.length > 50 ? offer.description.substring(0, 50) + '...' : offer.description %></td>
-                <td class="p-4"><%= new Date(offer.startDate).toLocaleDateString() %></td>
-                <td class="p-4"><%= new Date(offer.endDate).toLocaleDateString() %></td>
-                <td class="p-4"><%= offer.offerPercentage %>%</td>
-                <td class="p-4"><%= offer.offerType == 'all' ? 'All Products' : offer.offerType == 'product' ? 'Products' : 'Categories' %></td>
-                <td class="p-4">
-                  <% if (offer.offerType === 'product') { %>
-                    <%= offer.applicableProducts.length %> Products
-                  <% } else if (offer.offerType === 'category') { %>
-                    <%= offer.applicableCategories.length %> Categories
-                  <% } else { %>
-                    All Products
-                  <% } %>
-                </td>
-                <td class="p-4">
-                  <a href="/admin/editOffer/<%= offer._id %>" class="text-blue-500 mx-2 hover:underline">Edit</a>
-                  <button onclick="manageOffer('delete', '<%= offer._id %>')" class="text-red-500 mx-2 hover:underline">Delete</button>
-                  <button onclick="manageOffer('<%= offer.isBlocked ? 'unblock' : 'block' %>', '<%= offer._id %>')" class="<%= offer.isBlocked ? 'text-green-500' : 'text-red-500' %> mx-2 hover:underline"><%= offer.isBlocked ? 'Unblock' : 'Block' %></button>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      <div class="mt-4 flex justify-between items-center">
-        <!-- Previous Button -->
-        <% if (currentPage > 1) { %>
-            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="changePage(<%= currentPage - 1 %>)">Previous</button>
-        <% } else { %>
-            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Previous</button>
-        <% } %>
-
-        <!-- Page Numbers -->
-        <div class="flex space-x-1">
-            <% for (let i = 1; i <= totalPages; i++) { %>
-                <button class="px-3 py-1 mx-1 <%= currentPage === i ? 'bg-primary text-white' : 'bg-gray-300 text-gray-700' %> rounded" onclick="changePage(<%= i %>)"><%= i %></button>
-            <% } %>
+        <!-- Content -->
+        <div class="flex-grow p-8">
+            <div class="text-sm text-gray-600 mb-4">
+                <a href="/admin" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
+                    class="text-gray-600 hover:text-gray-800">Offer List</a>
+            </div>
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-semibold">Offer Management</h2>
+                <a href="/admin/addOffer" class="px-4 py-2 bg-primary text-white rounded">Add Offer</a>
+            </div>
+            <table class="min-w-full mt-6 bg-white rounded shadow-md">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="p-4 text-left">Name</th>
+                        <th class="p-4 text-left">Description</th>
+                        <th class="p-4 text-left">Start Date</th>
+                        <th class="p-4 text-left">End Date</th>
+                        <th class="p-4 text-left">Offer </th>
+                        <th class="p-4 text-left">Offer Type</th>
+                        <th class="p-4 text-left">Applied Items</th>
+                        <th class="p-4 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% offers.forEach(offer=> { %> <tr class="border-b <%= offer.isBlocked ? 'bg-gray-200' : '' %>">
+                            <td class="p-4">
+                                <%= offer.name %>
+                            </td>
+                            <td class="p-4">
+                                <%= offer.description.length> 50 ? offer.description.substring(0, 50) + '...' :
+                                    offer.description %>
+                            </td>
+                            <td class="p-4">
+                                <%= new Date(offer.startDate).toLocaleDateString() %>
+                            </td>
+                            <td class="p-4">
+                                <%= new Date(offer.endDate).toLocaleDateString() %>
+                            </td>
+                            <td class="p-4">
+                                <%= offer.offerPercentage %>%
+                            </td>
+                            <td class="p-4">
+                                <%= offer.offerType=='all' ? 'All Products' : offer.offerType=='product' ? 'Products'
+                                    : 'Categories' %>
+                            </td>
+                            <td class="p-4">
+                                <% if (offer.offerType==='product' ) { %>
+                                    <%= offer.applicableProducts.length %> Products <% } else if
+                                            (offer.offerType==='category' ) { %>
+                                            <%= offer.applicableCategories.length %> Categories <% } else { %> All
+                                                    Products <% } %>
+                            </td>
+                            <td class="p-4">
+                                <a href="/admin/editOffer/<%= offer._id %>"
+                                    class="text-blue-500 mx-2 hover:underline">Edit</a>
+                                <button onclick="manageOffer('delete', '<%= offer._id %>')"
+                                    class="text-red-500 mx-2 hover:underline">Delete</button>
+                                <button
+                                    onclick="manageOffer('<%= offer.isBlocked ? 'unblock' : 'block' %>', '<%= offer._id %>')"
+                                    class="<%= offer.isBlocked ? 'text-green-500' : 'text-red-500' %> mx-2 hover:underline">
+                                    <%= offer.isBlocked ? 'Unblock' : 'Block' %>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+            <div class="mt-4 flex justify-between items-center">
+                <!-- Previous Button -->
+                <% if (currentPage> 1) { %> <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                        onclick="changePage(<%= currentPage - 1 %>)">Previous</button>
+                    <% } else { %>
+                        <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Previous</button>
+                        <% } %>
+                            <!-- Page Numbers -->
+                            <div class="flex space-x-1">
+                                <% for (let i=1; i <=totalPages; i++) { %>
+                                    <button
+                                        class="px-3 py-1 mx-1 <%= currentPage === i ? 'bg-primary text-white' : 'bg-gray-300 text-gray-700' %> rounded"
+                                        onclick="changePage(<%= i %>)">
+                                        <%= i %>
+                                    </button>
+                                    <% } %>
+                            </div>
+                            <!-- Next Button -->
+                            <% if (currentPage < totalPages) { %>
+                                <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                                    onclick="changePage(<%= currentPage + 1 %>)">Next</button>
+                                <% } else { %>
+                                    <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Next</button>
+                                    <% } %>
+            </div>
         </div>
-
-        <!-- Next Button -->
-        <% if (currentPage < totalPages) { %>
-            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="changePage(<%= currentPage + 1 %>)">Next</button>
-        <% } else { %>
-            <button class="px-4 py-2 bg-gray-300 text-gray-700 rounded" disabled>Next</button>
-        <% } %>
-      </div>
     </div>
-  </div>
-  <script>
-    function changePage(page) {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.set('page', page);
-      window.location.search = urlParams.toString();
-    }
-  </script>
+    <script>
+        function changePage(page) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('page', page);
+            window.location.search = urlParams.toString();
+        }
+    </script>
+    <script>
+        async function manageOffer(action, id) {
+            let title, text, confirmButtonText, successMessage, errorMessage, postUrl, updateRow;
 
-  <script>
-    async function manageOffer(action, id) {
-      let title, text, confirmButtonText, successMessage, errorMessage, postUrl, updateRow;
-
-      if (action === 'delete') {
-        title = 'Are you sure?';
-        text = 'You won\'t be able to revert this!';
-        confirmButtonText = 'Yes, delete it!';
-        successMessage = 'Offer deleted successfully.';
-        errorMessage = 'Failed to delete offer.';
-        postUrl = `/admin/deleteOffer/${id}`;
-        updateRow = (offerRow) => {
-          if (offerRow) offerRow.remove();
-        };
-      } else if (action === 'block' || action === 'unblock') {
-        const isBlocking = action === 'block';
-        title = 'Are you sure?';
-        text = isBlocking ? 'You won\'t be able to revert this!' : 'You want to unblock this offer!';
-        confirmButtonText = isBlocking ? 'Yes, block it!' : 'Yes, unblock it!';
-        successMessage = isBlocking ? 'Offer blocked successfully.' : 'Offer unblocked successfully.';
-        errorMessage = isBlocking ? 'Failed to block offer.' : 'Failed to unblock offer.';
-        postUrl = `/admin/blockOffer/${id}`;
-        updateRow = (offerRow) => {
-          if (offerRow) {
-            if (isBlocking) {
-              offerRow.classList.add('bg-gray-200');
-            } else {
-              offerRow.classList.remove('bg-gray-200');
+            if (action === 'delete') {
+                title = 'Are you sure?';
+                text = 'You won\'t be able to revert this!';
+                confirmButtonText = 'Yes, delete it!';
+                successMessage = 'Offer deleted successfully.';
+                errorMessage = 'Failed to delete offer.';
+                postUrl = `/admin/deleteOffer/${id}`;
+                updateRow = (offerRow) => {
+                    if (offerRow) offerRow.remove();
+                };
+            } else if (action === 'block' || action === 'unblock') {
+                const isBlocking = action === 'block';
+                title = 'Are you sure?';
+                text = isBlocking ? 'You won\'t be able to revert this!' : 'You want to unblock this offer!';
+                confirmButtonText = isBlocking ? 'Yes, block it!' : 'Yes, unblock it!';
+                successMessage = isBlocking ? 'Offer blocked successfully.' : 'Offer unblocked successfully.';
+                errorMessage = isBlocking ? 'Failed to block offer.' : 'Failed to unblock offer.';
+                postUrl = `/admin/blockOffer/${id}`;
+                updateRow = (offerRow) => {
+                    if (offerRow) {
+                        if (isBlocking) {
+                            offerRow.classList.add('bg-gray-200');
+                        } else {
+                            offerRow.classList.remove('bg-gray-200');
+                        }
+                        const blockButton = offerRow.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`);
+                        if (blockButton) {
+                            blockButton.textContent = isBlocking ? 'Unblock' : 'Block';
+                            blockButton.classList.toggle('text-red-500', !isBlocking);
+                            blockButton.classList.toggle('text-green-500', isBlocking);
+                            blockButton.setAttribute('onclick', `manageOffer('${isBlocking ? 'unblock' : 'block'}', '${id}')`);
+                        }
+                    }
+                };
             }
-            const blockButton = offerRow.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`);
-            if (blockButton) {
-              blockButton.textContent = isBlocking ? 'Unblock' : 'Block';
-              blockButton.classList.toggle('text-red-500', !isBlocking);
-              blockButton.classList.toggle('text-green-500', isBlocking);
-              blockButton.setAttribute('onclick', `manageOffer('${isBlocking ? 'unblock' : 'block'}', '${id}')`);
-            }
-          }
-        };
-      }
 
-      Swal.fire({
-        title: title,
-        text: text,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: confirmButtonText
-      }).then((result) => {
-        if (result.isConfirmed) {
-          axios.post(postUrl)
-            .then(response => {
-              toastr.success(successMessage);
-              const offerRow = document.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`).closest('tr');
-              updateRow(offerRow);
-            })
-            .catch(error => {
-              toastr.error(errorMessage);
-              console.error(`Error during ${action} offer:`, error);
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmButtonText
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.post(postUrl)
+                        .then(response => {
+                            toastr.success(successMessage);
+                            const offerRow = document.querySelector(`button[onclick="manageOffer('${action}', '${id}')"]`).closest('tr');
+                            updateRow(offerRow);
+                        })
+                        .catch(error => {
+                            toastr.error(errorMessage);
+                            console.error(`Error during ${action} offer:`, error);
+                        });
+                }
             });
         }
-      });
-    }
 
-    function editOffer(offerId) {
-      axios.get(`/admin/editOffer/${offerId}`)
-        .then(response => {
-          toastr.success('Offer edit page loaded successfully');
-          window.location.href = `/admin/editOffer/${offerId}`;
-        })
-        .catch(error => {
-          toastr.error('Failed to load offer edit page');
-        });
-    }
-
-    function confirmDelete(offerId) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "This action cannot be undone!",
-        icon: 'error',
-        showCancelButton: true,
-        confirmButtonColor: '#ff0000',
-        cancelButtonColor: '#808080',
-        confirmButtonText: 'Delete'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = `/admin/deleteOffer/${offerId}`;
+        function editOffer(offerId) {
+            axios.get(`/admin/editOffer/${offerId}`)
+                .then(response => {
+                    toastr.success('Offer edit page loaded successfully');
+                    window.location.href = `/admin/editOffer/${offerId}`;
+                })
+                .catch(error => {
+                    toastr.error('Failed to load offer edit page');
+                });
         }
-      })
-    }
-  </script>
 
-  </script>
+        function confirmDelete(offerId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ff0000',
+                cancelButtonColor: '#808080',
+                confirmButtonText: 'Delete'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/deleteOffer/${offerId}`;
+                }
+            })
+        }
+    </script>
+    </script>

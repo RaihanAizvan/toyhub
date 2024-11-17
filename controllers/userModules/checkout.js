@@ -4,11 +4,21 @@ import Cart from "../../models/cart.models.js";
 import User from "../../models/users.models.js";
 import Address from "../../models/address.models.js";
 import Coupon from "../../models/couponSchema.models.js";
+import Offer from "../../models/offers.models.js";
+import crypto from "crypto";
+import Razorpay from "razorpay";
+import cart from "./cart.js";
+const razorpay = new Razorpay({
+  key_id: process.env.RAZOR_KEY_ID,
+  key_secret: process.env.RAZOR_SECRET_ID,
+});
+
 // this is the function for showing the checkout page
 const getCheckoutPage = async function (req, res) {
     try {
         const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
         const user = await User.findById(req.session.user.id).populate('addresses');
+        const offers = await Offer.find({isBlocked:false})
 
         if (!user.addresses || user.addresses.length === 0) {
             return res.status(400).json({ message: 'No address found. Please add an address before proceeding to checkout.' });
@@ -24,7 +34,8 @@ const getCheckoutPage = async function (req, res) {
             user,   // User with addresses
             coupons,
             title: "Checkout",
-            name:req.session.user?.name
+            name:req.session.user?.name,
+            offers
         });
     } catch (error) {
         console.log(error);
@@ -33,10 +44,16 @@ const getCheckoutPage = async function (req, res) {
 }
 
 // this is a handler function for sending post request to /checkout
+
 const postPlaceOrderInCheckout = async (req, res) => {
     try {
+        
         const userId = req.session.user.id;
         const { selectedAddress, paymentMethod, couponCode } = req.body;
+        console.log("req.body", req.body); 
+        if(paymentMethod === "razorpay"){
+            return res.redirect('/checkout/create-razorpay-order')
+        }
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ message: 'Cart is empty' });
@@ -48,19 +65,26 @@ const postPlaceOrderInCheckout = async (req, res) => {
         }
 
         const user = await User.findById(userId);
-        console.log('cart items are',cart.items)
-        //create new order
+
+        // Ensure the totalAmount reflects the updated cart total after applying the coupon
+        const updatedTotalAmount = cart.total;
+        
+
+        // Create new order
         const newOrder = new Order({
             user: userId,
             items: cart.items.map(item => ({
                 product: item.product._id,
                 quantity: item.quantity,
                 price: item.product.price,
-                paymentMethod:paymentMethod
+                paymentMethod: paymentMethod
             })),
             discount: cart.discount,
-            totalAmount:cart.total,
-            subtotal:cart.subtotal,
+            subtotal: cart.subtotal,
+            totalAmount: updatedTotalAmount, // Use the updated total amount
+            offerDiscount: cart.offerDiscount,
+            cutoffAmount: Math.round(cart.cutoffAmount),
+            couponDiscount: cart.couponDiscount,
             address: {
                 user: {
                     name: user.name,
@@ -108,8 +132,6 @@ const applyCoupon = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Coupon code not found.' });
         }
 
-        //store total amount in session 
-        req.session.totalAmount = totalAmount;
         // Check if the coupon is active and has not been used before
         if (coupon.isBlocked || coupon.usageLimit <= 0) {
             return res.status(400).json({ success: false, message: 'Coupon is not active or has been used too many times.' });
@@ -124,19 +146,34 @@ const applyCoupon = async (req, res) => {
         }
 
         // Calculate the discount
-        let discountAmount;
+        let discountAmount = 0;
         if (coupon.discountType === 'percentage') {
             discountAmount = (totalAmount * coupon.discount) / 100;
-            discountAmount = Math.min(discountAmount, coupon.maxDiscount); // Apply max discount if set
-        } else {
+            discountAmount = Math.min(discountAmount, coupon.maxDiscount || discountAmount); // Apply max discount if set
+        } else if (coupon.discountType === 'fixed') {
             discountAmount = coupon.discount;
         }
 
-        // Calculate the new total after discount
-        const discountedTotal = totalAmount - discountAmount;
+        // Update the cart with the coupon discount
+        const cart = await Cart.findOne({ user: req.session.user.id });
+        if (cart) {
+            cart.couponDiscount = discountAmount;
+            cart.total = cart.subtotal - cart.discount - cart.offerDiscount - cart.couponDiscount + cart.cutoffAmount;
 
-        
-        
+            // Update cutoffAmount based on the new total
+            const cutoffAmount = cart.subtotal * 0.20;
+            if (cart.total < cutoffAmount) {
+                cart.cutoffAmount = cutoffAmount - cart.total;
+                cart.total = cutoffAmount.toFixed(2);
+            } else {
+                cart.cutoffAmount = 0;
+            }
+
+            await cart.save();
+        }
+
+        // Calculate the new total after discount
+        const discountedTotal = cart ? cart.total : totalAmount - discountAmount;
 
         // Return success response with the discount details
         res.status(200).json({
@@ -151,9 +188,14 @@ const applyCoupon = async (req, res) => {
     }
 }
 
+
+
+
+
+
 //here we are exporting all the function related to checkout page
 export default {
         getCheckoutPage,
         postPlaceOrderInCheckout,
-        applyCoupon
+        applyCoupon,
     }

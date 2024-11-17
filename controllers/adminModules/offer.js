@@ -97,6 +97,31 @@ const postAddOffer = async (req, res) => {
             });
         }
 
+        // Check for overlapping offer dates
+        const overlappingOffer = await Offer.findOne({
+            $or: [
+                { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
+            ],
+            offerType: offerType
+        });
+        if (overlappingOffer) {
+            return res.status(400).render("admin/addOffer", {
+                title: "Add An Offer",
+                message: "An overlapping offer already exists for the selected type and dates"
+            });
+        }
+
+        // Check if the offer applies to all products
+        if (offerType === "all") {
+            const allProducts = await Product.find();
+            if (allProducts.length === 0) {
+                return res.status(400).render("admin/addOffer", {
+                    title: "Add An Offer",
+                    message: "No products available to apply the offer"
+                });
+            }
+        }
+
         // Create and save the new offer
         const newOffer = new Offer({
             name,
@@ -109,6 +134,15 @@ const postAddOffer = async (req, res) => {
             applicableCategories: applicableCategories || []
         });
         await newOffer.save();
+
+        // Update products with the new offer
+        if (applicableProducts && applicableProducts.length > 0) {
+            await Product.updateMany(
+                { _id: { $in: applicableProducts } },
+                { $addToSet: { availableOffers: newOffer._id } }
+            );
+        }
+
         res.redirect("/admin/offers");
     } catch (error) {
         console.error("Error adding offer:", error.message);
@@ -160,6 +194,7 @@ const getEditOffer = async (req, res) => {
 //* **************************************************************************************************************************
 
 // Function to update an existing offer in the database
+
 const postEditOffer = async (req, res) => {
     const id = req.params.id;
     const { name, description, offerPercentage, startDate, endDate, offerType, applicableProducts, applicableCategories } = req.body;
@@ -183,6 +218,22 @@ const postEditOffer = async (req, res) => {
         offer.applicableProducts = applicableProducts || [];
         offer.applicableCategories = applicableCategories || [];
         await offer.save();
+
+        // Update products with the edited offer
+        if (offerType === "all") {
+            await Product.updateMany(
+                {},
+                { $addToSet: { availableOffers: offer._id } }
+            );
+        } else {
+            if (applicableProducts && applicableProducts.length > 0) {
+                await Product.updateMany(
+                    { _id: { $in: applicableProducts } },
+                    { $addToSet: { availableOffers: offer._id } }
+                );
+            }
+        }
+
         res.redirect("/admin/offers");
     } catch (error) {
         console.error(error.message); // Log error message

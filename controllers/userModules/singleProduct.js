@@ -1,6 +1,8 @@
 import Product from "../../models/product.models.js"
 import Category from '../../models/categories.model.js'
 import User from '../../models/users.models.js'
+import Offer from '../../models/offers.models.js'
+
 export const getSingleProduct = async (req, res) => {
     try {
         // Get the product ID from the URL params
@@ -8,6 +10,7 @@ export const getSingleProduct = async (req, res) => {
 
         // Fetch the product from the database
         const product = await Product.findById(productId).populate('category');
+        const offers = await Offer.find({isBlocked:false})
         
 
         if (!product) {
@@ -24,7 +27,8 @@ export const getSingleProduct = async (req, res) => {
         res.render('user/singleProduct', {
             title: product.name,
             product,
-            wishlist
+            wishlist,
+            offers
         });
     } catch (error) {
         console.error("Error fetching product:", error);

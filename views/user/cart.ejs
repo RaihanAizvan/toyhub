@@ -30,7 +30,7 @@
                                             <%= item.product.name %>
                                         </a>
                                     </h2>
-                                    <p class="text-gray-500"> <%= item.product.description %></p>
+                                    <p class="text-gray-500"> <%= item.product.description1 %></p>
 
                                     <!-- Quantity Selector -->
                                     <div class="flex items-center mt-2">
@@ -42,6 +42,14 @@
                                             <% } %>
                                         </select>
                                     </div>
+                                    <% if (item.offerDiscount > 0) { %>
+                                        <div class="mt-2 text-sm text-green-500">
+                                            <p>Offer Discount: -$<%= item.offerDiscount.toFixed(2) %></p>
+                                            <% item.offers.forEach(offer => { %>
+                                                <p><%= offer.offerDescription %></p>
+                                            <% }) %>
+                                        </div>
+                                    <% } %>
                                 </div>
                             </div>
 
@@ -49,6 +57,7 @@
                             <div class="text-lg font-bold text-green-600 ml-4" id="item-price-<%= item.product._id %>">
                                 $<%= (item.quantity * item.price).toFixed(2) %>
                             </div>
+
 
                             <!-- Remove Icon -->
                             <form id="removeForm">
@@ -71,25 +80,45 @@
             <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
                 <h2 class="text-xl font-bold mb-4">Cart Summary</h2>
 
+                <!-- available offers -->
+
+
+                
                 <div class="space-y-2">
                     <!-- Subtotal -->
                     <div class="flex justify-between items-center" id="subtotal">
                         <span>Subtotal:</span>
                         <span class="font-bold price" id="subtotal-amount">$<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
                     </div>
-
+                    
                     <!-- Discount -->
                     <% if (cart.discount) { %>
                     <div class="flex justify-between items-center text-green-600">
                         <span>Discount:</span>
-                        <span class="font-bold price" id="discount">-$<%= cart.discount ? cart.discount.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price" id="discount">-$<%= cart.discount ?    cart.discount.toFixed(2) : '0.00' %></span>
                     </div>
+                    <% } %>
+                
+                    <!-- Offer Discount -->
+                    <% if (cart.offerDiscount) { %>
+                        <div class="flex justify-between items-center text-green-600">
+                            <span>Offer Discount:</span>
+                            <span class="font-bold price">-$<%= cart.offerDiscount.toFixed(2) %></span>
+                        </div>
+                    <% } %>
+
+                    <!-- Cutoff Amount -->
+                    <% if (cart.cutoffAmount) { %>
+                        <div class="flex justify-between items-center text-red-600">
+                            <span>Cutoff Amount:</span>
+                            <span class="font-bold price">+$<%= cart.cutoffAmount.toFixed(2) %></span>
+                        </div>
                     <% } %>
 
                     <!-- Total -->
                     <div class="flex justify-between items-center text-lg font-bold text-green-600" id="total-price">
                         <span>Total:</span>
-                        <span class="font-bold price" id="total-amount">$<%= cart.total ? cart.total.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price" id="total-amount">$<%= cart.total.toFixed(2) %></span>
                     </div>
                 </div>
 
@@ -116,20 +145,7 @@
 <%- include('footer') %>
 
 <script>
-     // Function to add product to cart
-function addToCart(productId, quantity) {
-    axios.post('/cart/addProduct', {
-        productId: productId,
-        quantity: quantity
-    })
-    .then(response => {
-        toastr.success(response.data.message);
-        updateCartItemCount(response.data.cartItemCount);
-    })
-    .catch(error => {
-        toastr.error('Failed to add product to cart.');
-    });
-}
+
 
 // Function to update quantity
 function updateQuantity(element, productId, itemPrice) {
@@ -143,8 +159,9 @@ function updateQuantity(element, productId, itemPrice) {
     })
     .then(response => {
         const { subtotal, total, discount, message } = response.data;
-        updateCartSummary(subtotal, total, discount);
+        // updateCartSummary(subtotal, total, discount);
         toastr.success(message);
+        window.location.reload()
     })
     .catch(error => {
         toastr.error('Could not update cart.');

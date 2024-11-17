@@ -30,7 +30,9 @@
                     <li><a href="/admin/coupons"
                             class="flex items-center rounded hover:bg-gray-200 bg-primary transition-all p-2 text-gray-700">Coupons</a>
                     </li>
-            <li><a href="/admin/offers" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Offers</a></li>
+                    <li><a href="/admin/offers"
+                            class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Offers</a>
+                    </li>
                 </ul>
             </nav>
             <div class="mt-6">
@@ -126,8 +128,10 @@
                             </div>
                             <div class="mb-4">
                                 <label class="block text-gray-700">Min Spend </label>
-                                <input type="number" name="minSpend" value="<%= coupon.minSpend %>" min="1" class="w-full border px-3 py-2 rounded" />
-                                <p class="error text-red-500 hidden" id="minSpendError">Min spend must be greater than zero.</p>
+                                <input type="number" name="minSpend" value="<%= coupon.minSpend %>" min="1"
+                                    class="w-full border px-3 py-2 rounded" />
+                                <p class="error text-red-500 hidden" id="minSpendError">Min spend must be greater than
+                                    zero.</p>
                             </div>
                             <div class="mb-4">
                                 <label class="block text-gray-700">Discount Type</label>
@@ -138,17 +142,18 @@
                                     </option>
                                 </select>
                             </div>
-                            <button type="submit" class="w-full bg-primary text-white py-2 rounded">Update Coupon</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                            <button type="submit" class="w-full bg-primary text-white py-2 rounded">Update
+                                Coupon</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+</div>
+</div>
+</div>
 <script>
-    document.getElementById('couponForm').addEventListener('submit', function(event) {
+    document.getElementById('couponForm').addEventListener('submit', function (event) {
         const form = event.target;
         const code = form.couponCode.value.toUpperCase(); // Convert to uppercase
         const startDate = form.startDate.value ? new Date(form.startDate.value) : null;

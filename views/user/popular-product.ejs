@@ -101,11 +101,12 @@
 
 // Initialize Toastr
 toastr.options = {
-    closeButton: true,
+closeButton: true,
     progressBar: true,
     positionClass: "toast-top-right",
     timeOut: 3000
 };
+
 
 function addToCart(event, productId) {
     event.preventDefault();
@@ -124,8 +125,7 @@ function addToCart(event, productId) {
     console.log('Product ID:', productId);
 
     axios.post('/cart/addProduct', {
-        productId: productId,
-        quantity: quantity
+        products: [{ productId: productId, quantity: quantity }]
     })
     .then(response => {
         console.log('Success:', response.data);
@@ -133,6 +133,7 @@ function addToCart(event, productId) {
         if (response.data.cartItemCount !== undefined) {
             updateCartItemCount(response.data.cartItemCount);
         }
+        
     })
     .catch(error => {
         console.error('Error:', error);
@@ -155,5 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', addToCart);
     });
 });
+
 
 </script>
