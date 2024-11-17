@@ -1,0 +1,86 @@
+<%- include('header') %>
+<div class="bg-gray-100 pt-4 w-full text-sm">
+    <div class="flex min-h-screen md:w-8/12 mx-auto">
+        <!-- Sidebar -->
+        <%- include('profile-sidebar') %>
+        <!-- Wallet Content -->
+        <div class="flex-1 p-2">
+            <div class="bg-white p-4 shadow-md mb-4">
+                <h2 class="text-2xl text-center font-semibold mb-4">Wallet</h2>
+                <div class="mb-4 flex justify-center">
+                    <h3 class="text-xl font-bold">Balance: <span class="text-3xl">₹<%= user.walletBalance %></span></h3>
+                    <hr>
+                </div>
+                <hr>
+                <div class="mb-4">
+                    <button class="bg-primary text-white py-2 px-4 rounded" onclick="toggleAddMoneyForm()">Add Money</button>
+                </div>
+                <div id="add-money-form" style="display: none;" class="mb-4">
+                    <div class="flex flex-col items-center">
+                        <label for="amount" class="text-lg font-medium mb-2">Enter Amount to Add:</label>
+                        <input type="number" id="amount" name="amount" class="border rounded p-2 mb-4 w-1/2" placeholder="Enter amount" required>
+                        <button class="bg-primary text-white py-2 px-6 rounded" onclick="addMoney()">Add Money</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">Transaction History</h3>
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 text-center border-b">Date</th>
+                                <th class="py-2 px-4 text-center border-b">Description</th>
+                                <th class="py-2 px-4 text-center border-b">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% transactions.forEach(transaction => { %>
+                                <tr>
+                                    <td class="py-2 px-4 text-center border-b"><%= new Date(transaction.date).toDateString() %></td>
+                                    <td class="py-2 px-4 text-center border-b"><%= transaction.description %></td>
+                                    <td class="py-2 px-4 text-center border-b"><%= transaction.amount %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                    <div class="flex justify-center mt-4">
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <a href="?page=<%= i %>" class="px-3 py-1 mx-1 border rounded <%= i === currentPage ? 'bg-primary text-white' : 'bg-white text-primary' %>"><%= i %></a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    function toggleAddMoneyForm() {
+        const form = document.getElementById('add-money-form');
+        form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    }
+    function addMoney() {
+        const amount = document.getElementById('amount').value;
+        axios.post('/account/wallet/add-money', { amount })
+            .then(response => {
+                toastr.success('Money added successfully!');
+                document.getElementById('add-money-form').style.display = 'none';
+                document.querySelector('h3.text-xl.font-bold span').innerText = `₹${response.data.balance}`;
+                
+                // Update transaction history
+                const transactionHistory = document.querySelector('tbody');
+                const newTransaction = document.createElement('tr');
+                newTransaction.innerHTML = `
+                    <td class="py-2 px-4 text-center border-b">${new Date().toDateString()}</td>
+                    <td class="py-2 px-4 text-center border-b">Added money to wallet</td>
+                    <td class="py-2 px-4 text-center border-b">${amount}</td>
+                `;
+                transactionHistory.prepend(newTransaction);
+            })
+            .catch(error => {
+                console.error('Error adding money:', error);
+                toastr.error('Failed to add money. Please try again.');
+            });
+    }
+</script>

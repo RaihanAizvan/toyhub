@@ -2,12 +2,11 @@ import Order from "../../models/orders.models.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
+import Wallet from "../../models/wallets.models.js"
 
 export async function getProfileEdit(req, res) {
     let theName = req.session.user?.name
-    console.log(`the name is ${theName}`);
     let user = await Users.findOne({ name: theName })
-    console.log(user);
     res.status(200).render('user/profile-edit', {
         user,
         title: 'Profile Edit',
@@ -35,19 +34,18 @@ export async function postUpdateName(req, res) { //this function is used to upda
         // Update session data with the new name
         req.session.user.name = updatedUser.name;
 
+
         // Redirect back to the profile or re-render the page with the updated data
         return res.redirect('/account');
     } catch (error) {
         console.error(error);
         return res.status(500).render('user/profile-edit', {
-            error: "An error occurred while updating the name.",
+            error: "An error occurred while updating the name." ,
             user: req.session.user,
             classes: 'profile-information',
             title: 'Profile Edit'
         });
     }
-
-
 }
 
 export async function postUpdatePhone(req, res) {
@@ -124,7 +122,6 @@ export async function getOrderHistory(req, res) { //this function is used to sho
         // Log the first image of the first product in a more understandable way
         if (ordersWithDetails.length > 0 && ordersWithDetails[0].items.length > 0) {
             const firstImage = ordersWithDetails[0].items[0].firstImage;
-            console.log(firstImage ? firstImage : "No image available");
         }
         // ... existing code ...
 
@@ -153,7 +150,6 @@ export const getOrderDetail = async (req, res) => {
             return res.status(404).send('Order not found');
         }
         const name = req.session.user.name
-        console.log(name);
         // Render the order details EJS page with the retrieved order
         res.render('user/order-detail', { order, name, title: 'Order Detail' });
     } catch (error) {
@@ -165,26 +161,22 @@ export const getOrderDetail = async (req, res) => {
 export const postOrderCancel = async (req, res) => {
     try {
         const orderId = req.params.id;
-        console.log(`Attempting to cancel order with ID: ${orderId}`); // Debugging log
 
         // Find the order by ID
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).populate('user');
 
         if (!order) {
-            console.log(`Order with ID ${orderId} not found`); // Debugging log
             return res.status(404).json({ message: 'Order not found' });
         }
 
         // Ensure the order is still cancellable
         if (order.status === 'Cancelled' || order.status === 'Delivered') {
-            console.log(`Order with ID ${orderId} cannot be canceled at this stage`); // Debugging log
             return res.status(400).json({ message: 'Order cannot be canceled at this stage' });
         }
 
         // Update order status to 'Cancelled'
         order.status = 'Cancelled';
         await order.save();
-        console.log(`Order with ID ${orderId} status updated to 'Cancelled'`); // Debugging log
 
         // Increase the stock for each product in the order
         for (let item of order.items) {
@@ -193,7 +185,21 @@ export const postOrderCancel = async (req, res) => {
                 { $inc: { stock: item.quantity } }, // Increase the stock by the item quantity
                 { new: true }
             );
-            console.log(`Stock for product ${item.product} increased by ${item.quantity}`); // Debugging log
+        }
+
+        // If the order type is Razorpay or Wallet, return the amount to the user's wallet
+        if (order.paymentMethod === 'razorpay' || order.paymentMethod === 'wallet') {
+            const user = order.user;
+            user.walletBalance += order.totalAmount;
+            user.wallet.balance += order.totalAmount;
+            await user.save();
+
+            const wallet = await Wallet.findById(user.wallet);
+            wallet.transactions.push({
+                amount: order.totalAmount,
+                description: `Refund for cancelled order ID: ${orderId}`
+            });
+            await wallet.save();
         }
 
         // Redirect to my orders page after cancelling
@@ -254,7 +260,6 @@ export const postCancelReason = async (req, res) => {
 }
 
 export const postItemCancel = async (req, res) => {
-    console.log(1);
     const { orderId } = req.params;
     const { itemId } = req.body;
 
@@ -301,14 +306,12 @@ export const postItemCancel = async (req, res) => {
 //wishlist
 export const getWishlist = async (req, res) => {
     const userId = req.session.user.id; // Log the user ID
-    console.log(`Fetching wishlist for user ID: ${userId}`);
 
     try {
         // Populate the 'wishlist' field in the User model, which contains references to 'Product'
         const user = await Users.findById(userId).populate('wishlist');
 
         // Log the fetched wishlist
-        console.log('Fetched wishlist:', user.wishlist);
 
         res.render('user/wishlist', {
             title: 'Wishlist',
@@ -324,7 +327,6 @@ export const getWishlist = async (req, res) => {
 
 export const postWishlist = async (req, res) => {
     const { productId } = req.body;
-    console.log(productId)
     try {
         const user = await Users.findById(req.session.user.id)
 
@@ -353,14 +355,10 @@ export const postWishlist = async (req, res) => {
 
 
 export const deleteWishlist = async (req, res) => {
-    console.log('Delete wishlist item');
     const { productId } = req.body;
 
     try {
         const user = await Users.findById(req.session.user.id);
-
-        console.log(user.wishlist)
-        console.log(productId)
         // Check if the product is in the wishlist
         if (!user.wishlist.includes(productId)) {
             return res.status(400).json({
@@ -379,7 +377,76 @@ export const deleteWishlist = async (req, res) => {
     }
 }
 
+export const getWallet = async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).redirect('/login'); // Redirect to login if user is not authenticated
+    }
 
+    try {
+        const user = await Users.findById(req.session.user.id).populate('wallet');
+        if (!user || !user.wallet) {
+            return res.status(404).render('user/wallet', { title: 'Wallet', user: null, message: 'Wallet not found' });
+        }
+
+        // Sort transactions by date in descending order (most recent first)
+        user.wallet.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const transactionsPerPage = 10;
+        const currentPage = parseInt(req.query.page) || 1;
+        const startIndex = (currentPage - 1) * transactionsPerPage;
+        const endIndex = startIndex + transactionsPerPage;
+        const paginatedTransactions = user.wallet.transactions.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(user.wallet.transactions.length / transactionsPerPage);
+
+        res.render('user/wallet', { 
+            title: 'Wallet', 
+            user, 
+            transactions: paginatedTransactions, 
+            currentPage, 
+            totalPages,
+            req
+        });
+    } catch (error) {
+        console.error('Error fetching wallet:', error);
+        res.status(500).send('Internal server error');
+    }
+};
+
+export const postAddMoney = async (req, res) => {
+    let { amount } = req.body;
+    amount = Number(amount);
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Invalid amount' });
+    }
+
+    try {
+        const user = await Users.findById(req.session.user.id).populate('wallet');
+
+        if (!user || !user.wallet) {
+            return res.status(404).json({ message: 'Wallet not found' });
+        }
+
+        const currentDateTime = new Date();
+        user.wallet.balance += amount;
+        user.walletBalance += amount;
+        user.wallet.transactions.push({
+            date: currentDateTime,
+            description: 'Added money to wallet',
+            amount: amount
+        });
+
+        // Sort transactions by date and time in descending order
+        user.wallet.transactions.sort((a, b) => b.date - a.date);
+
+        await user.wallet.save();
+        await user.save();
+
+        res.status(200).json({ message: 'Money added successfully', balance: user.wallet.balance });
+    } catch (error) {
+        console.error('Error adding money to wallet:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
 
 
 export default {
@@ -393,5 +460,7 @@ export default {
     postItemCancel,
     getWishlist,
     postWishlist,
-    deleteWishlist
+    deleteWishlist,
+    getWallet,
+    postAddMoney
 }

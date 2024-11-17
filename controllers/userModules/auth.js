@@ -116,7 +116,11 @@ async function postSignup(req, res) {
             phone_number,
             password: hashedPassword, // Save hashed password
             otp, // Store the OTP
-            otpExpires // Store the OTP expiration time
+            otpExpires, // Store the OTP expiration time
+            wallet: {
+                balance: 0,
+                transactions: []
+            }
         });
 
         await newUser.save();
@@ -259,6 +263,8 @@ async function postLogin(req, res) {
             id: user._id,
             name: user.name
         };
+
+    
         res.redirect("/");
 
     } catch (err) {

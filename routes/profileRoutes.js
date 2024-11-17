@@ -26,5 +26,9 @@ router.get('/wishlist', profile.getWishlist);
 router.post('/wishlist/:id', profile.postWishlist);
 router.delete('/wishlist', profile.deleteWishlist);
 
+router.get('/wallet', profile.getWallet);
+router.post('/wallet/add-money', profile.postAddMoney);
+
+
 
 export default router

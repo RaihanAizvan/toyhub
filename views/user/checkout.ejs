@@ -420,8 +420,17 @@ document.getElementById('removeCouponButton').addEventListener('click', clearCou
                         showConfirmButton: true,
                     });
                 });
-        } else {
-            console.debug('Initiating non-Razorpay payment flow');
+        } else if (payment === "cod") {
+
+            //payment amount should be greateer than 1000 for cash o delivery
+            if(document.getElementById('totalAmount').value < 1000){
+                Swal.fire({
+                    icon: "warning",
+                    text: "Payment amount should be greater than 1000 for cash on delivery",
+                    showConfirmButton: true,
+                });
+                return;
+            }
             axios.post("/checkout", {
                 selectedAddress: addressId,
                 paymentMethod: payment,
@@ -438,7 +447,7 @@ document.getElementById('removeCouponButton').addEventListener('click', clearCou
                             icon: "success",
                         }).then(() => {
                             window.location.href = "/account/orders";
-                        });
+                        }); 
                     } else {
                         Swal.fire({
                             text:
@@ -450,6 +459,43 @@ document.getElementById('removeCouponButton').addEventListener('click', clearCou
                 })
                 .catch((error) => {
                     console.error("Error during checkout:", error);
+                    Swal.fire({
+                        text:
+                            error.response.data.message ||
+                            "Error while placing order. Please try again",
+                        title: "Error",
+                        icon: "error",
+                    });
+                });
+        }
+        else if(payment === "wallet"){
+            axios.post("/checkout/wallet", {
+                selectedAddress: addressId,
+                paymentMethod: payment,
+                couponCode: document.getElementById('couponCode').value || null,
+                totalAmount: document.getElementById('totalAmount').value || 0
+            })
+                .then((response) => {
+                    if (response.status === 200) {
+                        const { orderId, paymentMethod, totalAmount } = response.data;
+                        Swal.fire({
+                            title: "Order Success",
+                            html: `Order placed successfully!<br>Order ID: ${orderId}<br>Payment Method: ${paymentMethod}<br>Total Amount: ₹${totalAmount}`,
+                            icon: "success",
+                        }).then(() => {
+                            window.location.href = "/account/orders";
+                        }); 
+                    } else {
+                        Swal.fire({
+                            text:
+                                response.data.message || "Insufficient wallet balance",
+                            title: "Insufficient Wallet Balance",
+                            icon: "warning",
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error during wallet checkout:", error);
                     Swal.fire({
                         text:
                             error.response.data.message ||

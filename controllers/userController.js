@@ -130,7 +130,9 @@ export const postWishlist = profile.postWishlist
 
 export const deleteWishlist = profile.deleteWishlist
 
+export const getWallet = profile.getWallet
 
+export const postAddMoney = profile.postAddMoney
 
 
 //* -----------------------------------------!                                         
@@ -152,8 +154,6 @@ export const getChangePassword = address.getChangePassword
 export const postChangePassword = address.postChangePassword
 
 
-
-
 //* -----------------------------------------!                                         
 //s           Exporting Cart                 |
 //* -----------------------------------------!      
@@ -167,6 +167,7 @@ export const postAddProductToCart = cart.postAddProductToCart
 export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
 
 export const postUpdateTotal = cart.postUpdateTotal
+
 
 //* -----------------------------------------!                                         
 //s          Exporting checkout              |
@@ -184,3 +185,5 @@ export const createRazorPayOrder = checkout.createRazorPayOrder
 export const verifyPayment = checkout.verifyPayment
 
 export const orderSuccess = checkout.orderSuccess
+
+export const postWalletPayment = checkout.postWalletPayment 

@@ -5,6 +5,7 @@ import User from "../../models/users.models.js";
 import Address from "../../models/address.models.js";
 import Coupon from "../../models/couponSchema.models.js";
 import Offer from "../../models/offers.models.js";
+import Wallet from "../../models/wallets.models.js";
 import crypto from "crypto";
 import Razorpay from "razorpay";
 
@@ -47,7 +48,6 @@ const postPlaceOrderInCheckout = async (req, res) => {
         
         const userId = req.session.user.id;
         const { selectedAddress, paymentMethod, couponCode } = req.body;
-        console.log("req.body", req.body); 
         if(paymentMethod === "razorpay"){
             return res.redirect('/checkout/create-razorpay-order')
         }
@@ -112,7 +112,6 @@ const postPlaceOrderInCheckout = async (req, res) => {
 
         res.clearCookie('cart');
         res.clearCookie('couponApplied');
-        console.log("order created");
         res.status(200).json({
             orderId: newOrder._id,
             paymentMethod,
@@ -227,9 +226,7 @@ const createRazorPayOrder = async (req, res) => {
  // Start of Selection
 const verifyPayment = async (req, res) => {
     try {
-        console.log("verifyPayment function called");
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, selectedAddress } = req.body;
-        console.log("req.body is ", req.body);
         console.debug('Received payment details:', { razorpay_payment_id, razorpay_order_id, razorpay_signature });
 
         
@@ -290,7 +287,7 @@ const verifyPayment = async (req, res) => {
                 },
                 paymentMethod: 'razorpay',
                 couponCode: cart.couponCode, // Assuming couponCode is stored in cart
-                status: 'completed'
+                status: 'pending'
             });
 
             await newOrder.save();
@@ -323,11 +320,115 @@ const verifyPayment = async (req, res) => {
 }
 
 
+const postWalletPayment = async (req, res) => {
+    try {
+        const { selectedAddress, couponCode, totalAmount } = req.body;
+        console.debug("req.body is ", req.body);
+
+        const userId = req.session.user.id;
+
+        // Fetch the user's cart
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({ message: 'Cart is empty' });
+        }
+
+        // Fetch the selected address
+        const address = await Address.findById(selectedAddress);
+        if (!address) {
+            return res.status(400).json({ message: 'Invalid address' });
+        }
+
+        // Fetch the user
+        const user = await User.findById(userId);
+        console.debug("cart is ", cart);
+
+        
+        
+        // Create new order
+        const newOrder = new Order({
+            user: userId,
+            items: cart.items.map(item => ({
+                product: item.product._id,
+                quantity: item.quantity,
+                price: item.price,
+                paymentMethod: 'wallet'
+            })),
+            discount: cart.discount,
+            subtotal: cart.subtotal,
+            totalAmount: totalAmount,
+            offerDiscount: cart.offerDiscount,
+            cutoffAmount: Math.round(cart.cutoffAmount),
+            couponDiscount: cart.couponDiscount,
+            address: {
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    joined_date: user.joined_date,
+                    phone_number: user.phone_number
+                },
+                name: address.name,
+                street: address.street,
+                city: address.city,
+                state: address.state,
+                zip: address.zip,
+                phone: address.phone
+            },
+            paymentMethod: 'wallet',
+            couponCode: couponCode || null,
+            status: 'pending'
+        });
+
+        await newOrder.save();
+        
+        
+        // Check if user has enough balance in wallet
+        if (user.walletBalance < totalAmount) {
+            return res.status(400).json({ message: 'Insufficient wallet balance' });
+        }
+
+        // Deduct the total amount from user's wallet balance
+        user.walletBalance -= totalAmount;
+        await user.save();
+
+        // Update wallet transaction
+        const wallet = await Wallet.findById(user.wallet);
+        wallet.transactions.push({
+            amount: -totalAmount,
+            description: `Order payment for order ID: ${newOrder._id}`
+        });
+        await wallet.save();
+
+        // Update stock for each product
+        for (const item of cart.items) {
+            const product = await Product.findById(item.product._id);
+            console.debug('Product before stock update:', product);
+            product.stock -= item.quantity;
+            await product.save();
+            console.debug('Product after stock update:', product);
+        }
+
+        // Delete the cart
+        await Cart.findOneAndDelete({ user: userId });
+        console.debug('Cart deleted for user:', userId);
+
+        res.status(200).json({ orderId: newOrder._id, paymentMethod: 'wallet', totalAmount: newOrder.totalAmount });
+    } catch (error) {
+        console.error('Error processing wallet payment:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while processing the wallet payment.' });
+    }
+}
+
+
 const orderSuccess = async (req, res) => {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
     res.render('user/order-successfull', { order });
 }
+
+
+
+
 
 //here we are exporting all the function related to checkout page
 export default {
@@ -336,5 +437,6 @@ export default {
         applyCoupon,
         createRazorPayOrder,
         verifyPayment,
-        orderSuccess
+        orderSuccess,
+        postWalletPayment
     }
