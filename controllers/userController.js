@@ -179,7 +179,8 @@ export const postPlaceOrderInCheckout = checkout.postPlaceOrderInCheckout
 
 export const applyCoupon = checkout.applyCoupon
 
-// export const createRazorPayOrder = checkout.createRazorPayOrder
+export const createRazorPayOrder = checkout.createRazorPayOrder
 
-// export const verifyPayment = checkout.verifyPayment
+export const verifyPayment = checkout.verifyPayment
 
+export const orderSuccess = checkout.orderSuccess

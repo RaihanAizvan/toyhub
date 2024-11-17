@@ -3,7 +3,7 @@
 <div class="bg-gray-200 py-6 w-full text-sm">
     <div class="md:w-8/12 mx-auto bg-gray-100 p-6 mb-16 rounded-lg shadow-xl">
         <h1 class="text-2xl font-bold text-center mb-6">Checkout</h1>
-        <form action="/checkout" method="POST">
+        <form id="checkoutForm">
             <div class="grid grid-cols-1 bg-gray-50 md:grid-cols-3 gap-6">
                 <div class="col-span-2 space-y-6">
                     <!-- Address Selector -->
@@ -12,7 +12,7 @@
                         <% if (user.addresses && user.addresses.length > 0) { %>
                             <% user.addresses.forEach((address, index) => { %>
                                 <div class="flex items-start space-x-4 mb-4">
-                                    <input type="radio" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> class="mt-1">
+                                    <input type="radio" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> class="mt-1 address-input" data-addressId="<%= address._id %>">
                                     <label for="address-<%= index %>" class="w-full">
                                         <p class="font-semibold"><%= address.name %></p>
                                         <p><%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%= address.postalCode %></p>
@@ -148,7 +148,7 @@
                     <!-- Place Order Button -->
                     <% if (cart && cart.items && cart.items.length > 0) { %>
                         <div class="mt-8">
-                            <button type="submit" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                            <button type="button" id="place-order-button" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
                                 Place Order
                             </button>
                         </div>
@@ -165,7 +165,12 @@
 
 <%- include('footer') %>
 
+<!-- axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <script>
+
+
     // Apply Coupon Feedback
     async function applyCoupon() {
         const couponCode = document.getElementById('couponCode').value;
@@ -292,4 +297,171 @@ document.getElementById('removeCouponButton').addEventListener('click', clearCou
             clearCoupon();
         }
     }
+
+    // Function to place order using axios and handle Razorpay
+    const checkoutBtn = document.getElementById("place-order-button");
+
+    checkoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        console.debug("Checkout button clicked");
+
+        const addressInput = document.querySelectorAll(".address-input");
+        let addressSelected = false;
+        let addressId = null;
+        addressInput.forEach((input) => {
+            if (input.checked) {
+                addressSelected = true;
+                addressId = input.getAttribute("data-addressId");
+            }
+        });
+
+        console.debug("Address selected:", addressSelected, "Address ID:", addressId);
+
+        if (!addressSelected) {
+            Swal.fire({
+                icon: "warning",
+                text: "Please select a delivery address!",
+                title: "Field Missing!",
+            });
+            return;
+        }
+
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+
+        if (!paymentMethod) {
+            Swal.fire({
+                icon: "warning",
+                text: "Please select a payment method",
+                title: "Field Missing",
+            });
+            return;
+        }
+        const payment = paymentMethod.getAttribute("id");
+
+        console.debug("Payment method selected:", payment);
+
+        if (payment === "razorpay") { 
+            console.debug('Initiating Razorpay payment flow');
+            // Handle Razorpay payment flow
+            axios.post("/checkout/create-razorpay-order", {
+                selectedAddress: addressId,
+                paymentMethod: payment,
+                couponCode: document.getElementById('couponCode').value,
+                totalAmount: document.getElementById('totalAmount').value
+            })
+                .then((response) => { //here order is the response 
+                    console.debug("Razorpay order response:", response);
+                    
+                    if (response.data.success) {
+                        console.log("entered here");
+                        const options = {
+                            key: "<%= process.env.RAZOR_KEY_ID %>", // Razorpay key ID
+                            amount: response.data.amount, // Amount from Razorpay response
+                            currency: response.data.currency, // Currency from Razorpay response
+                            name: "TOYHUB",
+                            description: "Order Payment",
+                            order_id: response.data.orderId, // Order ID from Razorpay response
+                            handler: async function (response) {
+                                // Handle successful payment
+                                console.debug("Razorpay payment response:", response);
+                                await Swal.fire({
+                                    icon: "success",
+                                    title: "Payment successful!",
+                                    text: `Payment ID: ${response.razorpay_payment_id}`,
+                                    showConfirmButton: true,
+                                });
+                                // Send payment confirmation to backend
+                                axios
+                                    .post("/checkout/verify-payment", {
+                                        addressId: addressId,
+                                        payment: payment,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        selectedAddress: addressId,
+                                    })
+                                    .then((response) => {
+                                        window.location.href = `/account/orders`
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error verifying payment:", error);
+                                        Swal.fire({
+                                            icon: "error",
+                                            text: "Payment verification failed. Please contact support.",
+                                            showConfirmButton: true,
+                                        });
+                                    });
+                            },
+                            prefill: {
+                                name: "username",
+                                email: "user@example.com", // Use the logged-in user's email
+                                contact: 2315469877,
+                            },
+                            theme: {
+                                color: "#FF8C00",
+                            },
+                        };
+
+                        const razorpay = new Razorpay(options);
+                        razorpay.open();
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            text: "Failed to create Razorpay order.",
+                            showConfirmButton: true,
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error creating Razorpay order:", error);
+                    Swal.fire({
+                        icon: "error",
+                        text: "An error occurred while processing the payment. Please try again later.",
+                        showConfirmButton: true,
+                    });
+                });
+        } else {
+            console.debug('Initiating non-Razorpay payment flow');
+            axios.post("/checkout", {
+                selectedAddress: addressId,
+                paymentMethod: payment,
+                couponCode: document.getElementById('couponCode').value,
+                totalAmount: document.getElementById('totalAmount').value
+            })
+                .then((response) => {
+                    console.log("checkout response", response);
+                    if (response.status === 200) {
+                        const { orderId, paymentMethod, totalAmount } = response.data;
+                        Swal.fire({
+                            title: "Order Success",
+                            html: `Order placed successfully!<br>Order ID: ${orderId}<br>Payment Method: ${paymentMethod}<br>Total Amount: ₹${totalAmount}`,
+                            icon: "success",
+                        }).then(() => {
+                            window.location.href = "/account/orders";
+                        });
+                    } else {
+                        Swal.fire({
+                            text:
+                                response.data.message || "Error while placing order. Please try again",
+                            title: "Out Of Stock",
+                            icon: "warning",
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error during checkout:", error);
+                    Swal.fire({
+                        text:
+                            error.response.data.message ||
+                            "Error while placing order. Please try again",
+                        title: "Error",
+                        icon: "error",
+                    });
+                });
+        }
+    });
+
 </script>
+
+ <!-- ---------------------------------Razorpay-------------------------------------->
+ <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

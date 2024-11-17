@@ -41,7 +41,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com 'unsafe-inline';");
+  res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://checkout.razorpay.com 'unsafe-inline';");
   next();
 });
 app.use((req, res, next) => {
@@ -114,7 +114,7 @@ app.use((req, res, next) => {
 app.get("/", landingRoute.getLandingPage);
 
 // 404 Handler
-app.use((req, res, next) => {
+app.use((req,res) => {
   res.status(404).render('404'); // Renders the 404.ejs page
 });
 

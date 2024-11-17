@@ -7,10 +7,13 @@ const router = express.Router();
 router.use(middleware.redirectToLoginIfNotAUser)
 router.use(middleware.updateOfferDiscountInCart)
 router.use(middleware.updateCouponDiscountInCheckout)
+router.use(middleware.checkForProductStockBeforeCheckout)
+
 //routes
-router.get('/' , middleware.checkForProductStockBeforeCheckout, checkout.getCheckoutPage)
+router.get('/' , checkout.getCheckoutPage)
 router.post('/' , checkout.postPlaceOrderInCheckout)
 router.post('/apply-coupon' , checkout.applyCoupon)
+router.post('/order-success' , checkout.orderSuccess)
 
 router.post('/create-razorpay-order' , checkout.createRazorPayOrder)
 router.post('/verify-payment' , checkout.verifyPayment)
