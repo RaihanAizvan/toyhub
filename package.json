@@ -18,6 +18,7 @@
   "homepage": "https://github.com/RaihanAizvan/toyhub#readme",
   "description": "",
   "dependencies": {
+    "apexcharts": "^4.0.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^1.21.0",
     "crypto": "^1.0.1",

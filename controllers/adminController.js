@@ -59,6 +59,9 @@ export const postLogout = AdminLogin.postLogout
 //todo ---------------Dashboard Routes---------------------!
 
 export const getHome = AdminHome.getHome
+export const getWeeklySales = AdminHome.getWeeklySales
+export const getMonthlySales = AdminHome.getMonthlySales
+export const getYearlySales = AdminHome.getYearlySales
 
 //todo ----------------Product Routes----------------------!
 

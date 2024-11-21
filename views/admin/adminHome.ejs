@@ -49,7 +49,7 @@
             <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
               1</a>
           </li>
-          <li>
+          <li> 
             <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
               2</a>
           </li>
@@ -106,20 +106,24 @@
       <!-- Sales Graph -->
       <div class="p-4 bg-white rounded-lg shadow">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Sale Graph</h3>
+          <h3 class="text-lg font-semibold">Sales Graph</h3>
           <div class="flex items-center space-x-4">
-            <button class="px-4 py-2 bg-green-500 text-white rounded-md"> Weekly </button>
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"> Monthly </button>
-            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md"> Yearly </button>
+            <button id="weeklyBtn" class="px-4 py-2 bg-gray-200 bg-primary text-gray-700 rounded-md" >Weekly</button>
+            <button id="monthlyBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">Monthly</button>
+            <button id="yearlyBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">Yearly</button>
           </div>
         </div>
         <div class="mt-4">
-          <!-- Chart.js or any other graph integration here -->
-          <!-- sales graph image -->
-          <div class="w-full h-80 bg-gray-200 rounded-md flex items-center justify-center">
-            <span class="text-gray-500">Sales Graph Placeholder</span>
-          </div>
-          <!-- inside here  -->
+
+
+
+          <!-- ApexCharts integration -->
+
+
+
+
+          <div id="salesChart" class="w-full h-80"></div>
+          
         </div>
       </div>
       <!-- Best Sellers -->
@@ -263,4 +267,101 @@
       document.body.appendChild(form)
       form.submit()
     })
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var options = {
+    chart: {
+      type: 'line',
+      height: '100%',
+      animations: {
+        enabled: true, // Enable smooth transitions
+        easing: 'easeinout',
+        speed: 800
+      }
+    },
+    colors: ['#19D16F'],
+    series: [
+      {
+        name: 'Sales',
+        data: [] // Initialize with empty data
+      }
+    ],
+    xaxis: {
+      categories: [] // Initialize with empty categories
+    }
+  };
+
+  var chart = new ApexCharts(document.querySelector('#salesChart'), options);
+  chart.render();
+
+  async function fetchDataAndRenderChart(url, defaultCategories) {
+    try {
+      const response = await axios.get(url);
+      const salesData = response.data.salesData || [];
+
+      // Adjust categories based on the length of salesData
+      const categories = defaultCategories.slice(0, salesData.length);
+
+      // Update chart with the new data
+      chart.updateSeries([
+        {
+          data: salesData
+        }
+      ]);
+      chart.updateOptions({
+        xaxis: {
+          categories: categories
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  // Load weekly data by default
+  fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+
+
+
+  // Button event listeners
+  document.getElementById('weeklyBtn').addEventListener('click', function () {
+    updateButtonStyles('weeklyBtn');
+    fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+  });
+
+
+
+  document.getElementById('monthlyBtn').addEventListener('click', function () {
+    updateButtonStyles('monthlyBtn');
+    fetchDataAndRenderChart('/admin/sales/monthly', ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
+  });
+
+
+
+
+  document.getElementById('yearlyBtn').addEventListener('click', function () {
+    updateButtonStyles('yearlyBtn');
+    fetchDataAndRenderChart('/admin/sales/yearly', [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ]);
+  });
+
+  
+
+  function updateButtonStyles(activeId) {
+    ['weeklyBtn', 'monthlyBtn', 'yearlyBtn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (id === activeId) {
+        btn.classList.add('bg-primary', 'text-white');
+      } else {
+        btn.classList.remove('bg-primary', 'text-white');
+      }
+    });
+  }
+});
+
 </script>

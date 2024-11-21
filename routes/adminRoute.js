@@ -5,22 +5,35 @@
 
     const router = express.Router()
 
+    router.use(isAdmin.isAdmin)
+
     //!---------------------------------------/!/
     //todo: Define authentication routes here/!/
     //!-------------------------------------/!/    
-
-    //router for rendering homepage
-    router.get("/", isAdmin.isAdmin, adminController.getHome)
+    
     router.get("/login", adminController.getLogin)
     router.post("/login", adminController.postLogin)
     router.post("/logout", adminController.postLogout)
+    
+    
+    //!---------------------------------------/!/
+    //todo: Define dashboard routes here/!/
+    //!-------------------------------------/!/    
+
+
+    router.get("/", adminController.getHome)
+    router.get("/sales/weekly", adminController.getWeeklySales)
+    router.get("/sales/monthly", adminController.getMonthlySales)
+    router.get("/sales/yearly", adminController.getYearlySales)
+
+
 
     //!--------------------------------/!/
     //todo: define product routes here/!/
     //!------------------------------/!/
 
     //router for renderig addProduct page
-    router.get("/addProduct", isAdmin.isAdmin, adminController.getAddProduct)
+    router.get("/addProduct", adminController.getAddProduct)
     router.post("/addProduct", isAdmin.handleUpload,  adminController.postAddProduct)
     router.get("/products", adminController.getProductList)
     router.get('/editProduct/:id', adminController.getEditProduct);
@@ -33,19 +46,19 @@
     //todo: define Category routes here/!/
     //!-------------------------------/!/
 
-    router.get('/category',isAdmin.isAdmin,  adminController.getAddCategory)
-    router.post('/category', isAdmin.isAdmin, upload.single('image'), adminController.postAddCategory)
-    router.get('/category/edit/:id', isAdmin.isAdmin, adminController.getEditCategory);
-    router.post('/category/edit/:id', isAdmin.isAdmin, upload.single('image'), adminController.postEditCategory);
-    router.post('/category/delete/:id', isAdmin.isAdmin, adminController.postDeleteCategory);
+    router.get('/category', adminController.getAddCategory)
+    router.post('/category', upload.single('image'), adminController.postAddCategory)
+    router.get('/category/edit/:id', adminController.getEditCategory);
+    router.post('/category/edit/:id', upload.single('image'), adminController.postEditCategory);
+    router.post('/category/delete/:id', adminController.postDeleteCategory);
 
     //!---------------------------s-------/!/
     //todo: define user list routes here/!/
     //!--------------------------------/!/
     
     //router for retrieve all users
-    router.get("/users", isAdmin.isAdmin, adminController.getUserlist)
-    router.post('/blockUser/:id', isAdmin.isAdmin, adminController.postBlock)
+    router.get("/users", adminController.getUserlist)
+    router.post('/blockUser/:id', adminController.postBlock)
 
     //!-----------------------------------/!/
     //todo: define order list routes here/!/

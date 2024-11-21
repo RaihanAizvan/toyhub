@@ -1,5 +1,10 @@
 import Order from "../../models/orders.models.js"
 import Product from "../../models/product.models.js"
+import Category from "../../models/categories.model.js"
+import Offer from "../../models/offers.models.js"
+import Coupon from "../../models/couponSchema.models.js"
+import User from "../../models/users.models.js"
+
 
 export async function getHome(req, res) {
 
@@ -13,6 +18,111 @@ export async function getHome(req, res) {
     res.render("admin/adminHome",{orders,bestSellers: products})
   }
 
+
+
+//*Weekly Sales
+
+
+export async function getWeeklySales(req, res) {
+
+  const orders = await Order.find({
+
+    orderDate: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) }
+
+  }).sort({ orderDate: -1 });
+
+
+  const salesData = new Array(7).fill(0); // Initialize 7 days with 0
+
+  orders.forEach(order => {
+
+    const dayIndex = 6 - Math.floor((new Date() - order.orderDate) / (1000 * 60 * 60 * 24));
+
+    if (dayIndex >= 0 && dayIndex < 7) {
+
+      salesData[dayIndex] += order.totalAmount;
+
+    }
+
+  });
+  // Round sales data to two decimal places
+  const roundedSalesData = salesData.map(amount => parseFloat(amount.toFixed(2)));
+
+  res.json({ salesData: roundedSalesData });
+}
+
+
+
+//*Monthly Sales
+
+
+
+export async function getMonthlySales(req, res) {
+
+  const orders = await Order.find({
+
+    orderDate: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) }
+
+  }).sort({ orderDate: -1 });
+
+
+  const salesData = new Array(4).fill(0); // Initialize 4 weeks with 0
+
+  orders.forEach(order => {
+
+    const weekIndex = Math.floor((30 - (new Date() - order.orderDate) / (1000 * 60 * 60 * 24)) / 7);
+
+    if (weekIndex >= 0 && weekIndex < 4) {
+
+      salesData[weekIndex] += order.totalAmount;
+
+    }
+
+  });
+
+  // Round sales data to two decimal places
+  const roundedSalesData = salesData.map(amount => parseFloat(amount.toFixed(2)));
+
+  res.json({ salesData: roundedSalesData });
+
+}
+
+
+//*Yearly Sales
+
+
+export async function getYearlySales(req, res) {
+
+
+    const orders = await Order.find({
+
+        orderDate: { $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) }
+
+        }).sort({ orderDate: -1 });
+
+
+      const salesData = new Array(12).fill(0); // Initialize 12 months with 0
+
+      orders.forEach(order => {
+
+
+        const monthIndex = new Date(order.orderDate).getMonth();
+
+        salesData[monthIndex] += order.totalAmount;
+
+      });
+
+      // Round sales data to two decimal places
+      const roundedSalesData = salesData.map(amount => parseFloat(amount.toFixed(2)));
+
+      res.json({ salesData: roundedSalesData });
+
+}
+  
+
   export default {
-    getHome
+    getHome,
+    getWeeklySales,
+    getMonthlySales,
+    getYearlySales
   }
