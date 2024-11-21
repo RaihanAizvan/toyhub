@@ -41,7 +41,10 @@
                             <p class="text-xs text-gray-600 overflow-hidden overflow-ellipsis line-clamp-2">
                                 <%= product.description1 %>
                             </p>
-                            <p class="text-green-500 text-2xl font-bold mt-2">$<%= product.price %></p>
+                            <div class="flex items-center space-x-2">
+                                <p class="text-green-500 text-2xl font-bold mt-2">$<%= product.priceAfterDiscount %></p>
+                                <p class="text-gray-500 text-sm line-through">$<%= product.price %></p>
+                            </div>
                         </a>
                         <div class="flex justify-between mt-2">
                             <button type="button" class="wishlist-btn bg-transparent border-0 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %> hover:text-red-700 transition duration-300" data-product-id="<%= product._id %>" onclick="toggleWishlist(event, '<%= product._id %>')">
@@ -70,6 +73,9 @@
         </div>
     </div>
 </section>
+
+
+
 <script>
     console.log('Script loaded');
     function toggleWishlist(event, productId) {

@@ -70,10 +70,18 @@
                                 <input type="radio" name="paymentMethod" id="razorpay" value="razorpay" class="mr-2">
                                 <label for="razorpay" class="text-gray-600">Razorpay</label>
                             </div>
-                            <div class="flex items-center">
-                                <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="mr-2">
-                                <label for="cod" class="text-gray-600">Cash on Delivery</label>
-                            </div>
+
+                            <!-- cod should not be allowed for orders above 1000 -->
+                            <% if (cart && cart.subtotal <= 1000) { %>
+                                <div class="flex items-center">
+                                    <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="mr-2">
+                                    <label for="cod" class="text-gray-600">Cash on Delivery</label>
+                                </div>
+                            <% } else { %>
+                                <p class="text-red-600">Cash on Delivery is not available for orders above $1000.</p>
+                            <% } %>
+
+
                             <div class="flex items-center">
                                 <input type="radio" name="paymentMethod" id="wallet" value="wallet" class="mr-2">
                                 <label for="wallet" class="text-gray-600">Wallet</label>
