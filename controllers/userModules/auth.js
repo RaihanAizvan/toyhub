@@ -120,7 +120,7 @@ async function postSignup(req, res) {
             wallet: {
                 balance: 0,
                 transactions: []
-            }
+            }   
         });
 
         await newUser.save();

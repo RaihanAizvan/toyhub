@@ -48,10 +48,7 @@ app.use((req, res, next) => {
   req.session.sAdminEmail = "admin@gmail.com"
   next(); 
 });
-app.use((req, res, next) => {
-  req.session.user = { id: '66d72a6ea0c029810e11757b', name: 'Achuu' };
-  next(); 
-});
+
 
 app.use(nocache());
 

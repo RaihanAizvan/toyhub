@@ -72,8 +72,8 @@
     //!------------------------------------/!/
     //todo: define  offer  routes here   /!/
     //!---------------------------------/!/
-
-
+    
+    
     router.get('/offers' , adminController.getOffers)
     router.get('/addOffer' , adminController.getAddOffer)
     router.post('/addOffer' , adminController.postAddOffer)
@@ -82,7 +82,17 @@
     router.post('/blockOffer/:id' , adminController.postBlockOffer)
     router.post('/deleteOffer/:id' , adminController.deleteOffer)
 
+    
+    //!------------------------------------------/!/
+    //todo: define  sales report routes here   /!/
+    //!---------------------------------------/!/
 
+    router.get('/salesReport' , adminController.getSalesReport)
+    router.get('/salesReport/export/:period?/:startDate?/:endDate?', adminController.exportSalesReport)
+    router.get('/salesReport/export-pdf/:period?/:startDate?/:endDate?', adminController.exportSalesReportPdf)
+
+
+    
     
 
     export default router

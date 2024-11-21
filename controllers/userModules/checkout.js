@@ -18,9 +18,7 @@ const getCheckoutPage = async function (req, res) {
         const user = await User.findById(req.session.user.id).populate('addresses');
         const offers = await Offer.find({isBlocked:false})
 
-        if (!user.addresses || user.addresses.length === 0) {
-            return res.status(400).json({ message: 'No address found. Please add an address before proceeding to checkout.' });
-        }
+        
         const coupons = await Coupon.find({
             isBlocked: false,
             usageLimit: { $gt: 0 },

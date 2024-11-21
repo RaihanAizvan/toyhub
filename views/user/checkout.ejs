@@ -423,10 +423,10 @@ document.getElementById('removeCouponButton').addEventListener('click', clearCou
         } else if (payment === "cod") {
 
             //payment amount should be greateer than 1000 for cash o delivery
-            if(document.getElementById('totalAmount').value < 1000){
+            if(document.getElementById('totalAmount').value > 1000){
                 Swal.fire({
                     icon: "warning",
-                    text: "Payment amount should be greater than 1000 for cash on delivery",
+                    text: "Payment amount should be lesser than 1000 for cash on delivery",
                     showConfirmButton: true,
                 });
                 return;

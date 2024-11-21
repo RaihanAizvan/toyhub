@@ -187,20 +187,20 @@
     function validateZip() {
         const zip = document.forms["addressForm"]["zip"].value;
         const zipError = document.getElementById('zipError');
-        const zipPattern = /^[0-9]{5}(?:-[0-9]{4})?$/;
+        // const zipPattern = /^[0-9]{5}(?:-[0-9]{4})?$/;
 
-        if (!zip) {
-            zipError.textContent = 'Postal Code is required.';
-            toastr.error('Postal Code is required.');
-            return false;
-        } else if (!zipPattern.test(zip)) {
-            zipError.textContent = 'Invalid postal code format.';
-            toastr.error('Invalid postal code format.');
-            return false;
-        } else {
-            zipError.textContent = '';
-            return true;
-        }
+        // if (!zip) {
+        //     zipError.textContent = 'Postal Code is required.';
+        //     toastr.error('Postal Code is required.');
+        //     return false;
+        // } else if (!zipPattern.test(zip)) {
+        //     zipError.textContent = 'Invalid postal code format.';
+        //     toastr.error('Invalid postal code format.');
+        //     return false;
+        // } else {
+        //     zipError.textContent = '';
+        //     return true;
+        // }
     }
 
     function validatePhone() {

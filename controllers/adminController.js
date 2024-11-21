@@ -39,7 +39,9 @@ import coupon from "./adminModules/coupon.js"
 
 import offer from "./adminModules/offer.js"
 
+//todo: -----------------Sales Report Routes-----------------!  
 
+import salesReport from "./adminModules/salesReport.js"
 
 //! ------------------------------------------------------!
 //                                                        |                                        
@@ -109,5 +111,11 @@ export const getEditOffer = offer.getEditOffer
 export const postEditOffer = offer.postEditOffer
 export const postBlockOffer = offer.postBlockOffer
 export const deleteOffer = offer.deleteOffer
+
+//todo: -----------------Sales Report Routes-----------------!\
+
+export const getSalesReport = salesReport.getSalesReport
+export const exportSalesReport = salesReport.exportSalesReport
+export const exportSalesReportPdf = salesReport.exportSalesReportPdf
 
 

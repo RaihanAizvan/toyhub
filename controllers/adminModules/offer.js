@@ -149,6 +149,7 @@ const postAddOffer = async (req, res) => {
         res.status(500).render("admin/addOffer", {
             title: "Add An Offer",
             message: "Failed to add offer due to server error"
+            
         });
     }
 }

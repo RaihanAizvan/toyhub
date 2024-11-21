@@ -107,7 +107,7 @@ const updateOfferDiscountInCart = async (req, res, next) => {
     console.error('Error updating offer discount in cart:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-  console.log(' exited update offer discount in cart')
+  
 
 };
 
