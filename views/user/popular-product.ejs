@@ -129,7 +129,7 @@ function addToCart(event, productId) {
     })
     .then(response => {
         console.log('Success:', response.data);
-        toastr.success(response.data.message || 'Product added to cart!');
+        toastr.success(response.data.message );
         if (response.data.cartItemCount !== undefined) {
             updateCartItemCount(response.data.cartItemCount);
         }

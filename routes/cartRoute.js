@@ -3,6 +3,7 @@ import middleware from "../middlewares/userMiddleware.js"
 import express from "express";
 const router = express.Router();
 
+router.use(middleware.redirectToLoginIfNotAUser)
 router.use(middleware.checkBlockStatus)
 router.use(middleware.updateOfferDiscountInCart)
 

@@ -7,6 +7,7 @@ import User from "../../models/users.models.js";
 // Function to add products to cart
 export const postAddProductToCart = async (req, res) => {
     try {
+        console.log(1);
         if (!req.session.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }

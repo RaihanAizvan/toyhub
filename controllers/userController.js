@@ -124,6 +124,8 @@ export const getCancelReason = profile.getCancelReason
 
 export const postItemCancel = profile.postItemCancel
 
+export const postDownloadInvoice = profile.postDownloadInvoice
+
 export const getWishlist = profile.getWishlist
 
 export const postWishlist = profile.postWishlist

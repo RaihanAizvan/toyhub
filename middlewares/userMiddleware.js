@@ -35,17 +35,34 @@ const checkBlockStatus = async (req, res, next) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+
+
+
 const redirectToLoginIfNotAUser = (req, res, next) => {
   if (req.session.user) {
     next();
   } else {
-    res.status(403).redirect("/user/login");
-    console.log("not a user");
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      // If the request is likely from Axios, send a JSON response
+      res.status(403).json({ message: 'Unauthorized' });
+    } else {
+      // Otherwise, redirect to the login page
+      res.status(403).redirect("/user/login");
+    }
   }
 }
 
+
+
+
 const checkForProductStockBeforeCheckout = async (req, res, next) => {
-  const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
+  let user = req.session.user;
+  if(!user){
+    return res.status(400).redirect('/user/login');
+  }
+  const cart = await Cart.findOne({ user: user.id }).populate('items.product');
   if (cart && cart.items.some(item => item.product.stock <= 0)) {
     return res.status(400).redirect('/cart');
   }
@@ -53,9 +70,12 @@ const checkForProductStockBeforeCheckout = async (req, res, next) => {
 }
 
 const updateOfferDiscountInCart = async (req, res, next) => {
-  console.log(' entered update offer discount in cart')
   try {
-    let cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
+    let user = req.session.user;
+    if(!user){
+      return res.status(400).redirect('/user/login');
+    }
+    let cart = await Cart.findOne({ user: user.id }).populate('items.product');
     if (!cart) {
       cart = new Cart({ items: [], user: req.session.user?.id });
     }

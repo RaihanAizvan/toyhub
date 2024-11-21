@@ -3,6 +3,8 @@ import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
 import Wallet from "../../models/wallets.models.js"
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export async function getProfileEdit(req, res) {
     let theName = req.session.user?.name
@@ -449,6 +451,100 @@ export const postAddMoney = async (req, res) => {
 }
 
 
+export const postDownloadInvoice = async (req, res) => {
+    const { orderId } = req.params;
+    try {
+        const order = await Order.findById(orderId).populate('user').populate('items.product');
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const doc = new jsPDF();
+
+        // Add title
+        // Initialize the PDF document
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.text('Invoice', 105, 20, { align: 'center' }); // Centered title
+
+        // Add order details
+        doc.setFontSize(12);
+        doc.text('Order Details:', 14, 30); // Section title
+        doc.setFontSize(10);
+        doc.text(`Order ID: ${order._id}`, 14, 38);
+        doc.text(`Order Date: ${order.orderDate.toDateString()}`, 14, 44);
+        doc.text(`Customer Name: ${order.user.name}`, 14, 50);
+        doc.text(`Customer Email: ${order.user.email}`, 14, 56);
+
+        // Add table of products
+        doc.setFontSize(12);
+        doc.text('Product Details:', 14, 66); // Section title
+
+        const products = order.items.map((item, index) => ({
+            sno: index + 1,
+            productName: item.product.name,
+            quantity: item.quantity,
+            discount: (item.product.price - item.product.priceAfterDiscount).toFixed(2) || "-",
+            price: item.product.price.toFixed(2),
+            total: (item.quantity * item.product.priceAfterDiscount).toFixed(2)
+        }));
+
+        const tableColumn = [
+            { header: '#', dataKey: 'sno' },
+            { header: 'Product Name', dataKey: 'productName' },
+            { header: 'Quantity', dataKey: 'quantity' },
+            { header: 'Discount', dataKey: 'discount' },
+            { header: 'Price', dataKey: 'price' },
+            { header: 'Total', dataKey: 'total' }
+        ];
+
+        doc.autoTable({
+            columns: tableColumn,
+            body: products,
+            startY: 70,
+            theme: 'grid',
+            columnStyles: {
+                sno: { cellWidth: 10 },
+                productName: { cellWidth: 50 },
+                quantity: { cellWidth: 20 },
+                discount: { cellWidth: 20 },
+                price: { cellWidth: 20 },
+                total: { cellWidth: 20 }
+            },
+            styles: {
+                fontSize: 10
+            }
+        });
+
+        // Add total amount
+        const totalY = doc.lastAutoTable.finalY + 10; // Dynamic position below the table
+        doc.setFontSize(12);
+        doc.text('Summary:', 14, totalY);
+        doc.setFontSize(10);
+        doc.text(`Subtotal : ${order.subtotal.toFixed(2)}`, 14, totalY + 8);
+        doc.text(`Offer Discount: - ${order.offerDiscount.toFixed(2)}`, 14, totalY + 14);
+        doc.text(`Coupon Discount: - ${order.discount.toFixed(2)}`, 14, totalY + 20);
+        doc.setFontSize(14);
+        doc.text(`Total Amount: ${order.totalAmount.toFixed(2)}`, 14, totalY + 26);
+
+        // Add footer
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setFontSize(8);
+        doc.text('Thank you for your purchase!', 105, pageHeight - 10, { align: 'center' });
+
+        // Generate PDF and send as response
+        const pdfOutput = doc.output();
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
+        res.send(pdfOutput);
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
 export default {
     getProfileEdit,
     postUpdateName,
@@ -462,5 +558,6 @@ export default {
     postWishlist,
     deleteWishlist,
     getWallet,
-    postAddMoney
+    postAddMoney,
+    postDownloadInvoice
 }

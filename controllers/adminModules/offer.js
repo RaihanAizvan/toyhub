@@ -97,19 +97,7 @@ const postAddOffer = async (req, res) => {
             });
         }
 
-        // Check for overlapping offer dates
-        const overlappingOffer = await Offer.findOne({
-            $or: [
-                { startDate: { $lte: endDate }, endDate: { $gte: startDate } }
-            ],
-            offerType: offerType
-        });
-        if (overlappingOffer) {
-            return res.status(400).render("admin/addOffer", {
-                title: "Add An Offer",
-                message: "An overlapping offer already exists for the selected type and dates"
-            });
-        }
+        
 
         // Check if the offer applies to all products
         if (offerType === "all") {
