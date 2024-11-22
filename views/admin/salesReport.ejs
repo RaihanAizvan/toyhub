@@ -228,7 +228,7 @@
       const downloadExcelButton = document.getElementById('downloadExcel');
       const downloadPdfButton = document.getElementById('downloadPdf');
       const salesReportTableBody = document.getElementById('salesReportTableBody');
-
+  
       const orders = {
         all: <%- JSON.stringify(allOrders) %>,
         daily: <%- JSON.stringify(dailyOrders) %>,
@@ -236,7 +236,7 @@
         monthly: <%- JSON.stringify(monthlyOrders) %>,
         annual: <%- JSON.stringify(annualOrders) %>
       };
-
+  
       function renderOrders(orders) {
         salesReportTableBody.innerHTML = '';
         orders.forEach(order => {
@@ -267,7 +267,11 @@
           salesReportTableBody.insertAdjacentHTML('beforeend', row);
         });
       }
-
+  
+      // Set initial filter value to "all" and render all orders
+      filterPeriod.value = "all"; 
+      renderOrders(orders.all);
+  
       filterPeriod.addEventListener('change', function() {
         if (filterPeriod.value === 'custom') {
           startDateInput.classList.remove('hidden');
@@ -278,22 +282,16 @@
           renderOrders(orders[filterPeriod.value]);
         }
       });
+  
       downloadExcelButton.addEventListener('click', function() {
-        const period = filterPeriod.value;
-        const startDate = startDateInput.value ? `startDate=${startDateInput.value}` : '';
-        const endDate = endDateInput.value ? `endDate=${endDateInput.value}` : '';
-        const query = [startDate, endDate].filter(Boolean).join('&');
-        window.location.href = `/admin/salesReport/export/${period}${query ? '?' + query : ''}`;
+        const period = document.getElementById('filterPeriod').value
+        window.location.href = `/admin/salesReport/export?period=${period}`;
       });
+  
       downloadPdfButton.addEventListener('click', function() {
-        const period = filterPeriod.value;
-        const startDate = startDateInput.value ? `startDate=${startDateInput.value}` : '';
-        const endDate = endDateInput.value ? `endDate=${endDateInput.value}` : '';
-        const query = [startDate, endDate].filter(Boolean).join('&');
-        window.location.href = `/admin/salesReport/export-pdf/${period}${query ? '?' + query : ''}`;
+        const period = document.getElementById('filterPeriod').value
+        console.log(period);
+        window.location.href = `/admin/salesReport/export-pdf?period=${period}`;
       });
-
-      // Initial render
-      renderOrders(orders.daily);
     });
   </script>

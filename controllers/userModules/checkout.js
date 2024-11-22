@@ -60,6 +60,14 @@ const postPlaceOrderInCheckout = async (req, res) => {
         }
 
         const user = await User.findById(userId);
+        const productsInTheCart = cart.items.map(item=>item.product._id)
+        const products = await Product.find({_id:{$in:productsInTheCart}})
+        //increase the sold count of the products
+        for(const product of products){
+            product.sold += cart.items.find(item=>item.product._id.equals(product._id)).quantity
+            await product.save()
+        }
+
 
         // Ensure the totalAmount reflects the updated cart total after applying the coupon
         const updatedTotalAmount = cart.total;

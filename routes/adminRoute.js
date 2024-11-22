@@ -101,8 +101,8 @@
     //!---------------------------------------/!/
 
     router.get('/salesReport' , adminController.getSalesReport)
-    router.get('/salesReport/export/:period?/:startDate?/:endDate?', adminController.exportSalesReport)
-    router.get('/salesReport/export-pdf/:period?/:startDate?/:endDate?', adminController.exportSalesReportPdf)
+    router.get('/salesReport/export', adminController.exportSalesReport)
+    router.get('/salesReport/export-pdf', adminController.exportSalesReportPdf)
 
 
     

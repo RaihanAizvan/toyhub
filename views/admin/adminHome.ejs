@@ -1,7 +1,7 @@
 <div class="min-h-screen flex flex-col justify-stretch">
   <div class="flex bg-gray-200">
     <!-- Sidebar -->
-    <div class="w-64 bg-white p-4">
+    <div class="w-2/10 bg-white p-4 hidden md:block">
       <div class="flex items-center justify-between px-6 py-4">
         <span class="text-xl font-semibold">ToyHub</span>
       </div>
@@ -33,8 +33,9 @@
             <a href="/admin/addProduct"
               class="flex items-center  hover:bg-gray-200 transition-all rounded p-2 text-gray-700">Add Products</a>
           </li>
-          <li> <a href="/admin/salesReport" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all p-2 text-gray-700">Sales Report</a>
-
+          <li> <a href="/admin/salesReport"
+              class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all p-2 text-gray-700">Sales
+              Report</a>
           <li><a href="/admin/coupons"
               class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Coupons</a></li>
           <li><a href="/admin/offers"
@@ -49,7 +50,7 @@
             <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
               1</a>
           </li>
-          <li> 
+          <li>
             <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
               2</a>
           </li>
@@ -71,7 +72,7 @@
       </div>
     </div>
     <!-- Main Content -->
-    <div class="flex-1 p-6 space-y-6">
+    <div class="flex-1 p-6  space-y-6">
       <!-- Top Navbar -->
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
@@ -86,19 +87,19 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Total Orders</h3>
-          <p class="text-2xl font-semibold">₹126,500</p>
+          <p class="text-2xl font-semibold">₹<%= locals.totalOrders %></p>
           <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
           </p>
         </div>
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Active Orders</h3>
-          <p class="text-2xl font-semibold">₹126,500</p>
+          <p class="text-2xl font-semibold"><%= locals.activeOrders %></p>
           <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
           </p>
         </div>
         <div class="p-4 bg-white rounded-lg shadow">
-          <h3 class="text-sm text-gray-500">Completed Orders</h3>
-          <p class="text-2xl font-semibold">₹126,500</p>
+          <h3 class="text-sm text-gray-500">Today's Revenue</h3>
+          <p class="text-2xl font-semibold">₹<%= locals.todaysRevenue %></p>
           <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
           </p>
         </div>
@@ -108,31 +109,139 @@
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold">Sales Graph</h3>
           <div class="flex items-center space-x-4">
-            <button id="weeklyBtn" class="px-4 py-2 bg-gray-200 bg-primary text-gray-700 rounded-md" >Weekly</button>
+            <button id="weeklyBtn" class="px-4 py-2 bg-gray-200 bg-primary text-gray-700 rounded-md">Weekly</button>
             <button id="monthlyBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">Monthly</button>
             <button id="yearlyBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">Yearly</button>
           </div>
         </div>
         <div class="mt-4">
-
-
-
           <!-- ApexCharts integration -->
-
-
-
-
           <div id="salesChart" class="w-full h-80"></div>
-          
         </div>
       </div>
-      <!-- Best Sellers -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="col-span-2">
+
+
+
+
+
+      <!-- Best Selling products -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div class="">
+          <div class="p-4 bg-white rounded-lg shadow">
+            <h3 class="text-lg font-semibold">Best Seller Products</h3>
+            <ul class="mt-4 space-y-2">
+              <% if (bestSellingProducts.length === 0) { %>
+                <li class="text-gray-500">No best selling products available.</li>
+              <% } else { %>
+                <% bestSellingProducts.forEach(item => { %>
+                  <li>
+                    <div class="flex items-center justify-between">
+                      <span>
+                        <%= item.name %>
+                      </span>
+                      <span class="font-semibold"> ₹<%= item.price %>
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      <%= item.sold %> sold
+                    </div>
+                  </li>
+                <% }) %>
+              <% } %>
+            </ul>
+            <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>
+          </div>
+        </div>
+
+        <!-- best selling categories -->
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-lg font-semibold">Best Seller Categories</h3>
+          <ul class="mt-4 space-y-2">
+            <% if (bestSellingCategories.length === 0) { %>
+              <li class="text-gray-500">No best selling categories available.</li>
+            <% } else { %>
+              <% bestSellingCategories.forEach(category => { %>
+                <li>
+                  <div class="flex items-center justify-between">
+                    <span>
+                      <%= category.name %>
+                    </span>
+                    <span class="font-semibold"> <%= category.sold %>
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    <%= category.sold %> sales
+                  </div>
+                </li>
+              <% }) %>
+            <% } %>
+          </ul>
+          <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>
+        </div>
+        
+        <!-- best selling users -->
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-lg font-semibold">Best Seller Users</h3>
+          <ul class="mt-4 space-y-2">
+            <% if (bestSellingUsers.length === 0) { %>
+              <li class="text-gray-500">No best selling users available.</li>
+            <% } else { %>
+              <% bestSellingUsers.forEach(user => { %>
+                <li>
+                  <div class="flex items-center justify-between">
+                    <span>
+                      <%= user.name %>
+                    </span>
+                    <span class="font-semibold"> ₹<%= user.totalAmount %>
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    <%= user.totalAmount %> sales
+                  </div>
+                </li>
+              <% }) %>
+            <% } %>
+          </ul>
+          <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>
+        </div>
+        
+        <!-- best selling locations -->
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-lg font-semibold">Best Seller Locations</h3>
+          <ul class="mt-4 space-y-2">
+            <% if (bestSellingLocations.length === 0) { %>
+              <li class="text-gray-500">No best selling locations available.</li>
+            <% } else { %>
+              <% bestSellingLocations.forEach(location => { %>
+                <li>
+                  <div class="flex items-center justify-between">
+                    <span>
+                      <%= location %>
+                    </span>
+                    <span class="font-semibold"> <%= location %>
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    <%= location %> sales
+                  </div>
+                </li>
+              <% }) %>
+            <% } %>
+          </ul>
+          <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>
+        </div>
+
+      </div>
+
+          
+          
           <!-- Recent Orders -->
           <div class="p-4 bg-white rounded-lg shadow">
             <h3 class="text-lg font-semibold">Recent Orders</h3>
-            
+            <% if (orders.length === 0) { %>
+              <p class="text-gray-500">No recent orders available.</p>
+            <% } else { %>
               <table class="min-w-full mt-4">
                 <thead>
                   <tr class="text-left">
@@ -148,13 +257,8 @@
                   <% orders.forEach(order => { %>
                     <tr>
                       <td>
-                        <% 
-                          let productNames = [];
-                          order.items.forEach(item => {
-                            productNames.push(item.product ? item.product.name : 'Product not found');
-                          });
-                        %>
-                        <%= productNames.join(',') %>
+                        <% let productNames = []; order.items.forEach(item => { productNames.push(item.product ? item.product.name : 'Product not found'); }); %>
+                        <%= productNames.join(', ') %>
                       </td>
                       <td>
                         <%= order._id %>
@@ -165,51 +269,34 @@
                       <td>
                         <%= order.address.user.name %>
                       </td>
-                      <td><span class="<%= order.status === 'completed' ? 'text-green-500' : order.status === 'Shipped' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-purple-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500' %>">
-                          <%= order.status %>
-                        </span></td>
                       <td>
-                        ₹<%= order.totalAmount %>
+                        <span class="<%= order.status === 'completed' ? 'text-green-500' : order.status === 'Shipped' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-purple-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500' %>">
+                          <%= order.status %>
+                        </span>
+                      </td>
+                      <td> ₹<%= order.totalAmount %>
                       </td>
                     </tr>
                   <% }) %>
                 </tbody>
               </table>
+            <% } %>
           </div>
-        </div>
-        <div class="p-4 bg-white rounded-lg shadow">
-          <h3 class="text-lg font-semibold">Best Sellers</h3>
-          <ul class="mt-4 space-y-2">
-            <% bestSellers.forEach(seller => { %>
-              <li>
-                <div class="flex items-center justify-between">
-                  <span>
-                    <%= seller.name %>
-                  </span>
-                  <span class="font-semibold">
-                    ₹<%= seller.price %>
-                  </span>
-                </div>
-                <div class="text-sm text-gray-500">
-                  <%= seller.sold %> sales
-                </div>
-              </li>
-            <% }) %>
-                <!-- More items here -->
-          </ul>
-          <button class="w-full mt-4 px-4 py-2 bg-green-500 text-white rounded-md"> Report </button>
-        </div>
-      </div>
+
+          <!-- todo best sellar user  -->
+
     </div>
-    <!-- footer -->
   </div>
-  <footer class="flex items-center justify-between px-6 py-4 bg-white border-t mt-6">
-    <div class="text-gray-700">© 2024 ToyHub. All rights reserved.</div>
-    <div class="flex items-center space-x-4">
-      <a href="#" class="text-gray-700">Privacy Policy</a>
-      <a href="#" class="text-gray-700">Terms of Service</a>
-    </div>
-  </footer>
+</div>
+</div>
+<!-- footer -->
+<footer class="flex items-center justify-between px-6 py-4 bg-white border-t mt-6">
+  <div class="text-gray-700">© 2024 ToyHub. All rights reserved.</div>
+  <div class="flex items-center space-x-4">
+    <a href="#" class="text-gray-700">Privacy Policy</a>
+    <a href="#" class="text-gray-700">Terms of Service</a>
+  </div>
+</footer>
 </div>
 <!-- modal for logout confirmation -->
 <div id="logoutModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
@@ -268,100 +355,94 @@
       form.submit()
     })
 </script>
-
-
-
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var options = {
-    chart: {
-      type: 'line',
-      height: '100%',
-      animations: {
-        enabled: true, // Enable smooth transitions
-        easing: 'easeinout',
-        speed: 800
-      }
-    },
-    colors: ['#19D16F'],
-    series: [
-      {
-        name: 'Sales',
-        data: [] // Initialize with empty data
-      }
-    ],
-    xaxis: {
-      categories: [] // Initialize with empty categories
-    }
-  };
-
-  var chart = new ApexCharts(document.querySelector('#salesChart'), options);
-  chart.render();
-
-  async function fetchDataAndRenderChart(url, defaultCategories) {
-    try {
-      const response = await axios.get(url);
-      const salesData = response.data.salesData || [];
-
-      // Adjust categories based on the length of salesData
-      const categories = defaultCategories.slice(0, salesData.length);
-
-      // Update chart with the new data
-      chart.updateSeries([
-        {
-          data: salesData
+  document.addEventListener('DOMContentLoaded', function () {
+    var options = {
+      chart: {
+        type: 'line',
+        height: '100%',
+        animations: {
+          enabled: true, // Enable smooth transitions
+          easing: 'easeinout',
+          speed: 800
         }
+      },
+      colors: ['#19D16F'],
+      series: [
+        {
+          name: 'Sales',
+          data: [] // Initialize with empty data
+        }
+      ],
+      xaxis: {
+        categories: [] // Initialize with empty categories
+      }
+    };
+
+    var chart = new ApexCharts(document.querySelector('#salesChart'), options);
+    chart.render();
+
+    async function fetchDataAndRenderChart(url, defaultCategories) {
+      try {
+        const response = await axios.get(url);
+        const salesData = response.data.salesData || [];
+
+        // Adjust categories based on the length of salesData
+        const categories = defaultCategories.slice(0, salesData.length);
+
+        // Update chart with the new data
+        chart.updateSeries([
+          {
+            data: salesData
+          }
+        ]);
+        chart.updateOptions({
+          xaxis: {
+            categories: categories
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // Load weekly data by default
+    fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+
+
+
+    // Button event listeners
+    document.getElementById('weeklyBtn').addEventListener('click', function () {
+      updateButtonStyles('weeklyBtn');
+      fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    });
+
+
+
+    document.getElementById('monthlyBtn').addEventListener('click', function () {
+      updateButtonStyles('monthlyBtn');
+      fetchDataAndRenderChart('/admin/sales/monthly', ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
+    });
+
+
+    document.getElementById('yearlyBtn').addEventListener('click', function () {
+      updateButtonStyles('yearlyBtn');
+      fetchDataAndRenderChart('/admin/sales/yearly', [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ]);
-      chart.updateOptions({
-        xaxis: {
-          categories: categories
+    });
+
+
+    function updateButtonStyles(activeId) {
+      ['weeklyBtn', 'monthlyBtn', 'yearlyBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (id === activeId) {
+          btn.classList.add('bg-primary', 'text-white');
+        } else {
+          btn.classList.remove('bg-primary', 'text-white');
         }
       });
-    } catch (error) {
-      console.error('Error fetching data:', error);
     }
-  }
-
-  // Load weekly data by default
-  fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
-
-
-
-  // Button event listeners
-  document.getElementById('weeklyBtn').addEventListener('click', function () {
-    updateButtonStyles('weeklyBtn');
-    fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
   });
-
-
-
-  document.getElementById('monthlyBtn').addEventListener('click', function () {
-    updateButtonStyles('monthlyBtn');
-    fetchDataAndRenderChart('/admin/sales/monthly', ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
-  });
-
-
-
-
-  document.getElementById('yearlyBtn').addEventListener('click', function () {
-    updateButtonStyles('yearlyBtn');
-    fetchDataAndRenderChart('/admin/sales/yearly', [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ]);
-  });
-
-  
-
-  function updateButtonStyles(activeId) {
-    ['weeklyBtn', 'monthlyBtn', 'yearlyBtn'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (id === activeId) {
-        btn.classList.add('bg-primary', 'text-white');
-      } else {
-        btn.classList.remove('bg-primary', 'text-white');
-      }
-    });
-  }
-});
 
 </script>
