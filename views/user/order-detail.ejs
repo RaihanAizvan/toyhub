@@ -8,7 +8,10 @@
                 <% if(order.status == 'Delivered'){ %>
                     <button class="bg-primary text-white py-2 px-6 rounded-lg h-10 shadow-md w-24 hover:bg-green-700 transition  duration-200" onclick="downloadInvoice('<%= order._id %>')">Invoice</button>
                 <% } %>
-
+                <!-- //retry payment if peyment method == razorpay and paid ==false -->
+                <% if(order.paymentMethod == 'razorpay' && order.paid == false){ %>
+                    <button class="bg-primary text-white py-2 px-6 rounded-lg h-10 shadow-md w-24 hover:bg-green-700 transition  duration-200" onclick="retryPayment('<%= order._id %>')">Retry Payment</button>
+                <% } %>
             </div>
 
             <!-- Order Info -->
@@ -25,6 +28,7 @@
                         <p><strong>Name:</strong> <%= order.address.user.name %></p>
                         <p><strong>Email:</strong> <%= order.address.user.email %></p>
                         <p><strong>Joined Date:</strong> <%= new Date(order.address.user.joined_date).toLocaleDateString() %></p>
+                        <p><strong>Phone:</strong> <%= order.address.user.phone_number %></p>
                     </div>
                     <div>
                         <p><strong>Phone:</strong> <%= order.user.phone_number %></p>
@@ -56,6 +60,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="flex justify-between mt-2">
                     <span class="text-sm font-medium text-gray-600">Pending</span>
                     <span class="text-sm font-medium text-gray-600">Shipped</span>
@@ -65,7 +70,14 @@
                     <div class="mt-4">
                         <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
                     </div>
-                <% } %>
+                    <% } %>
+                    <% if (order.paymentMethod == 'razorpay' && order.paid == false) { %>
+                        <div class="mt-4">
+                            <span class="text-sm font-medium text-red-600 line-through">Payment Failed</span>
+                        </div>
+                        <p class="text-sm font-medium text-red-600">please retry payment</p>
+                    <% } %>
+
             </div>
 
             <!-- Items Ordered -->
@@ -133,6 +145,96 @@
             console.log("Download successful");
         } catch (error) {
             console.error("Error downloading invoice:", error);
+        }
+    }
+
+
+
+    //function for retyr payment
+    async function retryPayment(orderId) {
+    try {
+        console.debug("Initiating retryPayment for orderId:", orderId);
+        axios.post('/checkout/retry-payment', { orderId })
+            .then(response => {
+                console.debug("Response from retry-payment API:", response);
+                if (response.data.success) {
+                    console.debug("Payment retry successful, preparing Razorpay options.");
+                    const { razorpay_order_id, amount, currency } = response.data;
+
+
+                    const options = {
+                        key: "<%= process.env.RAZOR_KEY_ID %>",
+                        amount: amount,
+                        currency: currency,
+                        name: "TOYHUB",
+                        description: "Order Payment",
+                        order_id: razorpay_order_id,
+                        handler: async function (response) {
+                            if (response.razorpay_payment_id) {
+                                await Swal.fire({
+                                    icon: "success",
+                                    title: "Payment successful!",
+                                    text: `Payment ID: ${response.razorpay_payment_id}`,
+                                    showConfirmButton: true,
+                                });
+
+                                axios.post("/checkout/verify-retry-payment", {
+                                    orderId,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                })
+                                .then(() => {
+                                    console.debug("Payment verification successful, redirecting to orders.");
+                                    window.location.href = `/account/orders`;
+                                })
+                                .catch(error => {
+                                    console.error("Error verifying payment:", error);
+                                    Swal.fire({
+                                        icon: "error",
+                                        text: "Payment verification failed. Please contact support.",
+                                        showConfirmButton: true,
+                                    });
+                                });
+                            } else {
+                                console.error("Payment failed, not proceeding to verification.");
+                                Swal.fire({
+                                    icon: "error",
+                                    text: "Payment failed. Please try again.",
+                                    showConfirmButton: true,
+                                });
+                            }
+                        },
+                        prefill: {
+                            name: "<%= order.address.user.name %>",
+                            email: "<%= order.address.user.email %>",
+                            contact: "<%= order.address.phone %>",
+                        },
+                        theme: {
+                            color: "#FF8C00",
+                        },
+                    };
+
+                    console.debug("Opening Razorpay with options:", options);
+                    const razorpay = new Razorpay(options);
+
+                    
+
+                    razorpay.open();
+                } else {
+                    console.debug("Payment retry was not successful, response data:", response.data);
+                }
+            })
+            .catch(error => {
+                console.error("Error creating Razorpay order:", error);
+                Swal.fire({
+                    icon: "error",
+                    text: "An error occurred while processing the payment. Please try again later.",
+                    showConfirmButton: true,
+                });
+            });
+        } catch (error) {
+            console.error("Error during retry payment:", error);
         }
     }
 </script>

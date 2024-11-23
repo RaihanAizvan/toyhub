@@ -116,11 +116,11 @@ export const postUpdatePhone = profile.postUpdatePhone
 
 export const getOrderHistory = profile.getOrderHistory
 
-export const getOrderDetail = profile.getOrderDetail    
+export const getOrderDetail = profile.getOrderDetail
 
-export const postOrderCancel = profile.postOrderCancel    
+export const postOrderCancel = profile.postOrderCancel
 
-export const getCancelReason = profile.getCancelReason    
+export const getCancelReason = profile.getCancelReason
 
 export const postItemCancel = profile.postItemCancel
 
@@ -186,6 +186,11 @@ export const createRazorPayOrder = checkout.createRazorPayOrder
 
 export const verifyPayment = checkout.verifyPayment
 
+export const retryPayment = checkout.retryPayment
+
+export const verifyRetryPayment = checkout.verifyRetryPayment
+
 export const orderSuccess = checkout.orderSuccess
 
-export const postWalletPayment = checkout.postWalletPayment 
+export const postWalletPayment = checkout.postWalletPayment
+

@@ -98,6 +98,10 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  paid: {
+    type: Boolean,
+    default: false
+  },
   couponCode: {
     type: String,
     default: null

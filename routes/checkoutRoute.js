@@ -18,6 +18,9 @@ router.post('/order-success' , checkout.orderSuccess)
 router.post('/create-razorpay-order' , checkout.createRazorPayOrder)
 router.post('/verify-payment' , checkout.verifyPayment)
 
+router.post('/retry-payment' , checkout.retryPayment)
+router.post('/verify-retry-payment' , checkout.verifyRetryPayment)
+
 router.post('/wallet' , checkout.postWalletPayment)
 
 export default router
