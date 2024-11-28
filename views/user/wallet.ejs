@@ -7,10 +7,17 @@
         <div class="flex-1 p-2">
             <div class="bg-white p-4 shadow-md mb-4">
                 <h2 class="text-2xl text-center font-semibold mb-4">Wallet</h2>
+                <% if (user && user.walletBalance !== undefined && user.walletBalance !== null) { %>
                 <div class="mb-4 flex justify-center">
                     <h3 class="text-xl font-bold">Balance: <span class="text-3xl">₹<%= user.walletBalance.toFixed(2) %></span></h3>
                     <hr>
                 </div>
+                <% } else { %>
+                <div class="mb-4 flex justify-center">
+                    <h3 class="text-xl font-bold">Balance: <span class="text-3xl">₹0.00</span></h3>
+                    <hr>
+                </div>
+                <% } %>
                 <hr>
                 <div class="mb-4">
                     <button class="bg-primary text-white py-2 px-4 rounded" onclick="toggleAddMoneyForm()">Add Money</button>
@@ -33,13 +40,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% transactions.forEach(transaction => { %>
+                            <% if (transactions && transactions.length > 0) { %>
+                                <% transactions.forEach(transaction => { %>
+                                    <tr>
+                                        <td class="py-2 px-4 text-center border-b"><%= new Date(transaction.date).toDateString() %></td>
+                                        <td class="py-2 px-4 text-center border-b"><%= transaction.description %></td>
+                                        <td class="py-2 px-4 text-center border-b"><%= transaction.amount %></td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
                                 <tr>
-                                    <td class="py-2 px-4 text-center border-b"><%= new Date(transaction.date).toDateString() %></td>
-                                    <td class="py-2 px-4 text-center border-b"><%= transaction.description %></td>
-                                    <td class="py-2 px-4 text-center border-b"><%= transaction.amount %></td>
+                                    <td class="py-2 px-4 text-center border-b" colspan="3">No transactions found</td>
                                 </tr>
-                            <% }) %>
+                            <% } %>
                         </tbody>
                     </table>
                     <div class="flex justify-center mt-4">

@@ -387,7 +387,12 @@ export const getWallet = async (req, res) => {
     try {
         const user = await Users.findById(req.session.user.id).populate('wallet');
         if (!user || !user.wallet) {
-            return res.status(404).render('user/wallet', { title: 'Wallet', user: null, message: 'Wallet not found' });
+            console.log("no wallet")
+            const newWallet = new Wallet({ user:user.id, balance: 0, transactions: [] });
+            await newWallet.save();
+            user.wallet = newWallet._id;
+            await user.save();
+            return res.status(200).render('user/wallet', { title: 'Wallet', user, transactions: [], currentPage: 1, totalPages: 1, req });
         }
 
         // Sort transactions by date in descending order (most recent first)

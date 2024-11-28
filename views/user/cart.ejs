@@ -124,8 +124,8 @@
 
                 <!-- Proceed to Checkout Button -->
                 <% if (cart.items.length > 0 && !cart.items.some(item => item.product.stock <= 0)) { %>
-                    <div class="mt-8">
-                        <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                    <div class="mt-8" id="proceed-to-checkout">
+                        <a href="/checkout"  class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
                             Proceed to Checkout
                         </a>
                     </div>
@@ -198,6 +198,16 @@ function removeItemFromCart(event, productId) {
         // Update cart summary and item count
         updateCartSummary(subtotal, total, discount);
         updateCartItemCount(cartItemCount);
+
+        // Remove proceed to checkout button if the item being removed is the last item in the cart
+        const itemElement2 = document.getElementById(`cart-item-${productId}`);
+        if (itemElement2 && !itemElement2.nextElementSibling && !itemElement2.previousElementSibling) {
+            const checkoutDiv = document.getElementById('proceed-to-checkout');
+            if (checkoutDiv) {
+                checkoutDiv.classList.add("hidden");
+            }
+        }
+
         toastr.success(message);
     })
     .catch(error => {
