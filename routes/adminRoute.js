@@ -1,5 +1,5 @@
     import express from "express"
-    import isAdmin from "../middlewares/adminMIddleware.js"
+    import isAdmin from "../middlewares/adminMiddleware.js"
     import * as adminController from "../controllers/adminController.js"
     import upload from "../utils/multer.js"
 

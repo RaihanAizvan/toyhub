@@ -43,44 +43,34 @@ const getCheckoutPage = async function (req, res) {
 
 const postPlaceOrderInCheckout = async (req, res) => {
     try {
-        console.log('postPlaceOrderInCheckout');
         const userId = req.session.user.id;
-        console.log('User ID:', userId);
         const { selectedAddress, paymentMethod, couponCode, paid } = req.body;
-        console.log('Request Body:', req.body);
         
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
-        console.log('Cart:', cart);
         if (!cart || cart.items.length === 0) {
             console.log('Cart is empty');
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
         const address = await Address.findById(selectedAddress);
-        console.log('Selected Address:', address);
         if (!address) {
             console.log('Invalid address');
             return res.status(400).json({ message: 'Invalid address' });
         }
 
         const user = await User.findById(userId);
-        console.log('User:', user);
         const productsInTheCart = cart.items.map(item => item.product._id);
-        console.log('Products in the Cart:', productsInTheCart);
         const products = await Product.find({ _id: { $in: productsInTheCart } });
-        console.log('Products:', products);
         
         // Increase the sold count of the products
         for (const product of products) {
             const quantity = cart.items.find(item => item.product._id.equals(product._id)).quantity;
             product.sold += quantity;
-            console.log(`Product ID: ${product._id}, Sold Count Updated: ${product.sold}`);
             await product.save();
         }
 
         // Ensure the totalAmount reflects the updated cart total after applying the coupon
         const updatedTotalAmount = cart.total;
-        console.log('Updated Total Amount:', updatedTotalAmount);
 
         // Create new order
         const newOrder = new Order({
@@ -109,7 +99,8 @@ const postPlaceOrderInCheckout = async (req, res) => {
                 city: address.city,
                 state: address.state,
                 zip: address.zip,
-                phone: address.phone
+                phone: address.phone,
+                
             },
             paymentMethod,
             couponCode,
@@ -117,12 +108,16 @@ const postPlaceOrderInCheckout = async (req, res) => {
             status: 'pending'
         });
 
-        console.log('New Order:', newOrder);
         await newOrder.save();
-        console.log('Order saved to database');
+
+        //update salesonthiaddress
+        address.salesOnThisAddress+=1
+        await address.save()
+
+        //update user sales
+        user.totalProductsBuyed += cart.items.reduce((acc, item) => acc + item.quantity, 0);
         
         await Cart.findOneAndDelete({ user: userId });
-        console.log('Cart deleted for user:', userId);
 
         for (const item of cart.items) {
             const product = await Product.findById(item.product._id);

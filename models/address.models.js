@@ -32,6 +32,10 @@ const AddressSchema = new mongoose.Schema({
   date: {
     type: Date,
     default: Date.now
+  },
+  salesOnThisAddress: {
+    type:Number,
+    default:0
   }
 });
 const Address = mongoose.model('Address', AddressSchema);

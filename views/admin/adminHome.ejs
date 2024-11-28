@@ -87,7 +87,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Total Orders</h3>
-          <p class="text-2xl font-semibold">₹<%= locals.totalOrders %></p>
+          <p class="text-2xl font-semibold">₹<%= locals.totalOrders.toFixed(2) %></p>
           <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
           </p>
         </div>
@@ -99,7 +99,7 @@
         </div>
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Today's Revenue</h3>
-          <p class="text-2xl font-semibold">₹<%= locals.todaysRevenue %></p>
+          <p class="text-2xl font-semibold">₹<%= locals.todaysRevenue.toFixed(2) %></p>
           <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
           </p>
         </div>
@@ -223,7 +223,7 @@
                     </span>
                   </div>
                   <div class="text-sm text-gray-500">
-                    <%= location %> sales
+                    <%= bestSellingLocations.salesOnThisAddress %> sales
                   </div>
                 </li>
               <% }) %>

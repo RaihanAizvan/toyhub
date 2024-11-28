@@ -37,6 +37,14 @@ const UserSchema = new Schema({
   otpExpires: {
     type: Date
   },
+  totalProductsBuyed:{
+    type:Number,
+    default:0
+  },
+  totalAmoutSpended:{
+    type:Number,
+    default:0
+  },
   addresses: [{
     type: Schema.Types.ObjectId,
     ref: 'Address'
