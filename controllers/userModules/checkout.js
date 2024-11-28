@@ -48,7 +48,6 @@ const postPlaceOrderInCheckout = async (req, res) => {
         
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         if (!cart || cart.items.length === 0) {
-            console.log('Cart is empty');
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
@@ -116,13 +115,14 @@ const postPlaceOrderInCheckout = async (req, res) => {
 
         //update user sales
         user.totalProductsBuyed += cart.items.reduce((acc, item) => acc + item.quantity, 0);
-        
+        await user.save()        
+
+
         await Cart.findOneAndDelete({ user: userId });
 
         for (const item of cart.items) {
             const product = await Product.findById(item.product._id);
             product.stock -= item.quantity;
-            console.log(`Product ID: ${product._id}, Stock Updated: ${product.stock}`);
             await product.save();
         }
         
@@ -136,7 +136,6 @@ const postPlaceOrderInCheckout = async (req, res) => {
             totalAmount: updatedTotalAmount,
             success: true
         });
-        console.log('Response sent with order details');
     } catch (error) {
         console.error("Error in postPlaceOrderInCheckout:", error);
         res.status(500).render('user/order-failed', { message: 'Internal Server Error' });
@@ -213,13 +212,10 @@ const applyCoupon = async (req, res) => {
 
 const createRazorPayOrder = async (req, res) => {
     try {
-        console.log(1);
         let { totalAmount } = req.body;
         totalAmount = parseInt(totalAmount);
-        console.log('Total Amount:', totalAmount, typeof totalAmount);
 
         if (!Number.isInteger(totalAmount)) {
-            console.error('Total amount must be an integer');
             return res.status(400).json({ success: false, message: 'The amount must be an integer.' });
         }
 
@@ -237,13 +233,11 @@ const createRazorPayOrder = async (req, res) => {
 
         const order = await razorpay.orders.create(options);
         if (!order) {
-            console.error('Order creation failed');
             return res.status(500).json({ success: false, message: 'Error creating Razorpay order. Please try again later.' });
         }
 
         res.status(200).json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency });
     } catch (error) {
-        console.error('Error creating Razorpay order:', error);
         res.status(500).json({ success: false, message: 'The amount must be an integer.' });
     }
 }
@@ -251,37 +245,32 @@ const createRazorPayOrder = async (req, res) => {
  // Start of Selection
 const verifyPayment = async (req, res) => {
     try {
-        console.log('verify');
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, selectedAddress } = req.body;
-        console.debug('Received payment details:', { razorpay_payment_id, razorpay_order_id, razorpay_signature });
-
         
         const hmac = crypto.createHmac('sha256', process.env.RAZOR_SECRET_ID);
 
         hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
         const generatedSignature = hmac.digest('hex');
-        console.debug('Generated signature:', generatedSignature);
+        
 
         if (generatedSignature === razorpay_signature) {
-            console.debug('Payment verified successfully');
+          
 
             // Create new order logic here
             const userId = req.session.user.id;
-            console.debug('User ID:', userId);
-
+          
             const cart = await Cart.findOne({ user: userId }).populate('items.product');
-            console.debug('Cart details:', cart);
-
+          
             if (!cart || cart.items.length === 0) {
-                console.warn('Cart is empty');
+               
                 return res.status(400).json({ message: 'Cart is empty' });
             }
 
             const user = await User.findById(userId);
-            console.debug('User details:', user);
+        
 
             const address = await Address.findById(selectedAddress); // Assuming selectedAddress is stored in cart
-            console.debug('Address details:', address);
+           
 
             const newOrder = new Order({
                 user: userId,
@@ -318,25 +307,25 @@ const verifyPayment = async (req, res) => {
             });
 
             await newOrder.save();
-            console.debug('New order created:', newOrder);
+          
 
             // Update stock for each product
             for (const item of cart.items) {
                 const product = await Product.findById(item.product._id);
-                console.debug('Product before stock update:', product);
+                
                 product.stock -= item.quantity;
                 await product.save();
-                console.debug('Product after stock update:', product);
+             
             }
 
             // Delete the cart
             await Cart.findOneAndDelete({ user: userId });
-            console.debug('Cart deleted for user:', userId);
+           
 
             res.status(200).json({ success: true, message: 'Payment verified and order created successfully.', orderId: newOrder._id });
             
         } else {
-            console.log('Payment verification failed');
+           
             res.status(400).json({ success: false, message: 'Payment verification failed. Please contact support.' });
         }
     } catch (error) {
@@ -350,7 +339,7 @@ const verifyPayment = async (req, res) => {
 const postWalletPayment = async (req, res) => {
     try {
         const { selectedAddress, couponCode, totalAmount } = req.body;
-        console.debug("req.body is ", req.body);
+ 
 
         const userId = req.session.user.id;
 
@@ -368,8 +357,7 @@ const postWalletPayment = async (req, res) => {
 
         // Fetch the user
         const user = await User.findById(userId);
-        console.debug("cart is ", cart);
-
+    
         
         
         // Create new order
@@ -429,15 +417,12 @@ const postWalletPayment = async (req, res) => {
         // Update stock for each product
         for (const item of cart.items) {
             const product = await Product.findById(item.product._id);
-            console.debug('Product before stock update:', product);
             product.stock -= item.quantity;
             await product.save();
-            console.debug('Product after stock update:', product);
         }
 
         // Delete the cart
         await Cart.findOneAndDelete({ user: userId });
-        console.debug('Cart deleted for user:', userId);
 
         res.status(200).json({ orderId: newOrder._id, paymentMethod: 'wallet', totalAmount: newOrder.totalAmount });
     } catch (error) {
@@ -507,14 +492,12 @@ const verifyRetryPayment = async (req, res) => {
         
 
         if (generatedSignature !== razorpay_signature) {
-            console.debug('Invalid payment signature:', { generatedSignature, razorpay_signature });
             return res.status(400).json({ success: false, message: 'Invalid payment signature' });
         }
 
         // Find the order by ID
         const order = await Order.findById(orderId);
         if (!order) {
-            console.debug('Order not found for ID:', orderId);
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
@@ -525,7 +508,6 @@ const verifyRetryPayment = async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Payment verified and updated successfully' });
     } catch (error) {
-        console.error('Error verifying retry payment:', error);
         res.status(500).json({ success: false, message: 'An error occurred while verifying the payment.' });
     }
 }

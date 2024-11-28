@@ -1,12 +1,11 @@
     import express from "express"
-    import isAdmin from "../middlewares/adminMiddleware.js"   
+    import isAdmin from "../middlewares/adminMiddleware.js"    
     import * as adminController from "../controllers/adminController.js"
     import upload from "../utils/multer.js"
 
     const router = express.Router()
 
-    router.use(isAdmin.isAdmin)
-
+    
     //!---------------------------------------/!/
     //todo: Define authentication routes here/!/
     //!-------------------------------------/!/    
@@ -15,6 +14,7 @@
     router.post("/login", adminController.postLogin)
     router.post("/logout", adminController.postLogout)
     
+    router.use(isAdmin.isAdmin)     
     
     //!---------------------------------------/!/
     //todo: Define dashboard routes here/!/

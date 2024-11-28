@@ -8,8 +8,7 @@ async function getLandingPage(req, res) {
         const flashMessage = req.session.flashMessage || null;
         if (req.session.flashMessage) {
             delete req.session.flashMessage;
-          }
-          console.log(req.session)
+        }
         
         // Fetch the latest active products for "Popular Products"
         const popularProducts = await Product.find({ isBlocked: false })

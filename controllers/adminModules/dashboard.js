@@ -7,7 +7,12 @@ import User from "../../models/users.models.js"
 import Address from "../../models/address.models.js"
 
 export async function getHome(req, res) {
-
+  console.log('Checking if admin is authenticated');
+  if (!req.session.sAdminEmail) {
+    console.log('Admin not authenticated, redirecting to /admin/login');
+    return res.redirect("/admin/login") // Redirect to login if not authenticated
+  }
+  console.log('Admin authenticated');
   const orders = await Order.find({}).limit(10).sort({orderDate:-1}).populate('items.product')
   const todaysOrder = await Order.find({orderDate:{$gte:new Date(new Date().setHours(0,0,0,0))}}).sort({orderDate:-1}).populate('items.product')
   const products = await Product.find({isBlocked:false}).limit(5)
@@ -16,9 +21,6 @@ export async function getHome(req, res) {
 
 
     // Check if the admin is authenticated
-    if (!req.session.sAdminEmail) {
-      return res.redirect("/admin/login") // Redirect to login if not authenticated
-    }
 
     const totalOrders = orders.reduce((acc,order)=>acc+order.totalAmount,0)
     const totalUsers = await User.countDocuments({})
@@ -29,7 +31,6 @@ export async function getHome(req, res) {
     const bestSellingProducts = await Product.find({}).sort({sold:-1}).limit(5)
     const bestSellingUsers = await User.find({}).limit(5)
     const bestSellingLocations = addresses.map(address=>address.city)
-
 
     res.set("Cache-Control", "no-store")
     res.render("admin/adminHome",{

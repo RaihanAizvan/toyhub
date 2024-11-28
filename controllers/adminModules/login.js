@@ -32,11 +32,13 @@ async function getAdminCredentials() {
   
   export function getLogin(req, res) {
     if (req.session.sAdminEmail) {
+      console.log('Session exists, redirecting to /admin');
       return res.redirect("/admin")
     }
-    res.set("Cache-Control", "no-store")  
+    res.set("Cache-Control", "no-store")
     res.render("admin/adminLogin")
   }
+
   
   // function for sending login detials
   export function postLogin(req, res) {
@@ -47,11 +49,9 @@ async function getAdminCredentials() {
       req.session.sAdminEmail = req.body.email
       req.session.sAdminPassword = req.body.password
       res.redirect("/admin")
-      console.log("Succesfull login")
     } else {
       res.set("Cache-control", "no-store")
       res.render("admin/adminLogin", { error: "Incorrect password" })
-      console.log("login failed")
       return
     }
   }
