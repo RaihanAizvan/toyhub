@@ -97,7 +97,7 @@ app.set('layout', './layouts/layout')
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-const port = process.env.PORT;
+const port = process.env.NODE_ENV === 'production' ? process.env.PORT : 3000;
 
 // Route middleware
 app.use("/", homeRoutes);
