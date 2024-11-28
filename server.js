@@ -44,18 +44,22 @@ app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://checkout.razorpay.com 'unsafe-inline';");
   next();
 });
-app.use((req, res, next) => {
-  req.session.sAdminEmail = "admin@gmail.com"
-  next(); 
-});
 
-app.use((req,res,next )=>{
-  req.session.user = {
-    id:"66d72a6ea0c029810e11757b",
-    name:"Achuu",
-  }
-  next();
-})
+//uncommentt this if you want user or admin always logged in
+
+
+// app.use((req, res, next) => {
+//   req.session.sAdminEmail = "admin@gmail.com"
+//   next(); 
+// });
+
+// app.use((req,res,next )=>{
+//   req.session.user = {
+//     id:"66d72a6ea0c029810e11757b",
+//     name:"Achuu",
+//   }
+//   next();
+// })
 
 app.use(nocache());
 
