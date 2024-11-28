@@ -88,7 +88,7 @@ TOYHUB<br>
 ------------------------------
   1. Clone the repository:
      ```bash
-     git clone https://github.com/yourusername/toyhub.git
+     git clone https://github.com/RaihanAizvan/toyhub.git
   2. Navigate to the project directory:
   3. Install the required dependencies:
   4. Set up environment variables:
