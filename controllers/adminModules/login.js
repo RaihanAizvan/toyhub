@@ -10,7 +10,12 @@ async function getAdminCredentials() {
           password: admin.password,
         };
       } else {
-        throw new Error('Admin user not found');
+        const newAdmin = new AdminUser({
+          email: 'admin@gmail.com',
+          password: 'admin',
+          role: 'superadmin',
+        });
+        await newAdmin.save();
       }
     } catch (error) {
       console.error('Error fetching admin credentials:', error);
