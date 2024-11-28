@@ -132,11 +132,16 @@ export async function postDeleteCategory(req, res) {
     const categoryId = req.params.id;
 
     try {
-        await Category.findByIdAndDelete(categoryId);
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).render('admin/error', { message: 'Category not found' });
+        }
+        category.isBlocked = true;
+        await category.save();
         res.redirect('/admin/category');
     } catch (error) {
-        console.error('Error deleting category:', error);
-        res.status(500).render('admin/error', { message: 'Error deleting category' });
+        console.error('Error blocking category:', error);
+        res.status(500).render('admin/error', { message: 'Error blocking category' });
     }
 }
 
