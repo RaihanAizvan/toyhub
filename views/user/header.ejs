@@ -1,125 +1,135 @@
+
 <style>
-    #dropdownProfile {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 100%;
-        width: 12rem;
-        background-color: white;
-        border-radius: 0.375rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    .active-tab{
+        background-color: #19D16F;
+        color:white;
+        padding: 5px 14px;
+        border-radius: 5px;
     }
 
-    .hidden {
-        display: none !important;
+    /* Add transitions for mobile menu */
+    #mobileMenu {
+        transition: all 0.3s ease-in-out;
+        transform-origin: top;
+        transform: scaleY(0);
+        opacity: 0;
+        max-height: 0;
+    }
+
+    #mobileMenu.show {
+        transform: scaleY(1);
+        opacity: 1;
+        max-height: 500px;
+    }
+
+    /* Hamburger button animation */
+    .hamburger-spin {
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .hamburger-spin.active {
+        transform: rotate(180deg);
     }
 </style>
-        
-        <!-- Main Header -->
-        <header class="py-2 bg-white shadow-md">
-            <div class="container mx-auto flex justify-between items-center">
-                <!-- Logo -->
-                <a href="/" class="text-xl font-bold text-gray-800">
-                    <img src="../images/logo.png" alt="ToyHub Logo" class="w-32 h-auto">
-                </a>
-                
 
-                <!-- Search Bar -->
-                <div class="flex flex-grow mx-4">
-                    <select class="border border-gray-300 rounded-l-lg px-3 py-2">
-                        <option>All Categories</option>
-                        <!-- Add more options as needed -->
-                    </select>
-                    <input type="text" placeholder="Search for items..." value="<%= locals.query %>" class="border-t border-b border-gray-300 flex-grow px-4 py-2" oninput="handleSearchInput(this.value)">
-                    <button class="bg-green-600 text-white px-4 py-2 rounded-r-lg">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 6H21M8 12H21M8 18H21M3 6H3.01M3 12H3.01M3 18H3.01"></path>
-                    </svg>
-                </button>
-                <div id="suggestions" class="absolute w-full bg-white border border-gray-300 rounded-b-lg mt-10 z-40 shadow-lg hidden">
-                    <!-- Suggestions will be rendered here -->
-                </div>
-            </div>
-            
-            
-            <!-- Wishlist, Cart, Account -->
-            <div class="flex items-center space-x-6">
-                    <a href="/account/wishlist" class="flex items-center text-gray-800 hover:text-green-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5.121 19A2.992 2.992 0 017 21c1.104 0 2.074-.53 2.666-1.337l.143-.187 1.526-2.037C12.616 16.676 13.293 16 14 16c.707 0 1.384.676 1.665 1.439l.201.377 1.465 2.004C18.03 20.468 18.994 21 20 21a3 3 0 100-6h-1.345c-.644 0-1.23-.305-1.62-.82L14 10H9l-2.956 4.93A2.992 2.992 0 005 16H3a3 3 0 000 6h1.121z"></path>
-                        </svg>
-                        <span class="ml-1">Wishlist</span>
-                    </a>
-                    
-                    <a href="/cart" class="flex items-center text-gray-800 hover:text-green-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 3h18l-2 10H5L3 3zM6 19a2 2 0 100 4h12a2 2 0 100-4H6z"></path>
-                        </svg>
-                        <span class="ml-1">Cart</span>
-                    </a>
-                    
-                    <div class="relative">
-                        <a href="/account" id="profilePopUp" class="flex items-center text-gray-800 hover:text-green-600 cursor-pointer">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 16v-1a4 4 0 00-8 0v1M6 10v1a4 4 0 008 0v-1M6 18v2a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
-                            </svg>
-                            <span class="ml-1"><%= locals.name %></span>
-                        </a>
-                        
-                        
-                        <!-- Dropdown Menu -->
-                        <div id="dropdownProfile" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-                            <ul class="py-1">
-                                <li><a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a></li>
-                                <li><a href="/cart" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cart</a></li>
-                                <li><a href="/wishlist" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Wishlist</a></li>
-                                <li><a href="/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a></li>
-                                <li><a href="/user/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>                              
-                </div>
-            </div>
-            
-            <!-- Browse Categories Button -->
-            <div class="container mx-auto mt-4 flex flex-row  ">
-                <div class="relative inline-block text-left">
-                    <a href="/categories/all" class="flex justify-center rounded-md border border-gray-300 shadow-sm px-8 py-2 bg-green-600 text-white text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        Categories
-                        <svg fill="#FFFFFF" class="-mr-3 ml-2 h-3 mt-1 w-5"  version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-                        viewBox="0 0 330 330" xml:space="preserve">
-                        <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393
-                       c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393
-                       s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
-                   </svg>
-                </a>
-                    <div class="absolute top-full left-0 w-64 bg-white shadow-lg rounded-lg mt-2 hidden">
-                        <div class="grid grid-cols-2 gap-4 p-4">
-                            <a href="#" class="text-gray-700 hover:text-gray-900">Home</a>
-                            <a href="#" class="text-gray-700 hover:text-gray-900">About Us</a>
-                            <a href="#" class="text-gray-700 hover:text-gray-900">Contact</a>
-                            <a href="#" class="text-gray-700 hover:text-gray-900">Best Seller</a>
-                            <a href="#" class="text-gray-700 hover:text-gray-900">Todays Deals</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-evenly w-screen">
-                    <a href="#" class="text-gray-700 hover:text-gray-900">Home</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">About Us</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">Contact</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">Best Seller</a>
-                    <a href="#" class="text-gray-700 hover:text-gray-900">Todays Deals</a>
-                </div>
-            </div>
-        </header>
+
+<header class="bg-white shadow-md fixed md:relative w-full top-0 left-0 z-10">
+    <div class="container mx-auto flex items-center justify-between py-3 px-4">
+        <!-- Logo (Visible on all screens, replaces "All Categories" on mobile) -->
+        <a href="/" class="text-xl font-bold flex-shrink-0">
+            <img src="../images/logo.png" alt="ToyHub Logo" class="w-24 md:w-40 h-auto">
+        </a>
+        <!-- Search Bar -->
+        <div class="flex items-center flex-grow space-x-2 px-4">
+            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2">
+                <option>All Categories</option>
+                <option>Action Figures</option>
+                <option>Educational Toys</option>
+            </select>
+            <input type="text" placeholder="Search for items..."
+                class="border border-gray-300 flex-grow px-4 py-2 rounded-lg sm:rounded-none"
+                oninput="handleSearchInput(this.value)" />
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg">
+                <i class="fas fa-search"></i>
+            </button>
+            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden"></div>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-4">
+            <a href="/account" class="text-gray-700 hover:text-green-600">
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="/cart" class="text-gray-700 hover:text-green-600">
+                <i class="fas fa-shopping-cart"></i>
+            </a>
+            <a href="/account/wishlist" class="text-gray-700 hover:text-green-600">
+                <i class="fas fa-heart"></i>
+            </a>
+            <a href="/account/orders" class="text-gray-700 hover:text-green-600">
+                <i class="fas fa-box"></i>
+            </a>
+            <button id="logout-btn" onclick="logout()" class="text-gray-700 hover:text-green-600">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+
+        <!-- Hamburger Menu for Mobile -->
+        <button id="hamburgerButton" class="md:hidden flex items-center hamburger-spin">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                </path>
+            </svg>
+        </button>
+    </div>
+    <!-- Mobile Menu -->
+     
+    <div id="mobileMenu" class="bg-white shadow-lg md:hidden">
+        <a href="/account" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
+        <a href="/account/cart" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
+        <a href="/account/wishlist" class="block px-4 py-2 hover:bg-gray-100">Wishlist</a>
+        <a href="/orders" class="block px-4 py-2 hover:bg-gray-100">Orders</a>
+        <button id="logout-btn" onclick="logout()" class="block px-4 py-2 hover:bg-gray-100">Logout</button>
+    </div>
+
+
+    <nav class="w-full bg-white shadow-lg rounded-lg mt-2 text-xs md:text-lg">
+        <div class="flex justify-around p-4">
+            <a href="#" class="text-gray-700 hover:text-gray-900 active-tab">Home</a>
+            <a href="#" class="text-gray-700 hover:text-gray-900">About Us</a>
+            <a href="#" class="text-gray-700 hover:text-gray-900">Contact</a>
+            <a href="#" class="text-gray-700 hover:text-gray-900">Best Seller</a>
+            <a href="#" class="text-gray-700 hover:text-gray-900">Todays Deals</a>
+        </div>
+    </nav>
+</header>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Hamburger Menu Toggle
+    const hamburgerButton = document.getElementById("hamburgerButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    hamburgerButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("show");
+        hamburgerButton.classList.toggle("active");
+    });
+
+    // Desktop Profile Dropdown Toggle
+    const desktopProfileTrigger = document.getElementById("desktopProfileTrigger");
+    const desktopProfileDropdown = document.getElementById("desktopProfileDropdown");
+
+    desktopProfileTrigger.addEventListener("click", () => {
+        desktopProfileDropdown.classList.toggle("hidden");
+    });
+
+    // Close profile dropdown if clicked outside
+    document.addEventListener("click", (event) => {
+        if (!desktopProfileTrigger.contains(event.target) && !desktopProfileDropdown.contains(event.target)) {
+            desktopProfileDropdown.classList.add("hidden");
+        }
+    });
+
     function handleSearchInput(value) {
         const suggestions = document.getElementById('suggestions');
         if (value.length >= 2) {
@@ -150,12 +160,54 @@
             window.location.href = `/search/results?q=${query}`; // Redirect to results page
         }
     });
-    document.getElementById('profilePopUp').addEventListener('mouseover', () => {
-        document.getElementById('dropdownProfile').classList.remove('hidden');
+
+    document.getElementById('desktopProfileTrigger').addEventListener('mouseover', () => {
+        document.getElementById('desktopProfileDropdown').classList.remove('hidden');
     });
 
-    document.getElementById('dropdownProfile').addEventListener('mouseleave', () => {
-        document.getElementById('dropdownProfile').classList.add('hidden');
+    document.getElementById('desktopProfileDropdown').addEventListener('mouseleave', () => {
+        document.getElementById('desktopProfileDropdown').classList.add('hidden');
     });
+    
+    function logout() {
+        Swal.fire({
+            title: 'Ready to Take Off?',
+            text: "Your adventure with us is pausing for now!",
+            icon: 'info',
+            iconColor: '#19D16F',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Beam Me Out!',
+            cancelButtonText: 'Wait, Not Yet!',
+            confirmButtonColor: '#19D16F',
+            cancelButtonColor: '#ff6b6b',
+            background: '#fff',
+            backdrop: `
+                rgba(25, 209, 111, 0.1)
+                url("/images/logo.png")
+                right top
+                no-repeat
+            `,
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Preparing for Departure!',
+                    text: 'Saving your progress...',
+                    timer: 1500,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                }).then(() => {
+                    window.location.href = '/user/logout';
+                })
+            }
+        });
+    }
 
 </script>

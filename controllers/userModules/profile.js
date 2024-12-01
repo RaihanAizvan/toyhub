@@ -408,7 +408,7 @@ export const getWallet = async (req, res) => {
         res.render('user/wallet', { 
             title: 'Wallet', 
             user, 
-            transactions: paginatedTransactions, 
+            transactions: paginatedTransactions,
             currentPage, 
             totalPages,
             req

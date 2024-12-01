@@ -1,0 +1,232 @@
+<style>
+    .offer-section {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .offer-section.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .offer-card {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .offer-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-up {
+        animation: fadeInUp 0.8s ease forwards;
+    }
+</style>
+
+<section class="py-8 bg-gray-50 offer-section">
+    <div class="container mx-auto px-6">
+        <div class="relative">
+            <div class="text-white py-12 px-6 rounded-2xl mb-12 shadow-lg overflow-hidden relative">
+                <div class="absolute inset-0 overflow-hidden">
+                    <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover object-bottom">
+                        <source src="https://res.cloudinary.com/dcazdwhb3/video/upload/v1733068246/Screen_Recording_2024-12-01_211834_t0wybm.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900 to-transparent"></div>
+                </div>
+                <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="absolute -left-8 -top-8 w-32 h-32 bg-yellow-400/20 rounded-full blur-xl"></div>
+                <div class="text-center relative px-4">
+                    <div class="animate-bounce mb-4">
+                        <span class="bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-bold">Limited Time</span>
+                    </div>
+                    <h2 class="text-5xl font-extrabold mb-4 text-white drop-shadow-lg" style="text-shadow: 3px 3px 0px rgba(0,0,0,0.2)">
+                        Mega Sale Offers
+                    </h2>
+                    <p class="text-xl opacity-90 mb-8 font-light tracking-wide">Discover Incredible Deals on Premium Toys!</p>
+                    <div class="flex justify-center gap-2 md:gap-8 w-10/12 mx-auto">
+                        <div class="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                            <span class="font-bold text-3xl bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent">50%</span>
+                            <span class="block text-sm font-medium mt-1  ">OFF</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                            <span class="font-bold text-3xl bg-gradient-to-r from-red-300 to-red-500 bg-clip-text text-transparent">24H</span>
+                            <span class="block text-sm font-medium mt-1">LEFT</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                            <span class="font-bold text-3xl bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent">HOT</span>
+                            <span class="block text-sm font-medium mt-1">DEALS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <% if(locals.offerProducts) { %>
+                <% offerProducts.forEach(product => { %>
+                    <div class="offer-card bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                        <div class="relative">
+                            <div class="aspect-w-16 aspect-h-9">
+                                <img src="<%= product.images[0] %>" 
+                                     alt="<%= product.name %>"
+                                     class="w-full h-64 object-contain">
+                            </div>
+                            <div class="absolute top-4 right-4">
+                                <div class="bg-red-500 text-white px-4 py-2 rounded-full font-bold animate-pulse">
+                                    -<%= product.discount %>% OFF
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                                <%= product.name %>
+                            </h3>
+
+                            <div class="mb-4 max-h-24 overflow-y-auto">
+                                <% product.availableOffers.forEach(offer => { %>
+                                    <div class="bg-yellow-50 p-2 mb-2 rounded-lg">
+                                        <p class="text-sm text-yellow-700 font-medium">
+                                            <%= offer.name %>
+                                        </p>
+                                    </div>
+                                <% }) %>
+                            </div>
+
+                            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                                <%= product.description %>
+                            </p>
+
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-bold text-green-600">
+                                        $<%= product.priceAfterDiscount %>
+                                    </span>
+                                    <span class="text-gray-400 line-through">
+                                        $<%= product.price %>
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Stock: <%= product.stock %>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">Offer Ends In:</p>
+                                <div class="grid grid-cols-4 gap-2 countdown" data-end="<%= product.availableOffers[0].endDate %>">
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <span class="days font-bold text-lg text-red-600">00</span>
+                                        <p class="text-xs text-gray-500">Days</p>
+                                    </div>
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <span class="hours font-bold text-lg text-red-600">00</span>
+                                        <p class="text-xs text-gray-500">Hours</p>
+                                    </div>
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <span class="minutes font-bold text-lg text-red-600">00</span>
+                                        <p class="text-xs text-gray-500">Mins</p>
+                                    </div>
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <span class="seconds font-bold text-lg text-red-600">00</span>
+                                        <p class="text-xs text-gray-500">Secs</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center gap-2">
+                                <span>Shop Now</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-full text-center py-8">
+                    <p class="text-gray-500 text-lg">No offers available at the moment</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Countdown functionality
+        const countdownElements = document.querySelectorAll('.countdown');
+        
+        countdownElements.forEach(countdown => {
+            const endDate = new Date(countdown.dataset.end);
+            
+            const daysSpan = countdown.querySelector('.days');
+            const hoursSpan = countdown.querySelector('.hours');
+            const minutesSpan = countdown.querySelector('.minutes');
+            const secondsSpan = countdown.querySelector('.seconds');
+            
+            function updateCountdown() {
+                const now = new Date();
+                const distance = endDate - now;
+                
+                if (distance < 0) {
+                    daysSpan.textContent = '00';
+                    hoursSpan.textContent = '00';
+                    minutesSpan.textContent = '00';
+                    secondsSpan.textContent = '00';
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                daysSpan.textContent = String(days).padStart(2, '0');
+                hoursSpan.textContent = String(hours).padStart(2, '0');
+                minutesSpan.textContent = String(minutes).padStart(2, '0');
+                secondsSpan.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+
+        // Scroll animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+
+        // Observe the offer section
+        const offerSection = document.querySelector('.offer-section');
+        observer.observe(offerSection);
+
+        // Observe each offer card with a delay
+        const offerCards = document.querySelectorAll('.offer-card');
+        offerCards.forEach((card, index) => {
+            setTimeout(() => {
+                observer.observe(card);
+            }, index * 100); // 100ms delay between each card
+        });
+    });
+</script>

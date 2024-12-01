@@ -1,62 +1,139 @@
+<style>
+    .best-sells-card {
+        opacity: 0;
+        transform: translateY(50px); /* Changed to translateY for scroll effect */
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .best-sells-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-up {
+        animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .image-wrapper {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .image-gradient {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.2));
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        transform: translateY(100%);
+    }
+
+    .best-sells-card.visible .image-gradient {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+
 <section class="py-8">
     <div class="container mx-auto px-6">
         <h2 class="text-2xl font-bold mb-4">Daily Best Sells</h2>
-        <div class="bg-blue-100 p-14 my-10 rounded-lg flex items-center">
-            <div>
-                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Bring life into your home</h3>
-                <a href="#" class="inline-block bg-green-500 text-white px-4 py-2 rounded-lg font-medium">Shop
-                    Now</a>
+        <div class="relative overflow-hidden rounded-lg my-10 " style="background-image: linear-gradient(to right, rgba(0, 0, 10, 0.8), rgba(0, 0, 0, 0.4)), url('/images/Banner/ai-generated-banner (1).png'); background-size: cover; background-position: top; background-repeat: no-repeat;">
+            <div class="gradient-wrapper absolute inset-0" style="background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); transform: translateY(100%); transition: transform 0.8s ease-out;">
+            </div>
+            <div class="relative  p-14 flex items-center">
+                <div>
+                    <h3 class="text-2xl font-semibold text-white mb-4">Bring life into your home</h3>
+                    <a href="#" class="inline-block bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition duration-300">Shop Now</a>
+                </div>
             </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            <!-- Promotional Banner -->
-            <!-- Product Cards -->
-            <% if(locals.bestSellarProduct ) { %>
-
-            <% bestSellarProducts.forEach(product=> { %> <div class="bg-white shadow-lg rounded-lg p-4">
-                    <div class="relative">
-                        <% if (product.discount) { %>
-                            <span
-                                class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">Save
-                                <%= product.discount %>%</span>
-                            <% } %>
-                                <img src="<%= product.image %>" alt="<%= product.name %>"
-                                    class="w-full h-40 object-cover rounded-t-lg">
-                    </div>
-                    <div class="p-4">
-                        <h3 class="text-sm font-semibold text-gray-700">
-                            <%= product.name %>
-                        </h3>
-                        <p class="text-xs text-gray-500">
-                            <%= product.brand %>
-                        </p>
-                        <div class="flex items-center mt-2">
-                            <span class="text-lg font-semibold text-green-600">$<%= product.price %></span>
-                            <% if (product.oldPrice) { %>
-                                <span class="text-gray-400 line-through ml-2">$<%= product.oldPrice %></span>
+            <% if(locals.bestSellerProducts ) { %>
+                <% bestSellerProducts.forEach(product=> { %>
+                    <div class="best-sells-card bg-white shadow-lg rounded-lg p-4">
+                        <div class="relative">
+                            <div class="image-wrapper">
+                                <% if (product.discount) { %>
+                                    <span class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full ">Save
+                                        <%= product.discount %>%</span>
                                 <% } %>
-                        </div>
-                        <div class="mt-2">
-                            <p class="text-xs text-gray-500">Sold: <%= product.sold %>/<%= product.stock %>
-                            </p>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="bg-green-500 h-1.5 rounded-full" id="soldBar" style="width:10%">
-                                </div>
-                                <!-- <script>
-                            let soldBar = document.getElementById('soldBar');
-                            soldBar.style.width =  <%= //(locals.product.sold / locals.product.stock) * 100%>%
-                            </script> -->
+                                <img src="<%= product.images[0] %>" alt="<%= product.name %>"
+                                    class="w-full h-40 object-cover rounded-t-lg">
+                                <div class="image-gradient"></div>
                             </div>
                         </div>
-                        <button
-                            class="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 w-full">
-                            Add To Cart </button>
+                        <div class="p-4 flex flex-col h-[200px]">
+                            <h3 class="text-sm font-semibold text-gray-700 line-clamp-2 h-10">
+                                <%= product.name %>
+                            </h3>
+                            <p class="text-xs text-gray-500">
+                                <%= product.category.name %>
+                            </p>
+                            <div class="flex items-center mt-2">
+                                <span class="text-lg font-semibold text-green-600">$<%= product.priceAfterDiscount %></span>
+                                <% if (product.priceAfterDiscount !== product.price) { %>
+                                    <span class="text-gray-400 line-through ml-2">$<%= product.price %></span>
+                                <% } %>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-xs text-gray-500">Sold: <%= product.sold %>/<%= product.stock %></p>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-green-500 h-1.5 rounded-full" id="soldBar" style="width:<%= product.sold/product.stock*100 %>%"></div>
+                                </div>
+                            </div>
+                            <button class="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 w-full ">
+                                Add To Cart
+                            </button>
+                        </div>
                     </div>
-                </div>
                 <% }) %>
-                <% } else { %>
-                    <p>No products available</p>
-                  <% } %>
+            <% } else { %>
+                <p>No products available</p>
+            <% } %>
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.best-sells-card');
+        
+        // Create intersection observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Add animation with delay based on index
+                    setTimeout(() => {
+                        entry.target.classList.add('animate-fade-up');
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                    
+                    // Unobserve after animation
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+
+        // Observe each card
+        cards.forEach(card => {
+            observer.observe(card);
+        });
+    });
+</script>

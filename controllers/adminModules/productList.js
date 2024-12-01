@@ -37,7 +37,7 @@ export async function getEditProduct(req, res) {
     const productId = req.params.id;
     try {
         const product = await Product.findById(productId).populate('category');
-        const categories = await Category.find({});
+        const categories = await Category.find({isActive:true});
         
         res.render('admin/editProduct', { 
             product, 

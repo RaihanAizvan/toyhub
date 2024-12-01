@@ -58,7 +58,7 @@ const getOffers = async (req, res) => {
 
 const getAddOffer = async (req, res) => {
     const products = await Product.find();
-    const categories = await Category.find();
+    const categories = await Category.find({isActive:true});
     res.render("admin/addOffer", {
         title: "Add An Offer",
         products,

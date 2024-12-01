@@ -44,7 +44,7 @@
                                     </div>
                                     <% if (item.offerDiscount > 0) { %>
                                         <div class="mt-2 text-sm text-green-500">
-                                            <p>Offer Discount: -$<%= item.offerDiscount.toFixed(2) %></p>
+                                            <p>Offer Discount: -₹<%= item.offerDiscount.toFixed(2) %></p>
                                             <% item.offers.forEach(offer => { %>
                                                 <p><%= offer.offerDescription %></p>
                                             <% }) %>
@@ -55,7 +55,7 @@
 
                             <!-- Individual Item Price -->
                             <div class="text-lg font-bold text-green-600 ml-4" id="item-price-<%= item.product._id %>">
-                                $<%= (item.quantity * item.price).toFixed(2) %>
+                                ₹<%= (item.quantity * item.price).toFixed(2) %>
                             </div>
 
 
@@ -88,14 +88,14 @@
                     <!-- Subtotal -->
                     <div class="flex justify-between items-center" id="subtotal">
                         <span>Subtotal:</span>
-                        <span class="font-bold price" id="subtotal-amount">$<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price" id="subtotal-amount">₹<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
                     </div>
                     
                     <!-- Discount -->
                     <% if (cart.discount) { %>
                     <div class="flex justify-between items-center text-green-600">
                         <span>Discount:</span>
-                        <span class="font-bold price" id="discount">-$<%= cart.discount ?    cart.discount.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price" id="discount">-₹<%= cart.discount ?    cart.discount.toFixed(2) : '0.00' %></span>
                     </div>
                     <% } %>
                 
@@ -103,7 +103,7 @@
                     <% if (cart.offerDiscount) { %>
                         <div class="flex justify-between items-center text-green-600">
                             <span>Offer Discount:</span>
-                            <span class="font-bold price">-$<%= cart.offerDiscount.toFixed(2) %></span>
+                            <span class="font-bold price">-₹<%= cart.offerDiscount.toFixed(2) %></span>
                         </div>
                     <% } %>
 
@@ -111,14 +111,14 @@
                     <% if (cart.cutoffAmount) { %>
                         <div class="flex justify-between items-center text-red-600">
                             <span>Cutoff Amount:</span>
-                            <span class="font-bold price">+$<%= cart.cutoffAmount.toFixed(2) %></span>
+                            <span class="font-bold price">+₹<%= cart.cutoffAmount.toFixed(2) %></span>
                         </div>
                     <% } %>
 
                     <!-- Total -->
                     <div class="flex justify-between items-center text-lg font-bold text-green-600" id="total-price">
                         <span>Total:</span>
-                        <span class="font-bold price" id="total-amount">$<%= cart.total.toFixed(2) %></span>
+                        <span class="font-bold price" id="total-amount">₹<%= cart.total.toFixed(2) %></span>
                     </div>
                 </div>
 
@@ -218,10 +218,10 @@ function removeItemFromCart(event, productId) {
 
 // Helper function to update cart summary
 function updateCartSummary(subtotal, total, discount) {
-    document.getElementById('subtotal-amount').innerText = `$${subtotal.toFixed(2)}`;
-    document.getElementById('total-amount').innerText = `$${total.toFixed(2)}`;
+    document.getElementById('subtotal-amount').innerText = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('total-amount').innerText = `₹${total.toFixed(2)}`;
     if (discount > 0) {
-        document.getElementById('discount').innerHTML = `Discount: -$${discount.toFixed(2)}`;
+        document.getElementById('discount').innerHTML = `Discount: -₹${discount.toFixed(2)}`;
     } 
 }
 

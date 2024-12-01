@@ -1,83 +1,290 @@
 <style>
-.line-clamp-2 {
-    display: -webkit-box;
-    line-clamp: 2; /* Number of lines to show */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: normal;
-}
+    /* Keep all existing styles but adjust only the relevant sizing properties */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
 
-/* Adjust card height and content alignment */
-.h-80 {
-    height: 20rem; /* Adjust the height as needed */
-}
+    .product-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        opacity: 0;
+        transform: translateY(20px);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
 
+    /* Keep all animations and hover effects exactly the same */
+    .product-card.animate {
+        animation: fadeInUp 0.6s ease forwards;
+    }
 
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(25, 209, 111, 0.2),
+            transparent
+        );
+        transition: 0.6s;
+        z-index: 1;
+    }
+
+    .product-card:hover::before {
+        left: 100%;
+    }
+
+    .product-image-container {
+        position: relative;
+        overflow: hidden;
+        padding-top: 100%;
+        background: #f9fafb;
+        border-radius: 12px;
+    }
+
+    .product-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        padding: 0.5rem; /* Reduced from 1rem */
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.08);
+    }
+
+    .discount-badge {
+        background: linear-gradient(135deg, #f43f5e, #e11d48);
+        animation: pulse 2s infinite;
+        box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.3);
+    }
+
+    .product-details {
+        padding: 0.75rem; /* Reduced from 1.25rem */
+        background: linear-gradient(180deg, transparent, rgba(249, 250, 251, 0.8));
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem; /* Reduced from 0.5rem */
+        transition: color 0.3s ease;
+        height: 2.5rem;
+        overflow: hidden;
+    }
+
+    .product-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem; /* Reduced from 1rem */
+        height: 2.5rem;
+        overflow: hidden;
+    }
+
+    .price-container {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem; /* Reduced from 0.75rem */
+        margin-bottom: 0.5rem; /* Reduced from 1rem */
+    }
+
+    .current-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #19D16F;
+    }
+
+    .old-price {
+        color: #9ca3af;
+        text-decoration: line-through;
+        font-size: 0.875rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.25rem; /* Reduced from 0.5rem */
+        margin-top: auto;
+    }
+
+    .wishlist-btn {
+        padding: 0.25rem; /* Reduced from 0.5rem */
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        background: #f3f4f6;
+    }
+
+    .wishlist-btn:hover {
+        background: #fee2e2;
+        transform: scale(1.1);
+    }
+    .add-to-cart-btn {
+        color: #19D16F;
+        padding: .15rem 0.75rem; /* Reduced from .25rem 1rem */
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #19D16F;
+        background: transparent;
+        font-weight: 600;
+        font-size: 0.875rem;
+        letter-spacing: 0.025em;
+    }
+
+    .add-to-cart-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.4);
+    }
+
+    .stock-warning {
+        animation: blink 1.5s infinite;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
 </style>
 
-
 <!-- Product Card Section -->
-<!-- Product Card Section -->
-<section class="bg-white py-8">
-    <div class="container mx-auto px-6">
-        <h2 class="text-3xl font-semibold mb-6">All Products</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+<section class="bg-gradient-to-b from-gray-50 to-white py-12">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold mb-8 text-gray-900 text-center">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500">
+                All Products
+            </span>
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             <% if (locals.popularProducts) { %>
-                <% popularProducts.forEach(product => { %>
-                <div class="bg-white shadow-lg rounded-lg flex flex-col justify-between p-4">
-                    <div class="relative">
-                        <% if (product.oldPrice) { %>
-                        <div class="absolute top-0 left-0 bg-orange-400 text-white text-xs font-semibold py-1 px-3 rounded-br-lg">
-                            <%= Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) %>% OFF
-                        </div>
-                        <% } %>
-                        <img src="<%= product.images[0] %>" alt="<%= product.name %>"
-                            class="h-32 w-full object-contain rounded-t-lg">
-                    </div>
-                    <div class="mt-2">
+                <% popularProducts.forEach(product=> { %> 
+                    <div class="product-card">
                         <a href="/product/<%= product._id %>" class="block">
-                            <h1 class="font-bold text-sm"><%= product.name %></h1>
-                            <p class="text-xs text-gray-600 overflow-hidden overflow-ellipsis line-clamp-2">
-                                <%= product.description1 %>
-                            </p>
-                            <div class="flex items-center space-x-2">
-                                <p class="text-green-500 text-2xl font-bold mt-2">$<%= product.priceAfterDiscount %></p>
-                                <p class="text-gray-500 text-sm line-through">$<%= product.price %></p>
+                            <div class="product-image-container">
+                                <% if (product.oldPrice) { %>
+                                    <div class="discount-badge absolute top-3 left-3 text-white text-sm font-bold py-1 px-3 rounded-full z-10">
+                                        <%= Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) %>% OFF
+                                    </div>
+                                <% } %>
+                                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="product-image object-cover">
+                                <% if (product.stock === 0) { %>
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                        <span class="text-white font-bold text-lg">Out of Stock</span>
+                                    </div>
+                                <% } %>
                             </div>
                         </a>
-                        <div class="flex justify-between mt-2">
-                            <button type="button" class="wishlist-btn bg-transparent border-0 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %> hover:text-red-700 transition duration-300" data-product-id="<%= product._id %>" onclick="toggleWishlist(event, '<%= product._id %>')">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                            <button type="button" class="add-to-cart-btn text-green-500 font-bold py-1 px-4 rounded-xl flex items-center justify-center" data-product-id="<%= product._id %>" data-product-stock="<%= product.stock %>" onclick="addToCart(event, '<%= product._id %>')">
-                                <i class="fas fa-shopping-cart mr-2"></i> Cart
-                            </button>
+                        <div class="product-details">
+                            <a href="/product/<%= product._id %>" class="block group">
+                                <h3 class="product-name group-hover:text-green-600">
+                                    <%= product.name %>
+                                </h3>
+                                <p class="product-description line-clamp-2">
+                                    <%= product.description1.length > 30 ? product.description1.slice(0, 30) + '...' : product.description1 %>
+                                </p>
+                                <div class="price-container">
+                                    <span class="current-price">₹<%= product.priceAfterDiscount %></span>
+                                    <span class="old-price">₹<%= product.price %></span>
+                                </div>
+                            </a>
+                            <div class="action-buttons">
+                                <button type="button"
+                                    class="wishlist-btn <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-gray-400' %>"
+                                    data-product-id="<%= product._id %>"
+                                    onclick="toggleWishlist(event, '<%= product._id %>')">
+                                    <i class="fas fa-heart text-lg"></i>
+                                </button>
+                                <button type="button"
+                                    class="add-to-cart-btn bg-primary"
+                                    data-product-id="<%= product._id %>" 
+                                    data-product-stock="<%= product.stock %>"
+                                    onclick="addToCart(event, '<%= product._id %>')"
+                                    <%= product.stock === 0 ? 'disabled' : '' %>>
+                                    <i class="fas fa-shopping-cart text-sm hover:scale-110 transition-transform duration-300 transform"></i>
+                                    <span class="ml-2 text-sm font-medium"></span>
+                                    
+                                </button>
+                            </div>
+                            <% if (product.stock < 5 && product.stock !== 0) { %>
+                                <div class="stock-warning text-white text-center text-sm py-1 px-2 rounded-full mt-3">
+                                    Only <%= product.stock %> left in stock!
+                                </div>
+                            <% } %>
                         </div>
                     </div>
-                    <% if (product.stock < 5 && product.stock!=0) { %>
-                    <div class="text-white bg-red-600 p-1 text-center rounded text-sm mt-2">
-                        Few stocks left!
-                    </div>
-                    <% } %>
-                <% if (product.stock === 0) { %>
-                    <div class="text-white bg-red-600 p-1 text-center rounded text-sm mt-2">
-                        Out of Stock
-                    </div>
-                <% } %>
-                </div>
                 <% }) %>
             <% } else { %>
-            <p>No products available</p>
+                <div class="col-span-full text-center py-12">
+                    <p class="text-gray-500 text-lg">No products available at the moment</p>
+                </div>
             <% } %>
         </div>
     </div>
 </section>
 
-
-
 <script>
-    console.log('Script loaded');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        observer.observe(card);
+    });
+
     function toggleWishlist(event, productId) {
         console.log('Toggle wishlist clicked');
         console.log(productId);
@@ -85,7 +292,7 @@
         const button = event.currentTarget;
         const isInWishlist = button.classList.contains('text-red-500');
 
-        const url = isInWishlist ? `/wishlist/` : `/wishlist/${productId}`;
+        const url = isInWishlist ? `/wishlist/` : `/wishlist/₹{productId}`;
         const method = isInWishlist ? 'delete' : 'post';
 
         axios({
@@ -93,75 +300,69 @@
             url: '/account' + url,
             data: { productId: productId }
         })
-        .then(response => {
-            console.log('Success:', response.data);
-            toastr.success(response.data.message || (isInWishlist ? 'Product removed from wishlist!' : 'Product added to wishlist!'));
-            button.classList.toggle('text-red-500');
-            button.classList.toggle('text-green-500');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
-        });
+            .then(response => {
+                console.log('Success:', response.data);
+                toastr.success(response.data.message || (isInWishlist ? 'Product removed from wishlist!' : 'Product added to wishlist!'));
+                button.classList.toggle('text-red-500');
+                button.classList.toggle('text-gray-400');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
+            });
     }
 
-// Initialize Toastr
-toastr.options = {
-closeButton: true,
-    progressBar: true,
-    positionClass: "toast-top-right",
-    timeOut: 3000
-};
+    toastr.options = {
+        closeButton: true,
+        progressBar: true,
+        positionClass: "toast-top-right",
+        timeOut: 3000
+    };
 
+    function addToCart(event, productId) {
+        event.preventDefault();
+        event.stopPropagation();
+        const productStock = event.target.getAttribute('data-product-stock');
+        console.log(productStock);
 
-function addToCart(event, productId) {
-    event.preventDefault();
-    event.stopPropagation();
-    const productStock = event.target.getAttribute('data-product-stock');
-    console.log(productStock);
-
-    if (productStock == 0) {
-        console.error('Error: Product is out of stock.');
-        toastr.error('Product is out of stock and cannot be added to the cart.');
-        return;
-    }
-
-    const quantity = 1;
-
-    console.log('Product ID:', productId);
-
-    axios.post('/cart/addProduct', {
-        products: [{ productId: productId, quantity: quantity }]
-    })
-    .then(response => {
-        console.log('Success:', response.data);
-        toastr.success(response.data.message );
-        if (response.data.cartItemCount !== undefined) {
-            updateCartItemCount(response.data.cartItemCount);
+        if (productStock == 0) {
+            console.error('Error: Product is out of stock.');
+            toastr.error('Product is out of stock and cannot be added to the cart.');
+            return;
         }
-        
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        toastr.error(error.response?.data?.message || 'Failed to add product to cart.');
-    });
-}
 
-function updateCartItemCount(count) {
-    const cartCountElement = document.getElementById('cart-count');
-    if (cartCountElement) {
-        cartCountElement.innerText = count;
+        const quantity = 1;
+
+        console.log('Product ID:', productId);
+
+        axios.post('/cart/addProduct', {
+            products: [{ productId: productId, quantity: quantity }]
+        })
+            .then(response => {
+                console.log('Success:', response.data);
+                toastr.success(response.data.message);
+                if (response.data.cartItemCount !== undefined) {
+                    updateCartItemCount(response.data.cartItemCount);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error(error.response?.data?.message || 'Failed to add product to cart.');
+            });
     }
-}
 
-// Add event listeners to all "Add to Cart" buttons
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded');
-    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', addToCart);
+    function updateCartItemCount(count) {
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.innerText = count;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM loaded');
+        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', addToCart);
+        });
     });
-});
-
-
 </script>

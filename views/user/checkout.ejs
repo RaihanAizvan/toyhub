@@ -61,8 +61,8 @@
                                             <% if (coupons && coupons.length> 0) { %> <% coupons.forEach(coupon=> { %>
                                                     <option value="<%= coupon.couponCode %>">
                                                         <%= coupon.couponCode %> - <%= coupon.discount %>
-                                                                <%= coupon.discountType==='percentage' ? '%' : '$' %> -
-                                                                    Min Spend: $<%= coupon.minSpend %>
+                                                                <%= coupon.discountType==='percentage' ? '%' : '' %> -
+                                                                    Min Spend: <%= coupon.minSpend %>
                                                     </option>
                                                     <% }) %>
                                                         <% } else { %>
@@ -72,12 +72,12 @@
                                         <button type="button" onclick="applyCoupon()" id="applyCouponButton"
                                             class="bg-primary text-white p-2">Apply</button>
                                         <button type="button" onclick="clearCoupon()" id="removeCouponButton"
-                                            class="bg-red-500 text-white p-2 ml-2">Remove</button>
+                                            class="bg-red-500 text-white p-2 ml-2">Remove</button>  
                                         <% } %>
                             </div>
                             <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
                             <p id="couponError" class="text-red-600 hidden">Coupon cannot be applied. Minimum spend
-                                required: $<%= coupons.minSpend %>
+                                required: <%= coupons.minSpend %>
                             </p> <!-- Error message for coupon -->
                         </div>
                         <!-- Payment Methods -->
@@ -98,7 +98,7 @@
                                     </div>
                                     <% } else { %>
                                         <p class="text-red-600">Cash on Delivery is not available for orders above
-                                            $1000.</p>
+                                            1000.</p>
                                         <% } %>
                                             <div class="flex items-center">
                                                 <input type="radio" name="paymentMethod" id="wallet" value="wallet"
@@ -126,7 +126,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <p class="font-semibold price">$<%= (item.quantity * item.price).toFixed(2) %>
+                                        <p class="font-semibold price"><%= (item.quantity * item.price).toFixed(2) %>
                                         </p>
                                     </div>
                                     <hr>
@@ -139,25 +139,25 @@
                         <div class="mt-6 space-y-2">
                             <div class="flex justify-between">
                                 <span>Subtotal</span>
-                                <span class="font-bold" id="subtotal">$<%= cart ? cart.subtotal ?
+                                <span class="font-bold" id="subtotal">₹<%= cart ? cart.subtotal ?
                                         cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
                             </div>
                             <div class="flex justify-between text-green-600 hidden" id="couponDiscountContainer">
                                 <span>Coupon Discount</span>
-                                <span class="font-bold" id="couponDiscount">-$0.00</span>
+                                <span class="font-bold" id="couponDiscount">-₹0.00</span>
                             </div>
                             <!-- offers -->
                             <% if (cart.offerDiscount && cart.offerDiscount> 0) { %> <div
                                     class="flex justify-between text-green-600" id="offerDiscountContainer">
                                     <span>Offer Discount</span>
-                                    <span class="font-bold" id="offerDiscount">-$<%= cart.offerDiscount.toFixed(2) %>
+                                    <span class="font-bold" id="offerDiscount">-₹<%= cart.offerDiscount.toFixed(2) %>
                                             </span>
                                 </div>
                                 <% } %>
                                     <% if (cart.discount && cart.discount> 0) { %> <!-- normal discount -->
                                         <div class="flex justify-between text-green-600" id="discountContainer">
                                             <span>Discount</span>
-                                            <span class="font-bold" id="discount">-$<%= cart.discount.toFixed(2) %>
+                                            <span class="font-bold" id="discount">-₹<%= cart.discount.toFixed(2) %>
                                                     </span>
                                         </div>
                                         <% } %>
@@ -165,14 +165,14 @@
                                                     class="flex justify-between text-red-600"
                                                     id="cutoffAmountContainer">
                                                     <span>Cutoff Amount</span>
-                                                    <span class="font-bold" id="cutoffAmount">+$<%=
+                                                    <span class="font-bold" id="cutoffAmount">+₹<%=
                                                             cart.cutoffAmount.toFixed(2) %></span>
                                                 </div>
                                                 <% } %>
                                                     <hr>
                                                     <div class="flex justify-between text-lg font-bold ">
                                                         <span>Total</span>
-                                                        <span class="font-bold" id="total">$<%= cart.total.toFixed(2) %>
+                                                        <span class="font-bold" id="total">₹<%= cart.total.toFixed(2) %>
                                                                 </span>
                                                         <input type="hidden" name="totalAmount" id="totalAmount"
                                                             value="<%= cart.total.toFixed(2) %>">
@@ -195,16 +195,15 @@
         </div>
     </div>
     <%- include('footer') %>
-        <!-- axios -->
+       
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <!-- ---------------------------------Razorpay-------------------------------------->
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        
         <script>
             // Apply Coupon Feedback
             async function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value;
                 const cutoffAmountElement = document.getElementById('cutoffAmount');
-                const cutoffAmount = cutoffAmountElement ? parseFloat(cutoffAmountElement.textContent.replace('+$', '')) : 0;
+                const cutoffAmount = cutoffAmountElement ? parseFloat(cutoffAmountElement.textContent.replace('+₹', '')) : 0;
 
                 if (cutoffAmount > 0) {
                     displayCouponError('Coupons cannot be applied when a cutoff amount is present.');
@@ -245,26 +244,26 @@
                 const offerDiscountContainer = document.getElementById('offerDiscountContainer');
 
                 // Reset displayed values
-                couponDiscountElement.textContent = '-$0.00';
+                couponDiscountElement.textContent = '-₹0.00';
                 couponDiscountContainer.classList.add('hidden');
                 couponFeedbackElement.classList.add('hidden');
 
                 // Calculate the new total amount considering other discounts and removing coupon discount
-                const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('$', ''));
-                const offerDiscount = offerDiscountElement ? parseFloat(offerDiscountElement.textContent.replace('-$', '')) : 0;
-                const discount = parseFloat(document.getElementById('discount').textContent.replace('-$', '')) || 0;
+                const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
+                const offerDiscount = offerDiscountElement ? parseFloat(offerDiscountElement.textContent.replace('-₹', '')) : 0;
+                const discount = parseFloat(document.getElementById('discount').textContent.replace('-₹', '')) || 0;
 
                 // Check if cutoffAmount element exists and get its value
                 let cutoffAmount = 0;
                 const cutoffAmountElement = document.getElementById('cutoffAmount');
                 if (cutoffAmountElement) {
-                    cutoffAmount = parseFloat(cutoffAmountElement.textContent.replace('+$', '')) || 0;
+                    cutoffAmount = parseFloat(cutoffAmountElement.textContent.replace('+₹', '')) || 0;
                 }
 
                 const newTotal = subtotal - discount - offerDiscount + cutoffAmount;
 
                 // Update the total amount displayed
-                totalElement.textContent = `$${newTotal.toFixed(2)}`;
+                totalElement.textContent = `₹${newTotal.toFixed(2)}`;
                 totalAmountInput.value = newTotal.toFixed(2);
 
                 // Ensure coupon is removed from session storage
@@ -281,11 +280,11 @@
                 const totalElement = document.getElementById('total');
                 const totalAmountInput = document.getElementById('totalAmount');
 
-                couponDiscountElement.textContent = `-$${discountAmount.toFixed(2)}`;
+                couponDiscountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
                 couponDiscountContainer.classList.remove('hidden');
                 couponFeedbackElement.classList.remove('hidden');
 
-                totalElement.textContent = `$${discountedTotal.toFixed(2)}`;
+                totalElement.textContent = `₹${discountedTotal.toFixed(2)}`;
                 totalAmountInput.value = discountedTotal.toFixed(2);
             }
 

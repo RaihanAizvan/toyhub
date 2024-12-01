@@ -1,0 +1,173 @@
+<section class="py-8 bg-gradient-to-b from-gray-50 to-white">
+    <div class="container mx-auto px-4">
+        <!-- Search Header with Animation -->
+        <div class="text-center mb-10 opacity-0 animate-fadeIn">
+            <h2 class="text-4xl font-bold text-gray-800 mb-3 relative inline-block">
+                Find Your Perfect Toy
+                <div class="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-green-400"></div>
+            </h2>
+            <p class="text-gray-600 text-lg">Advanced search and filtering options to help you discover exactly what you're looking for</p>
+        </div>
+
+        <!-- Enhanced Search and Filter Container -->
+        <div class="bg-white rounded-xl shadow-xl p-8 mb-8 backdrop-blur-lg border border-gray-100">
+            <!-- Animated Search Bar -->
+            <div class="relative mb-8 transform hover:scale-[1.01] transition-all duration-300">
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    name="q"
+                    class="w-full pl-14 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 text-lg"
+                    placeholder="Search by product name or description..."
+                    value="<%= locals.q || '' %>"
+                >
+                <div class="absolute left-5 top-1/2 transform -translate-y-1/2 transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Advanced Filters with Custom Select -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Enhanced Category Filter -->
+                <div class="space-y-2 group">
+                    <label class="block text-sm font-medium text-gray-700 group-hover:text-primary transition-colors">Category</label>
+                    <div class="relative">
+                        <select name="category" class="appearance-none w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20 bg-white cursor-pointer hover:border-primary transition-all duration-300">
+                            <option value="">All Categories</option>
+                            <% if(locals.categories && categories.length > 0) { %>
+                                <% categories.forEach(category => { %>
+                                    <option value="<%= category._id %>" <%= locals.category === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sort By -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Sort By</label>
+                    <div class="relative">
+                        <select name="sort" id="sortBy" class="appearance-none w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20 bg-white cursor-pointer hover:border-primary transition-all duration-300">
+                            <option value="">Default</option>
+                            <option value="lowToHigh" <%= locals.sort === 'lowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="highToLow" <%= locals.sort === 'highToLow' ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="atoz" <%= locals.sort === 'atoz' ? 'selected' : '' %>>Name: A to Z</option>
+                            <option value="ztoa" <%= locals.sort === 'ztoa' ? 'selected' : '' %>>Name: Z to A</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Range -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Price Range</label>
+                    <div class="flex gap-2">
+                        <input 
+                            type="number" 
+                            id="minPrice" 
+                            name="minPrice"
+                            placeholder="Min"
+                            class="w-1/2 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20"
+                            value="<%= locals.minPrice || '' %>"
+                        >
+                        <input 
+                            type="number" 
+                            id="maxPrice" 
+                            name="maxPrice"
+                            placeholder="Max"
+                            class="w-1/2 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20"
+                            value="<%= locals.maxPrice || '' %>"
+                        >
+                    </div>
+                </div>
+
+                <!-- Enhanced Age Group (Dummy) -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Age Group</label>
+                    <div class="relative">
+                        <select id="ageGroup" class="appearance-none w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20 bg-white cursor-pointer hover:border-primary transition-all duration-300">
+                            <option value="">All Ages</option>
+                            <option value="0-2">👶 0-2 years</option>
+                            <option value="3-5">🧒 3-5 years</option>
+                            <option value="6-8">👧 6-8 years</option>
+                            <option value="9-12">🧑 9-12 years</option>
+                            <option value="12+">👦 12+ years</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Action Buttons -->
+            <div class="mt-8 flex justify-end gap-4">
+                <button onclick="resetFilters()" class="group px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset Filters
+                </button>
+                <button onclick="applyFilters()" class="group px-6 py-3 bg-primary hover:bg-green-600 text-white rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                    </svg>
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+</style>
+
+<script>
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('ageGroup').selectedIndex = 0;
+    document.getElementById('sortBy').selectedIndex = 0;
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    window.location.href = '/search/results';
+}
+
+function applyFilters() {
+    const searchQuery = document.getElementById('searchInput').value;
+    const sort = document.getElementById('sortBy').value;
+    const categorySelect = document.querySelector('select[name="category"]');
+    const category = categorySelect ? categorySelect.value : '';
+    const minPrice = document.getElementById('minPrice').value;
+    const maxPrice = document.getElementById('maxPrice').value;
+
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('q', searchQuery);
+    if (sort) params.append('sort', sort);
+    if (category) params.append('category', category);
+    if (minPrice) params.append('minPrice', minPrice);
+    if (maxPrice) params.append('maxPrice', maxPrice);
+
+    window.location.href = `/search/results?${params.toString()}`;
+}
+</script>

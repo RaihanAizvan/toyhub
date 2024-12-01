@@ -35,7 +35,7 @@ async function getCategoryList(req, res) {
 
 async function viewAllCategories(req, res) {
   try {
-      const categories = await Category.find().populate('products');
+      const categories = await Category.find({isActive:true}).populate('products');
       res.render('user/allCategories', { categories });
   } catch (error) {
       console.error('Error fetching all categories:', error);

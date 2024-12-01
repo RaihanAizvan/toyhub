@@ -76,9 +76,9 @@
                 <td class="p-4"><%= coupon.couponCode %></td>
                 <td class="p-4"><%= new Date(coupon.startDate).toLocaleDateString() %></td>
                 <td class="p-4"><%= new Date(coupon.endDate).toLocaleDateString() %></td>
-                <td class="p-4"><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '$' + coupon.discount %></td>
+                <td class="p-4"><%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.discount %></td>
                 <td class="p-4"><%= coupon.usageLimit %></td>
-                <td class="p-4">$<%= coupon.minSpend %></td>
+                <td class="p-4">₹<%= coupon.minSpend %></td>
                 <td class="p-4">
                   <a href="/admin/editCoupon/<%= coupon._id %>" class="text-blue-500 mx-2 hover:underline">Edit</a>
                   <button onclick="manageCoupon('delete', '<%= coupon._id %>')" class="text-red-500 mx-2 hover:underline">Delete</button>

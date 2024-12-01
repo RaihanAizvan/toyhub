@@ -27,7 +27,7 @@ export async function getHome(req, res) {
     const todaysRevenue = todaysOrder.reduce((acc,order)=>acc+order.totalAmount,0)
     const activeOrders = fullOrders.length
  
-    const bestSellingCategories = await Category.find({}).limit(5)
+    const bestSellingCategories = await Category.find({isActive:true}).limit(5)
     const bestSellingProducts = await Product.find({}).sort({sold:-1}).limit(5)
     const bestSellingUsers = await User.find({}).limit(5)
     const bestSellingLocations = addresses.map(address=>address.city)

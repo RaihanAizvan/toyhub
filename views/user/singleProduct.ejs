@@ -34,10 +34,10 @@
                             <span class="text-gray-600 ml-2">Sold: <%= product.sold %></span>
                         </div>
                         <div class="flex items-center ">
-                            <span class="text-3xl font-bold text-green-500">$<%= Math.ceil(product.price * (1 -
+                            <span class="text-3xl font-bold text-green-500">₹<%= Math.ceil(product.price * (1 -
                                     product.discount / 100)) %></span>
                             <% if (product.discount) { %>
-                                <span class="text-gray-500 line-through ml-2">$<%= product.price %></span>
+                                <span class="text-gray-500 line-through ml-2">₹<%= product.price %></span>
                                 <span class="text-green-500 ml-2 text-sm">
                                     <%= product.discount %>% Off
                                 </span>

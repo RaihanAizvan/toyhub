@@ -136,12 +136,15 @@ export async function postDeleteCategory(req, res) {
         if (!category) {
             return res.status(404).render('admin/error', { message: 'Category not found' });
         }
-        category.isBlocked = true;
+        if (category.isActive === undefined) {
+            category.isActive = false;
+        }
+        category.isActive = !category.isActive;
         await category.save();
         res.redirect('/admin/category');
     } catch (error) {
-        console.error('Error blocking category:', error);
-        res.status(500).render('admin/error', { message: 'Error blocking category' });
+        console.error('Error toggling category status:', error);
+        res.status(500).render('admin/error', { message: 'Error toggling category status' });
     }
 }
 

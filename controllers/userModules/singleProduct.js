@@ -38,12 +38,12 @@ export const getSingleProduct = async (req, res) => {
 
 export const searchAndFilterProducts = async (req, res) => {
     try {
-        const { q, sort, category, page = 1 } = req.query;
+        const { q, sort, category, page = 1, minPrice, maxPrice } = req.query;
         const limit = 10;
         const skip = (parseInt(page) - 1) * limit;
 
         // Build query object for search and filtering
-        let query = {};
+        let query = { isBlocked: false };
         let sortOptions = {};
 
         // Search query handling
@@ -61,13 +61,20 @@ export const searchAndFilterProducts = async (req, res) => {
             query.category = { $in: categoryArray };
         }
 
+        // Price range handling
+        if (minPrice || maxPrice) {
+            query.priceAfterDiscount = {};
+            if (minPrice) query.priceAfterDiscount.$gte = parseFloat(minPrice);
+            if (maxPrice) query.priceAfterDiscount.$lte = parseFloat(maxPrice);
+        }
+
         // Sort handling
         switch (sort) {
             case 'lowToHigh':
-                sortOptions.price = 1;
+                sortOptions.priceAfterDiscount = 1;
                 break;
             case 'highToLow':
-                sortOptions.price = -1;
+                sortOptions.priceAfterDiscount = -1;
                 break;
             case 'atoz':
                 sortOptions.name = 1;
@@ -95,10 +102,10 @@ export const searchAndFilterProducts = async (req, res) => {
         }
 
         // Fetch categories for filter sidebar
-        const categories = await Category.find({});
+        const categories = await Category.find({isActive:true});
 
         // Fetch filtered and sorted products
-        const products = await Product.find({ ...query, isBlocked: false })
+        const products = await Product.find(query)
             .collation({ locale: 'en', strength: 2 })
             .sort(sortOptions)
             .skip(skip)
@@ -121,8 +128,6 @@ export const searchAndFilterProducts = async (req, res) => {
             nextPage: validatedPage + 1,
             prevPage: validatedPage - 1
         };
-        
-        
 
         // Render results
         res.render('user/searchResults', {
@@ -131,12 +136,13 @@ export const searchAndFilterProducts = async (req, res) => {
             query: q || '',
             categories,
             pagination,
-            
             page,
             pages: totalPages,
             sort,
             category,
             q,
+            minPrice,
+            maxPrice,
             noResults: products.length === 0,
             totalResults: totalCount,
             name:req.session.user?.name

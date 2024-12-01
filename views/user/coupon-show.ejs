@@ -1,0 +1,165 @@
+<section class="py-8">
+    <div class="container mx-auto px-6">
+        <div class="relative">
+            <div class="bg-cover bg-center text-white py-12 px-6 rounded-2xl mb-12 shadow-lg transform hover:scale-[1.02] transition-all duration-300" style="background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), url('/images/Banner/ai-generated-banner (1).png'); background-size: cover;">
+                <div class="absolute inset-0 bg-gradient-to-r from-green-600/80 to-green-900/80 rounded-2xl"></div>
+                <div class="text-center relative z-10">
+                    <h2 class="text-4xl font-bold mb-4 animate-fadeIn">Exclusive Coupons</h2>
+                    <p class="text-xl opacity-90 animate-slideUp">Save Big with Our Special Discount Codes!</p>
+                    <div class="mt-6 flex justify-center">
+                        <div class="bg-white/20 backdrop-blur px-6 py-3 rounded-full hover:bg-white/30 transition-all duration-300 animate-pulse">
+                            <span class="font-semibold">Up to 50% OFF on Selected Items</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mb-8 opacity-0 translate-y-10 animate-fadeInUp">
+            <h2 class="text-3xl font-bold text-gray-800">Available Coupons</h2>
+            <p class="text-gray-600 mt-2">Use these coupons to get amazing discounts on your purchases!</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <% if(locals.coupons && coupons.length > 0) { %>
+                <% coupons.forEach((coupon, index) => { %>
+                    <div class="relative shadow-lg bg-white rounded-lg overflow-hidden opacity-0 translate-y-10 animate-fadeInUp border border-gray-500 border-dashed" style="animation-delay: <%= index * 100 %>ms">
+                        <!-- Decorative scissors line -->
+                        <div class="absolute top-0 left-0 right-0 border-t-2 border-dashed border-gray-500"></div>
+                        
+                        <!-- Left circles -->
+                        <div class="absolute left-[-10px] top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                        </div>
+                        
+                        <!-- Right circles -->
+                        <div class="absolute right-[-10px] top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                            <div class="w-5 h-5 bg-gray-100 rounded-full"></div>
+                        </div>
+
+                        <div class="relative p-6 bg-gradient-to-br from-white to-gray-200">
+                            <!-- Coupon value banner -->
+                            <div class="absolute -right-12 top-4 bg-red-500 text-white px-12 py-1 transform rotate-45 shadow-lg">
+                                <%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.discount %> OFF
+                            </div>
+
+                            <div class="text-center mb-4">
+                                <h3 class="text-2xl font-bold text-primary break-all hover:scale-105 transition-transform">
+                                    <%= coupon.couponCode %>
+                                </h3>
+                            </div>
+
+                            <div class="space-y-2 text-sm text-gray-600 border-t border-b border-dashed border-gray-300 py-3">
+                                <% if (coupon.minSpend > 0) { %>
+                                    <p class="flex items-center gap-2">
+                                        <span class="text-primary">•</span>
+                                        Min spend: $<%= coupon.minSpend %>
+                                    </p>
+                                <% } %>
+                                <% if (coupon.maxDiscount !== Infinity) { %>
+                                    <p class="flex items-center gap-2">
+                                        <span class="text-primary">•</span>
+                                        Max discount: $<%= coupon.maxDiscount %>
+                                    </p>
+                                <% } %>
+                                <% if (coupon.usageLimit > 0) { %>
+                                    <p class="flex items-center gap-2">
+                                        <span class="text-primary">•</span>
+                                        <%= coupon.usageLimit %> uses remaining
+                                    </p>
+                                <% } %>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <p class="text-xs text-gray-500 mb-2">Valid Period</p>
+                                <div class="flex justify-between text-sm">
+                                    <span><%= new Date(coupon.startDate).toLocaleDateString() %></span>
+                                    <span>-</span>
+                                    <span><%= new Date(coupon.endDate).toLocaleDateString() %></span>
+                                </div>
+                            </div>
+
+                            <button 
+                                class="mt-4 w-full bg-primary text-white font-bold py-2 px-4 rounded-full transition-all duration-300 hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 active:scale-95"
+                                onclick="copyToClipboard('<%= coupon.couponCode %>')"
+                            >
+                                Copy & Use
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-span-full text-center py-8">
+                    <p class="text-gray-500 text-lg">No coupons available at the moment</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<style>
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes bounce-slow {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 3s ease-in-out infinite;
+}
+</style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: 'Coupon code copied to clipboard!',
+            showConfirmButton: false,
+            timer: 1500,
+            position: 'top-end',
+            toast: true,
+            background: '#19D16F',
+            color: '#fff',
+            iconColor: '#fff'
+        });
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+</script>

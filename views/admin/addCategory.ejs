@@ -92,10 +92,11 @@
                                 <a href="/admin/category/edit/<%= category._id %>"
                                     class="px-3 py-1 bg-primary text-white rounded">Edit</a>
                                 <!-- Delete Button -->
-                                <form action="/admin/category/delete/<%= category._id %>" method="POST"
-                                    onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                <form action="/admin/category/delete/<%= category._id %>" method="POST">
                                     <button type="submit"
-                                        class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Block</button>
+                                        class="px-3 py-1 <%= category.isActive ? 'bg-green-500' : 'bg-red-500' %> text-white rounded hover:<%= category.isActive ? 'bg-green-600' : 'bg-red-600' %>">
+                                        <%= !category.isActive ? 'Unblock' : 'Block' %>
+                                    </button>
                                 </form>
                             </div>
                         </li>
