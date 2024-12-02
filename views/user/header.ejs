@@ -36,20 +36,26 @@
 <header class="bg-white shadow-md fixed md:relative w-full top-0 left-0 z-10">
     <div class="container mx-auto flex items-center justify-between py-3 px-4">
         <!-- Logo (Visible on all screens, replaces "All Categories" on mobile) -->
-        <a href="/" class="text-xl font-bold flex-shrink-0">
-            <img src="../images/logo.png" alt="ToyHub Logo" class="w-24 md:w-40 h-auto">
-        </a>
+        <div class="flex items-center gap-4">
+            <!-- Hamburger Menu for Mobile -->
+            <a href="/" class="text-xl font-bold flex-shrink-0">
+                <img src="../images/logo.png" alt="ToyHub Logo" class="w-24 md:w-40 h-auto">
+            </a>
+        </div>
         <!-- Search Bar -->
-        <div class="flex items-center flex-grow space-x-2 px-4">
-            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2">
+        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0">
+            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
                 <option>All Categories</option>
-                <option>Action Figures</option>
-                <option>Educational Toys</option>
+                <% if (locals.categories) { %>
+                    <% categories.forEach(category => { %>
+                        <option value="<%= category._id %>"><%= category.name %></option>
+                    <% }) %>
+                <% } %>
             </select>
             <input type="text" placeholder="Search for items..."
-                class="border border-gray-300 flex-grow px-4 py-2 rounded-lg sm:rounded-none"
+                class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
                 oninput="handleSearchInput(this.value)" />
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg">
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
                 <i class="fas fa-search"></i>
             </button>
             <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden"></div>
@@ -57,8 +63,8 @@
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-4">
-            <a href="/account" class="text-gray-700 hover:text-green-600">
-                <i class="fas fa-user"></i>
+            <a href="/account" class="text-gray-700 hover:text-green-600 flex items-center">
+                <i class="fas fa-user mr-1"></i>
             </a>
             <a href="/cart" class="text-gray-700 hover:text-green-600">
                 <i class="fas fa-shopping-cart"></i>
@@ -72,21 +78,20 @@
             <button id="logout-btn" onclick="logout()" class="text-gray-700 hover:text-green-600">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
+            <span class="text-sm"><%= locals.name %></span>
         </div>
-
-        <!-- Hamburger Menu for Mobile -->
         <button id="hamburgerButton" class="md:hidden flex items-center hamburger-spin">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
                 </path>
             </svg>
-        </button>
+        </button> 
     </div>
     <!-- Mobile Menu -->
-     
+
     <div id="mobileMenu" class="bg-white shadow-lg md:hidden">
-        <a href="/account" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
+        <a href="/account" class="block px-4 py-2 hover:bg-gray-100">Profile - <%= locals.name %></a>
         <a href="/account/cart" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
         <a href="/account/wishlist" class="block px-4 py-2 hover:bg-gray-100">Wishlist</a>
         <a href="/orders" class="block px-4 py-2 hover:bg-gray-100">Orders</a>

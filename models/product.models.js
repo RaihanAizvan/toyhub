@@ -16,6 +16,16 @@ const ProductSchema = new mongoose.Schema({
   SKU: { type: String },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true }, // Establish reference to Category
   images: [String],
+  ratingCount: { type: Number, default: 0 },
+  ratings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Rating' }],
+  averageRating: { type: Number, default: 0 }, // Store the calculated average rating
+  ratingStats: {
+    1: { type: Number, default: 0 }, // Count of 1-star ratings
+    2: { type: Number, default: 0 }, // Count of 2-star ratings
+    3: { type: Number, default: 0 }, // Count of 3-star ratings
+    4: { type: Number, default: 0 }, // Count of 4-star ratings
+    5: { type: Number, default: 0 }  // Count of 5-star ratings
+  },
   sold: { type: Number, required: true },
   stock: { type: Number, required: true },
   createdAt: {type: Date , default: Date.now() },

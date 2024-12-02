@@ -198,7 +198,7 @@
 <section class="bg-gradient-to-b from-gray-50 to-white py-12">
     <div class="container mx-auto px-4">
         <h2 class="text-4xl font-bold mb-8 text-gray-900 text-center">
-            <span class="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-500">
                 All Products
             </span>
         </h2>
@@ -226,10 +226,46 @@
                                 <h3 class="product-name group-hover:text-green-600">
                                     <%= product.name %>
                                 </h3>
-                                <p class="product-description line-clamp-2">
+
+                                <!-- start rating -->
+                                <div class="flex items-center mt-1">
+                                    <% 
+                                    const rating = product.averageRating || 0;
+                                    const fullStars = Math.floor(rating);
+                                    const hasHalfStar = rating % 1 >= 0.5;
+                                    %>
+                                    
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <% if (i <= fullStars) { %>
+                                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                        <% } else if (i === fullStars + 1 && hasHalfStar) { %>
+                                            <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                                        <% } else { %>
+                                            <i class="far fa-star text-gray-300 text-sm"></i>
+                                        <% } %>
+                                    <% } %>
+                                    
+                                    <span class="text-xs text-gray-500 ml-1">
+                                        (<%= product.ratingCount %> <%= product.ratingCount === 1 ? 'review' : 'reviews' %>)
+                                    </span>
+                                    
+                                    <% if (product.averageRating > 0) { %>
+                                        <span class="text-xs text-gray-500 ml-1">
+                                            <%= product.averageRating.toFixed(1) %>
+                                        </span>
+                                    <% } %>
+                                </div>
+                                <!-- end rating -->
+
+                                
+                                <p class="product-description line-clamp-2 mt-1">
                                     <%= product.description1.length > 30 ? product.description1.slice(0, 30) + '...' : product.description1 %>
+                                    <% if (product.description2) { %>
+                                        <br>
+                                        <%= product.description2.length > 30 ? product.description2.slice(0, 30) + '...' : product.description2 %>
+                                    <% } %>
                                 </p>
-                                <div class="price-container">
+                                <div class="price-container mt-2">
                                     <span class="current-price">₹<%= product.priceAfterDiscount %></span>
                                     <span class="old-price">₹<%= product.price %></span>
                                 </div>
@@ -253,7 +289,7 @@
                                 </button>
                             </div>
                             <% if (product.stock < 5 && product.stock !== 0) { %>
-                                <div class="stock-warning text-white text-center text-sm py-1 px-2 rounded-full mt-3">
+                                <div class="stock-warning text-white text-center text-sm py-1 px-2 rounded-full mt-2">
                                     Only <%= product.stock %> left in stock!
                                 </div>
                             <% } %>

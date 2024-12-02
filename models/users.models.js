@@ -68,6 +68,10 @@ const UserSchema = new Schema({
   wishlist: [{
     type: Schema.Types.ObjectId,
     ref: 'Product'
+  }],
+  ratings: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Rating'
   }]
 });
 
