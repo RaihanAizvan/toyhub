@@ -11,6 +11,7 @@ router.get('/:id', productController.getSingleProduct);
 
 router.get('/categories', productController.getCategoryList);
 
+router.post('/:id/review', productController.submitReview);
 
 
 

@@ -12,5 +12,7 @@ router.get('/categories/all', home.viewAllCategories);
 
 router.get('/search/results', home.searchAndFilterProducts);
 
+router.get('/search', home.searchProducts);
+
 
 export default router

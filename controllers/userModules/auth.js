@@ -46,47 +46,8 @@ async function postSignup(req, res) {
     let otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = Date.now() + 1 * 60 * 1000; // OTP expires in 5 minutes
 
+    const { name, email, phone_number, password, confirmPassword } = req.body;
     try {
-        const { name, email, phone_number, password, confirmPassword } = req.body;
-
-        // Basic field validation
-        if (!name || !email || !phone_number || !password || !confirmPassword) {
-            return res.status(400).render("user/signup", { 
-                title: 'Sign Up', 
-                message: "All fields are required", 
-                name, email, phone_number 
-            });
-        }
-
-        // Email validation
-        if (!validator.isEmail(email)) {
-            return res.status(400).render("user/signup", { 
-                title: 'Sign Up', 
-                message: "Invalid email format", 
-                name, email, phone_number 
-            });
-        }
-
-        // Phone number validation (International format, e.g., +1234567890 or 1234567890)
-        const phoneRegex = /^[0-9]{10,15}$/;
-        if (!phoneRegex.test(phone_number)) {
-            return res.status(400).render("user/signup", { 
-                title: 'Sign Up', 
-                message: "Invalid phone number format", 
-                name, email, phone_number 
-            });
-        }
-
-        // Password validation (minimum 8 characters, at least one letter and one number)
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!passwordRegex.test(password)) {
-            return res.status(400).render("user/signup", { 
-                title: 'Sign Up', 
-                message: "Password must be at least 8 characters long, contain one letter and one number", 
-                name, email, phone_number 
-            });
-        }
-
         // Confirm password match
         if (password !== confirmPassword) {
             return res.status(400).render("user/signup", { 
@@ -117,10 +78,7 @@ async function postSignup(req, res) {
             password: hashedPassword, // Save hashed password
             otp, // Store the OTP
             otpExpires, // Store the OTP expiration time
-            wallet: {
-                balance: 0,
-                transactions: []
-            }   
+            walletBalance: 0 // Initialize wallet balance using the walletBalance field
         });
 
         await newUser.save();

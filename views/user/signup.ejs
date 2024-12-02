@@ -1,4 +1,4 @@
-    <%- include("./header-login") -%>
+<%- include("./header-login") -%>
 
 <div class="container mx-auto mt-36 px-4 mb-10 sm:px-6 lg:px-8">
     <div class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
@@ -16,12 +16,16 @@
             </div>
         <% } %>
 
+        <div id="error-message" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded hidden">
+            <p class="font-medium"></p>
+        </div>
+
         <form action="/user/signup" method="post" class="space-y-6">
             <div class="relative">
                 <label class="block text-gray-700 mb-2">
                     <i class="fas fa-user mr-2"></i>Name
                 </label>
-                <input type="text" name="name" value="<%= locals.name %>"
+                <input type="text" id="name" name="name" value="<%= locals.name %>"
                     class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
                     placeholder="Enter your name">
             </div>
@@ -30,7 +34,7 @@
                 <label class="block text-gray-700 mb-2">
                     <i class="fas fa-envelope mr-2"></i>Email
                 </label>
-                <input type="email" name="email" value="<%= locals.email %>"
+                <input type="email" id="email" name="email" value="<%= locals.email %>"
                     class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
                     placeholder="Enter your email">
             </div>
@@ -41,7 +45,7 @@
                 </label>
                 <div class="flex">
                     <span class="inline-flex items-center px-4 py-3 rounded-l-lg bg-gray-100 text-gray-600 border border-r-0">+91</span>
-                    <input type="text" name="phone_number" value="<%= locals.phone_number %>"
+                    <input type="text" id="phone" name="phone_number" value="<%= locals.phone_number %>"
                         class="w-full px-4 py-3 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
                         placeholder="Enter your mobile number">
                 </div>
@@ -138,4 +142,67 @@
         this.classList.toggle('fa-eye');
         this.classList.toggle('fa-eye-slash');
     });
+
+    // Frontend validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Get form values
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const password = document.getElementById('password').value;
+        const confirmPass = document.getElementById('confirmPassword').value;
+
+        // Check if all fields are filled
+        if (!name || !email || !phone || !password || !confirmPass) {
+            showError('All fields are required');
+            return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showError('Invalid email format');
+            return;
+        }
+
+        // Phone validation (10-15 digits)
+        const phoneRegex = /^[0-9]{10,15}$/;
+        if (!phoneRegex.test(phone)) {
+            showError('Invalid phone number format');
+            return;
+        }
+
+        // Password validation (min 8 chars, at least 1 letter and 1 number)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            showError('Password must be at least 8 characters long, contain one letter and one number');
+            return;
+        }
+
+        // Confirm password match
+        if (password !== confirmPass) {
+            showError('Passwords do not match');
+            return;
+        }
+
+        // If all validations pass, submit the form
+        form.submit();
+    });
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.querySelector('p').textContent = message;
+        errorDiv.classList.remove('hidden');
+        
+        // Scroll to error message
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            errorDiv.classList.add('hidden');
+        }, 5000);
+    }
 </script>

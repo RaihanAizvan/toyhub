@@ -30,6 +30,8 @@ router.delete('/wishlist', profile.deleteWishlist);
 router.get('/wallet', profile.getWallet);
 router.post('/wallet/add-money', profile.postAddMoney);
 
+router.get('/reviews', profile.getReviews);
+
 
 
 export default router

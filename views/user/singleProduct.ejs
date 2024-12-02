@@ -1,193 +1,910 @@
 <%- include("./header"); %>
+
+<style>
+
+
+/* Hover effects */
+.hover-float {
+  transition: transform 0.3s ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-5px);
+}
+
+/* Shine effect */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 20%;
+  height: 200%;
+  background: rgba(255,255,255,0.3);
+  transform: rotate(35deg);
+  transition: all 0.6s;
+}
+
+.shine-effect:hover::after {
+  left: 130%;
+}
+
+/* Zoom effect */
+.zoom-container {
+  overflow: hidden;
+}
+
+.zoom-effect {
+  transition: transform 0.5s ease;
+}
+
+.zoom-effect:hover {
+  transform: scale(1.05);
+}
+
+/* 3D Card effect */
+.card-3d {
+  transition: transform 0.3s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-3d:hover {
+  transform: rotateY(5deg) rotateX(5deg);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+}
+
+/* Scroll reveal animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Gradient border animation */
+@keyframes borderGlow {
+  0%, 100% { border-color: #22c55e; }
+  50% { border-color: #10b981; }
+}
+
+.border-glow {
+  border: 2px solid #22c55e;
+  animation: borderGlow 2s ease-in-out infinite;
+}
+</style>
+
+
+
+<div class="min-h-screen bg-gray-50 mt-24 md:mt-0">
     <div class="container mx-auto p-6">
-        <div class="text-sm text-gray-600 mb-4">
-            <a href="/" class="text-gray-600 hover:text-gray-800">Home</a> > <a href="#"
-                class="text-gray-600 hover:text-gray-800">
-                <%= product.name %>
-            </a>
+        <!-- Breadcrumb with animation -->
+        <div class="text-sm text-gray-600 mb-4 opacity-0 animate-fade-in">
+            <a href="/" class="text-gray-600 hover:text-gray-800 transition-colors">Home</a> > 
+            <a href="#" class="text-gray-600 hover:text-gray-800 transition-colors"><%= product.name %></a>
         </div>
-        <div class="flex flex-col lg:flex-row">
+
+        <!-- Main Product Section -->
+        <div class="flex flex-col lg:flex-row gap-8 mb-16 animate-fade-up">
             <!-- Product Image Section -->
-            <div class="w-full lg:w-1/2">
-                <div class="border rounded-lg p-4 bg-white">
-                    <img id="mainImage" alt="<%= product.name %>" class="w-full md:w-3/4 h-auto zoom"
-                        src="<%= product.images[0] %>" data-zoom-image="<%= product.images[0] %>" />
-                </div>
-                <div class="flex mt-4 space-x-2">
-                    <% product.images.forEach((img, index)=> { %> <img alt="<%= product.name %> thumbnail"
-                            class="thumbnail w-1/4 h-auto border rounded-lg cursor-pointer" src="<%= img %>"
-                            data-index="<%= index %>" onclick="updateMainImage('<%= img %>')" />
+            <div class="w-full lg:w-1/2 animate-slide-in-left">
+                <div class="sticky top-24">
+                    <div class="border rounded-2xl p-6 bg-white shadow-lg card-3d">
+                        <div class="zoom-container">
+                            <img id="mainImage" alt="<%= product.name %>" 
+                                 class="w-full md:w-3/4 h-auto zoom mx-auto zoom-effect"
+                                 src="<%= product.images[0] %>" 
+                                 data-zoom-image="<%= product.images[0] %>" />
+                        </div>
+                    </div>
+                    <div class="flex mt-4 gap-4 overflow-x-auto pb-2">
+                        <% product.images.forEach((img, index) => { %>
+                            <img alt="<%= product.name %> thumbnail"
+                                 class="thumbnail w-24 h-24 object-cover border rounded-lg cursor-pointer transition-transform hover:scale-105 hover-float shine-effect animate-pop-in"
+                                 style="animation-delay: <%= index * 100 %>ms"
+                                 src="<%= img %>"
+                                 data-index="<%= index %>"
+                                 onclick="updateMainImage('<%= img %>')" />
                         <% }) %>
+                    </div>
                 </div>
             </div>
+
             <!-- Product Details Section -->
-            <div class="w-full lg:w-1/2 lg:pl-8 mt-8 lg:mt-0">
-                <% if (product.discount) { %>
-                    <div class="bg-red-100 text-red-500 text-sm font-semibold px-2 py-1 rounded inline-block mb-2"> Sale
-                        Off </div>
+            <div class="w-full lg:w-1/2 animate-slide-in-right">
+                <div class="bg-white rounded-2xl p-8 shadow-lg">
+                    <% if (product.discount) { %>
+                        <div class="inline-flex items-center gap-2 bg-red-100 text-red-500 px-4 py-2 rounded-full font-medium mb-4 hover-float animate-bounce">
+                            <i class="fas fa-tag"></i> <%= product.discount %>% OFF
+                        </div>
                     <% } %>
-                        <h1 class="text-3xl font-bold mb-2">
-                            <%= product.name %>
-                        </h1>
-                        <div class="flex items-center mb-4">
-                            <span class="text-yellow-500"><i class="fas fa-star"></i></span>
-                            <span class="text-gray-600 ml-2">Sold: <%= product.sold %></span>
+
+                    <h1 class="text-4xl font-bold mb-4 text-gray-800 animate-fade-in"><%= product.name %></h1>
+
+                    <!-- Rating & Sales -->
+                    <div class="flex items-center gap-6 mb-6 animate-fade-in" style="animation-delay: 200ms">
+                        <div class="flex items-center">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star animate-pulse"></i>
+                                <i class="fas fa-star animate-pulse" style="animation-delay: 200ms"></i>
+                                <i class="fas fa-star animate-pulse" style="animation-delay: 400ms"></i>
+                                <i class="fas fa-star animate-pulse" style="animation-delay: 600ms"></i>
+                                <i class="fas fa-star-half-alt animate-pulse" style="animation-delay: 800ms"></i>
+                            </div>
+                            <span class="ml-2 text-gray-600">(4.5)</span>
                         </div>
-                        <div class="flex items-center ">
-                            <span class="text-3xl font-bold text-green-500">₹<%= Math.ceil(product.price * (1 -
-                                    product.discount / 100)) %></span>
-                            <% if (product.discount) { %>
-                                <span class="text-gray-500 line-through ml-2">₹<%= product.price %></span>
-                                <span class="text-green-500 ml-2 text-sm">
-                                    <%= product.discount %>% Off
-                                </span>
-                                <% } %>
+                        <div class="text-gray-600">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            <%= product.sold %> sold
                         </div>
-                        <p class="text-gray-600 mb-4">
-                            <%= product.description1 %>
-                        </p>
+                    </div>
+
+                    <!-- Price Section -->
+                    <div class="flex items-baseline gap-4 mb-6 animate-slide-up">
+                        <span class="text-4xl font-bold text-green-600">
+                            ₹<%= Math.ceil(product.price * (1 - product.discount / 100)) %>
+                        </span>
+                        <% if (product.discount) { %>
+                            <span class="text-xl text-gray-400 line-through">₹<%= product.price %></span>
+                        <% } %>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="prose max-w-none mb-8 animate-fade-in" style="animation-delay: 400ms">
+                        <p class="text-gray-600"><%= product.description1 %></p>
                         <% if (product.description2) { %>
-                            <p class="text-gray-600 mb-4">
-                                <%= product.description2 %>
-                            </p>
-                            <% } %>
-                                <div class="flex items-center my-4">
-                                    <input class="border rounded w-16 text-center py-2" type="number" value="1" min="1"
-                                        max="<%= product.stock > 10 ? 10 : product.stock %>"
-                                        oninput="checkMaxValue(this)" />
-                                    <% if (product.stock> 0) { %> <button
-                                            class="bg-green-500 text-white px-4 py-2 rounded ml-4"
-                                            onclick="addToCart(event, '<%= product._id %>')">Add to cart</button>
-                                        <% } else { %>
-                                            <button class="bg-green-500 text-white px-4 py-2 rounded ml-4" disabled>Out
-                                                of Stock</button>
-                                            <% } %>
-                                                <button
-                                                    class="border rounded px-4 py-2 ml-2 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %>"
-                                                    onclick="toggleWishlistInSingleProduct(event, '<%= product._id %>')"><i
-                                                        class="fas fa-heart"></i></button>
-                                                <button class="border rounded px-4 py-2 ml-2"><i
-                                                        class="fas fa-share-alt"></i></button>
-                                                </div>
-                                                <p id="maxMessage" class="text-red-500 hidden">Maximum quantity reached</p>
-                                                <% if (product.warnings) { %>
-                                                    <p class="text-red-600 mb-4">Warnings: <%= product.warnings %>
-                                                    </p>
-                                                    <% } %>
-                                        <div class="text-sm text-gray-600">
-                                            <h1 class="font-bold text-green-800 mb-2">Available Offers</h1>
-                                            <% offers.forEach(offer => { %> 
-                                                <% if (offer.applicableProducts.includes(product._id) || offer.applicableCategories.includes(product.category._id) || offer.offerType === 'all') { %>
-                                                    <p class="text-gray-600 "> 
-                                                        <span class="font-semibold text-green-800"><%= offer.name %> : </span> 
-                                                        <%= offer.description %> 
-                                                        <span class="font-semibold ml-2 text-gray-800"><%= offer.offerPercentage %> % Off</span> 
-                                                    </p>
-                                                <% } %>
-                                            <% }) %>
-                                            <hr class="my-4">
-                                            <p><span class="font-semibold">Type: </span>
-                                                <%= product.type %>
-                                            </p>
-                                            <% if (product.color) { %>
-                                                <p><span class="font-semibold">Color: </span>
-                                                <%= product.color %>
-                                                </p>
-                                            <% } %>
-                                            <% if (product.weight) { %>
-                                                <p><span class="font-semibold">Weight: </span>
-                                                    <%= product.weight %>g
-                                                </p>
-                                            <% } %>
-                                                <p><span class="font-semibold">SKU: </span>
-                                                    <%= product.SKU %>
-                                                </p>
-                                                <p><span class="font-semibold">Category: </span>
-                                                    <%= product.category.name %>
-                                                </p>
-                                                <p><span class="font-semibold" id="stock-count" data-product-stock="<%= product.stock %>">Stock: </span>
-                                                    <%= product.stock %> Items In Stock
-                                                </p>
-                                                <p><span class="font-semibold">Created At: </span>
-                                                    <%= new Date(product.createdAt).toLocaleDateString() %>
-                                                </p>
-                                                <% if (product.isBlocked) { %>
-                                                    <p class="text-red-500">This product is currently blocked.</p>
-                                                <% } %>
-                                                <% if (product.stock===0) { %>
-                                                    <p class="text-red-500">Out of Stock</p>
-                                                <% } else if (product.stock < 5) { %>
-                                                    <p class="text-yellow-500">Few stocks left!</p>
-                                                <% } %>
+                            <p class="text-gray-600 mt-4"><%= product.description2 %></p>
+                        <% } %>
+                    </div>
+
+                    <!-- Add to Cart Section -->
+                    <div class="flex items-center gap-4 mb-8 animate-slide-up" style="animation-delay: 600ms">
+                        <div class="relative">
+                            <input class="w-24 px-4 py-3 border rounded-lg text-center" 
+                                   type="number" 
+                                   value="1" 
+                                   min="1"
+                                   max="<%= product.stock > 10 ? 10 : product.stock %>"
+                                   oninput="checkMaxValue(this)" />
+                            <p id="maxMessage" class="absolute text-red-500 text-sm hidden">Max quantity reached</p>
+                        </div>
+                        
+                        <% if (product.stock > 0) { %>
+                            <button onclick="addToCart(event, '<%= product._id %>')"
+                                    class="flex-1 bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 hover-float animate-pulse">
+                                <i class="fas fa-shopping-cart"></i>
+                                Add to Cart
+                            </button>
+                        <% } else { %>
+                            <button disabled class="flex-1 bg-gray-400 text-white px-8 py-3 rounded-lg cursor-not-allowed">
+                                Out of Stock
+                            </button>
+                        <% } %>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 mb-8 animate-slide-up" style="animation-delay: 800ms">
+                        <button onclick="toggleWishlistInSingleProduct(event, '<%= product._id %>')"
+                                class="flex-1 border rounded-lg px-6 py-3 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %> hover:bg-gray-50 transition-colors hover-float">
+                            <i class="fas fa-heart mr-2 animate-pulse"></i> Wishlist
+                        </button>
+                        <button class="flex-1 border rounded-lg px-6 py-3 text-blue-500 hover:bg-gray-50 transition-colors hover-float">
+                            <i class="fas fa-share-alt mr-2"></i> Share
+                        </button>
+                    </div>
+
+                    <!-- Offers Section -->
+                    <div class="bg-green-50 rounded-xl p-6 mb-8 animate-fade-in" style="animation-delay: 1000ms">
+                        <h2 class="font-bold text-green-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-gift animate-bounce"></i> Available Offers
+                        </h2>
+                        <div class="space-y-3">
+                            <% offers.forEach(offer => { %>
+                                <% if (offer.applicableProducts.includes(product._id) || 
+                                      offer.applicableCategories.includes(product.category._id) || 
+                                      offer.offerType === 'all') { %>
+                                    <div class="flex items-start gap-3 text-gray-700 hover-float">
+                                        <i class="fas fa-tag mt-1 text-green-600"></i>
+                                        <div>
+                                            <span class="font-medium text-green-800"><%= offer.name %>:</span>
+                                            <%= offer.description %>
+                                            <span class="font-medium ml-1">(<%= offer.offerPercentage %>% Off)</span>
                                         </div>
+                                    </div>
+                                <% } %>
+                            <% }) %>
+                        </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="border-t pt-6 space-y-4 animate-fade-in" style="animation-delay: 1200ms">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="font-medium text-gray-700">Type:</span>
+                                <span class="ml-2 text-gray-600"><%= product.type %></span>
+                            </div>
+                            <% if (product.color) { %>
+                                <div>
+                                    <span class="font-medium text-gray-700">Color:</span>
+                                    <span class="ml-2 text-gray-600"><%= product.color %></span>
+                                </div>
+                            <% } %>
+                            <% if (product.weight) { %>
+                                <div>
+                                    <span class="font-medium text-gray-700">Weight:</span>
+                                    <span class="ml-2 text-gray-600"><%= product.weight %>g</span>
+                                </div>
+                            <% } %>
+                            <div>
+                                <span class="font-medium text-gray-700">SKU:</span>
+                                <span class="ml-2 text-gray-600"><%= product.SKU %></span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-700">Category:</span>
+                                <span class="ml-2 text-gray-600"><%= product.category.name %></span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-700" id="stock-count" 
+                                      data-product-stock="<%= product.stock %>">Stock:</span>
+                                <span class="ml-2 text-gray-600"><%= product.stock %> Items</span>
+                            </div>
+                        </div>
+
+                        <% if (product.isBlocked) { %>
+                            <p class="text-red-500"><i class="fas fa-exclamation-circle mr-2 animate-pulse"></i>This product is currently blocked.</p>
+                        <% } %>
+                        
+                        <% if (product.stock === 0) { %>
+                            <p class="text-red-500"><i class="fas fa-times-circle mr-2 animate-pulse"></i>Out of Stock</p>
+                        <% } else if (product.stock < 5) { %>
+                            <p class="text-yellow-500"><i class="fas fa-exclamation-triangle mr-2 animate-pulse"></i>Few stocks left!</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Reviews Section -->
+        <div class="mb-16 opacity-0 animate-fade-in reveal">
+            <h2 class="text-2xl font-bold mb-8">Customer Reviews</h2>
+            <div class="bg-white rounded-2xl p-4 md:p-8 shadow-lg">
+                <!-- Top Section: Overall Rating & Stats -->
+                <div class="flex flex-col md:flex-row gap-8 mb-12">
+                    <!-- Left: Overall Rating -->
+                    <div class="md:w-1/3 flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl">
+                        <div class="text-5xl font-bold text-gray-800 mb-4"><%= product.averageRating.toFixed(1) %></div>
+                        <div class="flex text-yellow-400 text-2xl mb-2">
+                            <% for(let i=1; i<=5; i++) { %>
+                                <% if(i <= Math.floor(product.averageRating)) { %>
+                                    <i class="fas fa-star"></i>
+                                <% } else if(i === Math.ceil(product.averageRating) && !Number.isInteger(product.averageRating)) { %>
+                                    <i class="fas fa-star-half-alt"></i>
+                                <% } else { %>
+                                    <i class="far fa-star"></i>
+                                <% } %>
+                            <% } %>
+                        </div>
+                        <div class="text-gray-600">Based on <%= product.ratingCount %> reviews</div>
+                    </div>
+
+                    <!-- Right: Rating Distribution -->
+                    <div class="md:w-2/3 space-y-3">
+                        <% for(let i=5; i>=1; i--) { %>
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 text-sm font-medium text-gray-600"><%= i %> stars</div>
+                                <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-400 rounded-full transition-all duration-500" style="width: <%= (product.ratingStats[i] / product.ratingCount * 100) || 0 %>%"></div>
+                                </div>
+                                <div class="w-16 text-sm text-gray-500">
+                                    <%= product.ratingStats[i] || 0 %> (<%= Math.round((product.ratingStats[i] / product.ratingCount * 100) || 0) %>%)
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Write Review Section -->
+                <div class="border-t border-b py-8 mb-8">
+                    <h3 class="text-xl font-semibold mb-6">Write a Review</h3>
+                    <form class="max-w-2xl mx-auto" id="reviewForm" onsubmit="submitReview(event)">
+                        <div class="space-y-6">
+                            <div class="flex flex-col items-center gap-2">
+                                <label class="text-lg font-medium text-gray-700">Your Rating</label>
+                                <div class="flex text-3xl text-gray-300 gap-2" id="ratingStars">
+                                    <i class="fas fa-star cursor-pointer transition-colors" data-rating="1" onclick="setRating(1)"></i>
+                                    <i class="fas fa-star cursor-pointer transition-colors" data-rating="2" onclick="setRating(2)"></i>
+                                    <i class="fas fa-star cursor-pointer transition-colors" data-rating="3" onclick="setRating(3)"></i>
+                                    <i class="fas fa-star cursor-pointer transition-colors" data-rating="4" onclick="setRating(4)"></i>
+                                    <i class="fas fa-star cursor-pointer transition-colors" data-rating="5" onclick="setRating(5)"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="ratingInput" value="0">
+                            </div>
+                            <input type="text" name="title" placeholder="Review Title" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                            <textarea name="comment" placeholder="Share your experience with this product..." rows="4" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500" required></textarea>
+                            <button type="submit" class="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-colors font-medium">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+
+                
+                <!-- Reviews List -->
+                <div class="space-y-8">
+                    <% if(product.ratings && product.ratings.length > 0) { %>
+                        <% product.ratings.slice(0, 3).forEach(review => { %>
+                            <div class="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                                <div class="flex items-start gap-4 mb-4">
+                                    <img src="<%= 'https://via.placeholder.com/50' %>" class="rounded-full w-12 h-12 object-cover" alt="User">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h4 class="font-semibold"><%= review.userId.name %></h4>
+                                                <div class="text-sm text-gray-500"><%= new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                                            </div>
+                                            <div class="flex text-yellow-400">
+                                                <% for(let i=1; i<=5; i++) { %>
+                                                    <i class="fas fa-star <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"></i>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% if(review.title) { %>
+                                    <h5 class="font-medium text-lg mb-2"><%= review.title %></h5>
+                                <% } %>
+                                <p class="text-gray-700 mb-4"><%= review.comment %></p>
+                                <% if(review.images && review.images.length > 0) { %>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                        <% review.images.forEach(img => { %>
+                                            <img src="<%= img %>" class="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity" alt="Review image">
+                                        <% }) %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% }) %>
+
+                        <% if(product.ratings.length > 3) { %>
+                            <div class="text-center">
+                                <button id="loadMoreReviews" class="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors opacity-75">
+                                    Load More Reviews (<%= product.ratings.length - 3 %> remaining)
+                                </button>
+                            </div>
+
+                            <div id="hiddenReviews" class="hidden space-y-8">
+                                <% product.ratings.slice(3).forEach(review => { %>
+                                    <div class="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                                        <div class="flex items-start gap-4 mb-4">
+                                            <img src="<%= review.userId.avatar || 'https://via.placeholder.com/50' %>" class="rounded-full w-12 h-12 object-cover" alt="User">
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 class="font-semibold"><%= review.userId.name %></h4>
+                                                        <div class="text-sm text-gray-500"><%= new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                                                    </div>
+                                                    <div class="flex text-yellow-400">
+                                                        <% for(let i=1; i<=5; i++) { %>
+                                                            <i class="fas fa-star <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"></i>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% if(review.title) { %>
+                                            <h5 class="font-medium text-lg mb-2"><%= review.title %></h5>
+                                        <% } %>
+                                        <p class="text-gray-700 mb-4"><%= review.comment %></p>
+                                        <% if(review.images && review.images.length > 0) { %>
+                                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                                <% review.images.forEach(img => { %>
+                                                    <img src="<%= img %>" class="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity" alt="Review image">
+                                                <% }) %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% }) %>
+                            </div>
+
+                            
+                        <% } %>
+                    <% } else { %>
+                        <div class="text-center py-8">
+                            <div class="text-gray-400 text-lg mb-2">No reviews yet</div>
+                            <p class="text-gray-600">Be the first to share your thoughts about this product!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="opacity-0 animate-fade-in reveal">
+            <h2 class="text-2xl font-bold mb-8">Related Products</h2>
+            <div class="flex overflow-x-auto pb-6 gap-6 w-full">
+                <% relatedProducts.forEach(product => { %>
+                    <div class="bg-white rounded-2xl p-6 shadow-lg transition-transform hover:scale-105 hover-float card-3d flex-shrink-0 max-w-[280px]">
+                        <!-- Sale Tag -->
+                        <% if(product.discount > 0) { %>
+                            <div class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg transform rotate-12 z-10">
+                                <span class="text-sm font-bold">-<%= product.discount %>%</span>
+                            </div>
+                        <% } %>
+                        
+                        <div class="w-full h-48 overflow-hidden relative">
+                            <img src="<%= product.images[0] %>" class="w-full h-full object-contain rounded-lg mb-4" alt="<%= product.name %>">
+                            <!-- Quick View Overlay -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button class="bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
+                                    Quick View
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <div class="space-y-3">
+                            <h3 class="font-medium text-lg truncate"><%= product.name %></h3>
+                            
+                            <!-- Rating -->
+                            <div class="flex items-center gap-2">
+                                <div class="flex text-yellow-400">
+                                    <% for(let i=0; i<5; i++) { %>
+                                        <i class="fas fa-star text-sm"></i>
+                                    <% } %>
+                                </div>
+                                <span class="text-sm text-gray-500">(4.5)</span>
+                            </div>
+                            
+                            <!-- Price Section -->
+                            <div class="flex items-end gap-2">
+                                <% if(product.discount > 0) { %>
+                                    <span class="text-gray-400 line-through text-sm">₹<%= product.price %></span>
+                                <% } %>
+                                <span class="text-2xl font-bold text-green-600">₹<%= Math.ceil(product.price * (1 - product.discount / 100)) %></span>
+                            </div>
+                            
+                            <!-- Description Preview -->
+                            <p class="text-sm text-gray-600 line-clamp-2"><%= product.description1 %></p>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-between pt-3">
+                                <button onclick="addToCart(event, '<%= product._id %>')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Add to Cart
+                                </button>
+                                <button class="text-red-500 hover:text-red-600 p-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        
+        <!-- Same Category Products -->
+        <div class="opacity-0 animate-fade-in reveal mt-16">
+            <h2 class="text-2xl font-bold mb-8">More From This Category</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <% productFromSameCategory.forEach(product => { %>
+                    <a href="/product/<%= product._id %>" class="bg-white rounded-2xl p-6 shadow-lg transition-transform hover:scale-105 hover-float card-3d mb-5">
+                        <!-- Sale Tag -->
+                        <% if(product.discount > 0) { %>
+                            <div class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg transform rotate-12 z-10">
+                                <span class="text-sm font-bold">-<%= product.discount %>%</span>
+                            </div>
+                        <% } %>
+                        
+                        <div class="aspect-square overflow-hidden relative rounded-lg mb-4">
+                            <img src="<%= product.images[0] %>" class="w-full h-full object-cover" alt="<%= product.name %>">
+                            <!-- Quick View Overlay -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button class="bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
+                                    Quick View
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Details -->
+                        <div class="space-y-3">
+                            <h3 class="font-medium text-lg truncate"><%= product.name %></h3>
+                            
+                            <!-- Rating -->
+                            <div class="flex items-center gap-2">
+                                <div class="flex text-yellow-400">
+                                    <% for(let i=0; i<5; i++) { %>
+                                        <i class="fas fa-star text-sm"></i>
+                                    <% } %>
+                                </div>
+                                <span class="text-sm text-gray-500">(4.5)</span>
+                            </div>
+                            
+                            <!-- Price Section -->
+                            <div class="flex items-end gap-2">
+                                <span class="text-2xl font-bold text-green-600">₹<%= Math.ceil(product.price * (1 - product.discount / 100)) %></span>
+                                <% if(product.discount > 0) { %>
+                                    <span class="text-gray-400 line-through text-sm">₹<%= product.price %></span>
+                                <% } %>
+                            </div>
+                            
+                            <!-- Description Preview -->
+                            <p class="text-sm text-gray-600 line-clamp-2"><%= product.description1 %></p>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-between pt-3">
+                                <button onclick="addToCart(event, '<%= product._id %>')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Add to Cart
+                                </button>
+                                <button class="text-red-500 hover:text-red-600 p-2">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 my-8 opacity-70"></div>
+
+        <!-- Similar Products Comparison -->
+        <div class="bg-white rounded-xl shadow-lg p-8 my-12 animate-fade-in reveal transform hover:scale-[1.02] transition-all duration-300">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">Compare Similar Products</h2>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-500">Scroll to see more</span>
+                    <i class="fas fa-arrow-right text-green-500 animate-bounce"></i>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="p-4 text-left font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-list-ul text-green-500"></i>
+                                    Features
+                                </div>
+                            </th>
+                            <th class="p-4 text-center font-medium text-gray-600 min-w-[200px]">
+                                <div class="flex flex-col items-center transform hover:scale-105 transition-transform">
+                                    <div class="relative">
+                                        <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-24 h-24 object-cover rounded-lg mb-2 shadow-md">
+                                        <div class="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">Current</div>
+                                    </div>
+                                    <span class="text-green-600 font-bold">Current Product</span>
+                                </div>
+                            </th>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <th class="p-4 text-center font-medium text-gray-600 min-w-[200px]">
+                                    <div class="flex flex-col items-center group">
+                                        <div class="relative overflow-hidden rounded-lg">
+                                            <img src="<%= similarProduct.images[0] %>" alt="<%= similarProduct.name %>" 
+                                                 class="w-24 h-24 object-cover mb-2 transform group-hover:scale-110 transition-transform duration-300">
+                                            <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <a href="/product/<%= similarProduct._id %>" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm hover:bg-green-500 hover:text-white transition-colors">
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <a href="/product/<%= similarProduct._id %>" class="hover:text-green-600 transition-colors font-medium"><%= similarProduct.name %></a>
+                                    </div>
+                                </th>
+                            <% }) %>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-tag text-green-500"></i>
+                                    Price
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="text-green-600 font-bold animate-pulse">₹<%= Math.ceil(product.price * (1 - product.discount / 100)) %></div>
+                            </td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center font-medium">₹<%= Math.ceil(similarProduct.price * (1 - similarProduct.discount / 100)) %></td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    Rating
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="flex justify-center text-yellow-400 space-x-1">
+                                    <% for(let i=1; i<=5; i++) { %>
+                                        <i class="fas fa-star text-sm animate-pulse" style="animation-delay: <%= i * 200 %>ms"></i>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center">
+                                    <div class="flex justify-center text-yellow-400 space-x-1">
+                                        <% for(let i=1; i<=5; i++) { %>
+                                            <i class="fas fa-star text-sm"></i>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-box text-green-500"></i>
+                                    Stock
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <span class="px-3 py-1 rounded-full <%= product.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' %>">
+                                    <%= product.stock %> Items
+                                </span>
+                            </td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center">
+                                    <span class="px-3 py-1 rounded-full <%= similarProduct.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' %>">
+                                        <%= similarProduct.stock %> Items
+                                    </span>
+                                </td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-folder text-green-500"></i>
+                                    Category
+                                </div>
+                            </td>
+                            <td class="p-4 text-center"><%= product.category.name %></td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center"><%= similarProduct.category.name %></td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-palette text-green-500"></i>
+                                    Color
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <span class="inline-flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full" style="background-color: <%= product.color || '#ddd' %>"></span>
+                                    <%= product.color || 'N/A' %>
+                                </span>
+                            </td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full" style="background-color: <%= similarProduct.color || '#ddd' %>"></span>
+                                        <%= similarProduct.color || 'N/A' %>
+                                    </span>
+                                </td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-weight-hanging text-green-500"></i>
+                                    Weight
+                                </div>
+                            </td>
+                            <td class="p-4 text-center"><%= product.weight ? product.weight + 'g' : 'N/A' %></td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center"><%= similarProduct.weight ? similarProduct.weight + 'g' : 'N/A' %></td>
+                            <% }) %>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="p-4 font-medium text-gray-600 bg-white">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-info-circle text-green-500"></i>
+                                    Type
+                                </div>
+                            </td>
+                            <td class="p-4 text-center"><%= product.type %></td>
+                            <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
+                                <td class="p-4 text-center"><%= similarProduct.type %></td>
+                            <% }) %>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- Product Features -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 my-12">
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-truck text-3xl text-green-500"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">Free Shipping</h3>
+                        <p class="text-gray-600">On orders above ₹499</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-shield-alt text-3xl text-green-500"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">Secure Payment</h3>
+                        <p class="text-gray-600">100% secure payment</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-undo text-3xl text-green-500"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">Easy Returns</h3>
+                        <p class="text-gray-600">10 day return policy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    
+        <!-- Product FAQ -->
+        <div class="bg-white rounded-xl shadow-lg p-6 my-12">
+            <h2 class="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+                <div class="border-b pb-4">
+                    <h3 class="font-semibold text-lg mb-2">What is the warranty period?</h3>
+                    <p class="text-gray-600">This product comes with a standard 1-year manufacturer warranty.</p>
+                </div>
+                <div class="border-b pb-4">
+                    <h3 class="font-semibold text-lg mb-2">How long does shipping take?</h3>
+                    <p class="text-gray-600">Orders typically arrive within 3-5 business days.</p>
+                </div>
             </div>
         </div>
     </div>
-    <%- include('./popular-product') %>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <!-- Include ElevateZoom JS -->
-        <script src="https://cdn.jsdelivr.net/npm/elevatezoom@3.0.8/jquery.elevateZoom.min.js"></script>
-        <script>
-            function toggleWishlistInSingleProduct(event, productId) {
-                console.log('Toggle wishlist clicked');
-                console.log(productId);
+</div>
 
-                const button = event.currentTarget;
-                const isInWishlist = button.classList.contains('text-red-500');
+<%- include("./footer"); %>
 
-                const url = isInWishlist ? `/wishlist/` : `/wishlist/${productId}`;
-                const method = isInWishlist ? 'delete' : 'post';
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/elevatezoom@3.0.8/jquery.elevateZoom.min.js"></script>
+<script>
+    
 
-                axios({
-                    method: method,
-                    url: '/account' + url,
-                    data: { productId: productId }
-                })
-                    .then(response => {
-                        console.log('Success:', response.data);
-                        toastr.success(response.data.message || (isInWishlist ? 'Product removed from wishlist!' : 'Product added to wishlist!'));
-                        button.classList.toggle('text-red-500');
-                        button.classList.toggle('text-green-500');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
-                    });
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '50px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
             }
+        });
+    }, observerOptions);
 
-            // Initialize ElevateZoom on the main image
-            $('#mainImage').elevateZoom({
-                zoomType: "lens",
-                lensShape: "round",
-                lensSize: 600,
-                zoomLevel: 300
+    document.querySelectorAll('.reveal').forEach(el => {
+        observer.observe(el);
+    });
 
-            });
+    // Image zoom and thumbnail functionality
+    $('#mainImage').elevateZoom({
+        zoomType: "lens",
+        lensShape: "round",
+        lensSize: 200,
+        zoomLevel: 300
+    });
 
-            // Function to update the main image and reapply the zoom effect
-            function updateMainImage(src) {
-                const mainImage = document.getElementById('mainImage');
-                mainImage.src = src;
-                mainImage.setAttribute('data-zoom-image', src);
+    function updateMainImage(src) {
+        const mainImage = document.getElementById('mainImage');
+        mainImage.src = src;
+        mainImage.setAttribute('data-zoom-image', src);
+        
+        $('.zoomContainer').remove();
+        $('#mainImage').elevateZoom({
+            zoomType: "lens",
+            lensShape: "round",
+            lensSize: 200,
+            zoomLevel: 300
+        });
+    }
 
-                // Re-initialize ElevateZoom for the new image
-                $('.zoomContainer').remove(); // Remove previous zoom container
-                $('#mainImage').elevateZoom({
-                    zoomType: "lens",
-                    lensShape: "round",
-                    lensSize: 250,
-                    zoomLevel: 300
-                });
+    function checkMaxValue(input) {
+        const max = parseInt(input.max);
+        const value = parseInt(input.value);
+        const message = document.getElementById('maxMessage');
+        
+        if (value >= max) {
+            message.classList.remove('hidden');
+            toastr.warning(`Maximum quantity is ${max}`, 'Quantity Limit');
+        } else {
+            message.classList.add('hidden');
+        }
+    }
+
+    // Wishlist functionality
+    function toggleWishlistInSingleProduct(event, productId) {
+        const button = event.currentTarget;
+        const isInWishlist = button.classList.contains('text-red-500');
+        const url = isInWishlist ? `/wishlist/` : `/wishlist/${productId}`;
+        const method = isInWishlist ? 'delete' : 'post';
+
+        axios({
+            method: method,
+            url: '/account' + url,
+            data: { productId: productId }
+        })
+        .then(response => {
+            toastr.success(response.data.message || (isInWishlist ? 'Removed from wishlist!' : 'Added to wishlist!'));
+            button.classList.toggle('text-red-500');
+            button.classList.toggle('text-green-500');
+        })
+        .catch(error => {
+            toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
+        });
+    }
+    
+    document.getElementById('loadMoreReviews').addEventListener('click', function() {
+        document.getElementById('hiddenReviews').classList.remove('hidden');
+        this.style.display = 'none';
+    });
+
+    // rating functionality
+
+    function setRating(rating) {
+        const stars = document.querySelectorAll('#ratingStars i');
+        document.getElementById('ratingInput').value = rating;
+        
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('text-yellow-400');
+            } else {
+                star.classList.remove('text-yellow-400');
             }
-            function checkMaxValue(input) {
-                const max = parseInt(input.max);
-                const value = parseInt(input.value);
-                const message = document.getElementById('maxMessage');
-                if (value >= max) {
-                    message.classList.remove('hidden');
-                    toastr.warning(`The value cannot exceed ${max}.`, 'Maximum Value Reached');
-                } else {
-                    message.classList.add('hidden');
-                } no
-            }
-        </script>
+        });
+    }
+
+    function submitReview(event) {
+        event.preventDefault();
+        const form = event.target;
+        const rating = document.getElementById('ratingInput').value;
+        const title = form.title.value;
+        const comment = form.comment.value;
+        const productId = '<%= product._id %>';
+
+        if (rating === "0") {
+            toastr.error('Please select a rating');
+            return;
+        }
+
+        axios.post(`/product/${productId}/review`, {
+            rating: parseInt(rating),
+            title,
+            comment
+        })
+        .then(response => {
+            toastr.success('Review submitted successfully!');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        })
+        .catch(error => {
+            toastr.error(error.response?.data?.message || 'Failed to submit review');
+        });
+    }
+
+
+</script>

@@ -12,6 +12,11 @@
     font-family: 'Times New Roman', Times, serif;
 }
 
-
+.bg-gold{
+    background-color: #C5A028;
+}
+.bg-gold-2{
+    background-color: #D4AF37;
+}
 /* spinner */
 

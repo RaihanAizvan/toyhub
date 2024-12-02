@@ -1,100 +1,136 @@
     <%- include('header') %>
-<div class="bg-gray-100 pt-4 w-full text-sm">
-    <div class="flex min-h-screen md:w-8/12 mx-auto">
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 pt-6 w-full text-sm min-h-screen">
+    <div class="flex max-w-7xl mx-auto px-4">
         <!-- Sidebar -->
         <%- include('profile-sidebar') %>
 
         <!-- Profile Content -->
-        <div class="flex-1 p-2">
+        <div class="flex-1 p-4 mt-48 md:mt-0">
             <!-- Personal Information Header -->
-            <div class="bg-white p-4 shadow-md mb-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-800">Manage Addresses</h2>
-                    <a href="javascript:void(0);" onclick="toggleAddressForm()" class="bg-primary text-white px-4 py-2 rounded-md text-sm">
-                        Add New Address
-                    </a>
+            <div class="bg-white rounded-xl p-6 shadow-lg mb-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Manage Addresses</h2>
+                        <p class="text-gray-500 mt-1">Add and manage your delivery locations</p>
+                    </div>
+                    <button onclick="toggleAddressForm()" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Add One
+                    </button>
                 </div>
 
                 <!-- Hidden Form (Initially Hidden) -->
-                <div id="addAddressForm" class="hidden mt-4">
-                    <form id="addressForm" action="/account/add-address" method="POST" class="bg-white p-4 shadow-md" onsubmit="return validateAddressForm()">
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <label class="block text-gray-600">Contact Name</label>
-                                <input type="text" name="name" class="w-full border p-2 rounded-lg" placeholder="Mohammed Raihan" oninput="validateName()">
-                                <p class="error text-red-500" id="nameError"></p>
+                <div id="addAddressForm" class="hidden">
+                    <form id="addressForm" action="/account/add-address" method="POST" class="bg-gray-50 p-6 rounded-xl border border-gray-200" onsubmit="return validateAddressForm()">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Contact Name</label>
+                                <input type="text" name="name" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Mohammed Raihan" oninput="validateName()">
+                                <p class="error text-red-500 text-sm" id="nameError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Street Address</label>
-                                <input type="text" name="street" class="w-full border p-2 rounded-lg" placeholder="123 Main Street, Anytown, USA, 12345" oninput="validateStreet()">
-                                <p class="error text-red-500" id="streetError"></p>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Street Address</label>
+                                <input type="text" name="street" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="123 Main Street" oninput="validateStreet()">
+                                <p class="error text-red-500 text-sm" id="streetError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">City</label>
-                                <input type="text" name="city" class="w-full border p-2 rounded-lg" placeholder="Trivandrum" oninput="validateCity()">
-                                <p class="error text-red-500" id="cityError"></p>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">City</label>
+                                <input type="text" name="city" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Trivandrum" oninput="validateCity()">
+                                <p class="error text-red-500 text-sm" id="cityError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">State</label>
-                                <input type="text" name="state" class="w-full border p-2 rounded-lg" placeholder="Kerla" oninput="validateState()">
-                                <p class="error text-red-500" id="stateError"></p>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">State</label>
+                                <input type="text" name="state" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Kerala" oninput="validateState()">
+                                <p class="error text-red-500 text-sm" id="stateError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Postal Code</label>
-                                <input type="text" name="zip" class="w-full border p-2 rounded-lg" placeholder="695505" oninput="validateZip()">
-                                <p class="error text-red-500" id="zipError"></p>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Postal Code</label>
+                                <input type="text" name="zip" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="695505" oninput="validateZip()">
+                                <p class="error text-red-500 text-sm" id="zipError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Phone Number</label>
-                                <input type="text" name="phone" class="w-full border p-2 rounded-lg" placeholder="9876543210" oninput="validatePhone()">
-                                <p class="error text-red-500" id="phoneError"></p>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Phone Number</label>
+                                <input type="text" name="phone" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="9876543210" oninput="validatePhone()">
+                                <p class="error text-red-500 text-sm" id="phoneError"></p>
                             </div>
                         </div>
-                        <div class="flex justify-end mt-4">
-                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md">Submit</button>
+                        <div class="flex justify-end mt-6">
+                            <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200">Save Address</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- Existing Address List -->
-                <div class="grid grid-cols-1 gap-2 mt-4">
-                    <div class="bg-white shadow-md mb-4">
-                        <% if (user.addresses && user.addresses.length > 0) { %> 
+                <div class="mt-8">
+                    <% if (user.addresses && user.addresses.length > 0) { %> 
+                        <div class="grid md:grid-cols-2 gap-6">
                         <% user.addresses.forEach(address => { %> 
-                        <div class="border p-4 mb-4">
-                            <div class="flex justify-between">
-                                <div>
-                                    <p class="font-semibold text-gray-800"><%= address.name %></p>
-                                    <p class="text-gray-600"><%= address.street %>, <%= address.city %></p>
-                                    <p class="text-gray-600"><%= address.state %> - <%= address.zip %></p>
-                                    <p class="text-gray-600">Phone: <%= address.phone %></p>
-                                </div>
-                                <div class="flex items-center">
-                                    <a href="/account/edit-address/<%= address._id %>" class="text-primary ml-2">
-                                        <i class="fas fa-pencil-alt"></i> Edit
-                                    </a>
-                                    <form action="/account/delete-address/<%= address._id %>" method="POST" class="ml-4 delete-address-form">
-                                      <button type="submit" class="text-red-500">
-                                          <i class="fas fa-trash-alt"></i> Delete
-                                      </button>
-                                  </form>
+                            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
+                                <div class="flex justify-between">
+                                    <div class="space-y-2">
+                                        <h3 class="font-semibold text-gray-800 text-lg"><%= address.name %></h3>
+                                        <p class="text-gray-600"><%= address.street %></p>
+                                        <p class="text-gray-600"><%= address.city %>, <%= address.state %> <%= address.zip %></p>
+                                        <p class="text-gray-600 flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                            </svg>
+                                            <%= address.phone %>
+                                        </p>
+                                    </div>
+                                    <div class="flex gap-4">
+                                        <a href="/account/edit-address/<%= address._id %>" class="text-primary hover:text-primary/80 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                        </a>
+                                        <form action="/account/delete-address/<%= address._id %>" method="POST" class="delete-address-form">
+                                            <button type="submit" class="text-red-500 hover:text-red-600 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
+                        <% }) %>
                         </div>
-                        <% }) %> 
-                        <% } else { %> 
-                        <p class="text-gray-600">No addresses found. Add a new address to manage your delivery locations.</p>
-                        <% } %>
-                    </div>
+                    <% } else { %> 
+                        <div class="text-center py-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <p class="text-gray-600">No addresses found. Add a new address to manage your delivery locations.</p>
+                        </div>
+                    <% } %>
                 </div>
             </div>
 
-            <div class="bg-white p-4 shadow-md">
-                <h3 class="text-lg font-semibold text-gray-800">Address Management</h3>
-                <p class="text-gray-600">Manage your delivery addresses for a smoother shopping experience. You can add, edit, or delete addresses as needed.</p>
-                <div class="mt-4">
-                    <p class="text-gray-600">To add a new address, click the "Add New Address" button above. You can edit or delete existing addresses by clicking on the respective icons next to each address.</p>
-                    <p class="text-gray-600">Please ensure to keep your addresses up-to-date to avoid any delivery issues.</p>
+            <div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Address Management Tips</h3>
+                <div class="space-y-4 text-gray-600">
+                    <p class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Keep your addresses up-to-date for smooth delivery
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Add multiple addresses for different delivery locations
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Ensure accurate contact information for delivery updates
+                    </p>
                 </div>
             </div>
         </div>

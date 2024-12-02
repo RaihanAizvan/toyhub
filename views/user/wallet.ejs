@@ -1,69 +1,220 @@
+<style>
+    .glancing-card {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .glancing-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        transparent 100%
+      );
+      transform: skewX(-20deg) translateX(-100%);
+      animation: glance 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes glance {
+      0% {
+        transform: skewX(-20deg) translateX(-100%);
+      }
+      100% {
+        transform: skewX(-20deg) translateX(200%);
+      }
+    }
+  </style>
+
 <%- include('header') %>
-<div class="bg-gray-100 pt-4 w-full text-sm">
-    <div class="flex min-h-screen md:w-8/12 mx-auto">
-        <!-- Sidebar -->
-        <%- include('profile-sidebar') %>
-        <!-- Wallet Content -->
-        <div class="flex-1 p-2">
-            <div class="bg-white p-4 shadow-md mb-4">
-                <h2 class="text-2xl text-center font-semibold mb-4">Wallet</h2>
-                <% if (user && user.walletBalance !== undefined && user.walletBalance !== null) { %>
-                <div class="mb-4 flex justify-center">
-                    <h3 class="text-xl font-bold">Balance: <span class="text-3xl">₹<%= user.walletBalance.toFixed(2) %></span></h3>
-                    <hr>
-                </div>
-                <% } else { %>
-                <div class="mb-4 flex justify-center">
-                    <h3 class="text-xl font-bold">Balance: <span class="text-3xl">₹0.00</span></h3>
-                    <hr>
-                </div>
-                <% } %>
-                <hr>
-                <div class="mb-4">
-                    <button class="bg-primary text-white py-2 px-4 rounded" onclick="toggleAddMoneyForm()">Add Money</button>
-                </div>
-                <div id="add-money-form" style="display: none;" class="mb-4">
-                    <div class="flex flex-col items-center">
-                        <label for="amount" class="text-lg font-medium mb-2">Enter Amount to Add:</label>
-                        <input type="number" id="amount" name="amount" class="border rounded p-2 mb-4 w-1/2" placeholder="Enter amount" required>
-                        <button class="bg-primary text-white py-2 px-6 rounded" onclick="addMoney()">Add Money</button>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-2">Transaction History</h3>
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-4 text-center border-b">Date</th>
-                                <th class="py-2 px-4 text-center border-b">Description</th>
-                                <th class="py-2 px-4 text-center border-b">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (transactions && transactions.length > 0) { %>
-                                <% transactions.forEach(transaction => { %>
-                                    <tr>
-                                        <td class="py-2 px-4 text-center border-b"><%= new Date(transaction.date).toDateString() %></td>
-                                        <td class="py-2 px-4 text-center border-b"><%= transaction.description %></td>
-                                        <td class="py-2 px-4 text-center border-b"><%= transaction.amount %></td>
-                                    </tr>
-                                <% }) %>
-                            <% } else { %>
-                                <tr>
-                                    <td class="py-2 px-4 text-center border-b" colspan="3">No transactions found</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                    <div class="flex justify-center mt-4">
-                        <% for(let i = 1; i <= totalPages; i++) { %>
-                            <a href="?page=<%= i %>" class="px-3 py-1 mx-1 border rounded <%= i === currentPage ? 'bg-primary text-white' : 'bg-white text-primary' %>"><%= i %></a>
-                        <% } %>
-                    </div>
-                </div>
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 pt-4 w-full text-sm min-h-screen">
+  <div class="flex md:w-8/12 mx-auto">
+    <!-- Sidebar -->
+    <%- include('profile-sidebar') %>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-4 mt-48 md:mt-0 overflow-hidden">
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">
+          <i class="fas fa-wallet text-primary mr-2"></i>My Wallet
+        </h1>
+
+        <!-- Balance Card -->
+        <div class="bg-gradient-to-r from-gray-900 to-black rounded-xl p-6 text-white mb-8 shadow-lg relative overflow-hidden w-96 mx-auto glancing-card" style="height: 200px;">
+          <!-- Card Chip -->
+          <div class="absolute top-6 left-6">
+            <div class="w-12 h-10 bg-gold rounded-md grid grid-cols-4 grid-rows-4 gap-0.5 p-1">
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
+              <div class="bg-gold-2 rounded-sm"></div>
             </div>
+          </div>
+
+          <!-- Glancing Effect -->
+          <div class="glancing-effect"></div>
+
+          <!-- Card Number -->
+          <div class="absolute top-20 left-6 right-6">
+            <p class="text-gray-400 text-xs mb-1">Card Balance</p>
+            <h2 class="text-3xl font-bold font-mono tracking-wider">₹<%= user?.walletBalance?.toFixed(2) || '0.00' %></h2>
+          </div>
+
+          <!-- Card Holder -->
+          <div class="absolute bottom-6 left-6">
+            <p class="text-gray-400 text-xs">CARD HOLDER</p>
+            <p class="font-medium"><%= locals.name %></p>
+          </div>
+
+          <!-- Card Logo -->
+          <div class="absolute bottom-6 right-6">
+            <img src="/images/mastercard.png" alt="Mastercard" class="h-8">
+          </div>
+
+          <!-- Decorative circles -->
+          <div class="absolute -right-20 -top-20 w-48 h-48 bg-opacity-10 bg-white rounded-full"></div>
+          <div class="absolute -right-10 -top-10 w-32 h-32 bg-opacity-10 bg-white rounded-full"></div>
+
+          <button onclick="toggleAddMoneyForm()" class="absolute top-4 right-4 bg-gray-800/50 hover:bg-gray-700/50 text-white py-2 px-4 rounded-lg backdrop-blur-sm transition-all duration-300">
+            <i class="fas fa-plus-circle mr-2"></i>Add Money
+          </button>
+
+          
         </div>
+
+        <!-- Add Money Form -->
+        <div id="add-money-form" style="display: none;" class="bg-gray-50 rounded-xl p-6 mb-8 transition-all duration-300">
+          <div class="flex flex-col items-center">
+            <label for="amount" class="text-lg font-medium text-gray-700 mb-3">Enter Amount to Add</label>
+            <div class="relative w-full max-w-xs">
+              <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+              <input type="number" id="amount" name="amount" 
+                     class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                     placeholder="Enter amount" required>
+            </div>
+            <button onclick="addMoney()" 
+                    class="mt-4 bg-primary hover:bg-primary-dark text-white py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
+              <i class="fas fa-check-circle mr-2"></i>Confirm
+            </button>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="bg-white rounded-xl overflow-hidden">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800">
+              <i class="fas fa-history text-primary mr-2"></i>Transaction History
+            </h2>
+          </div>
+
+          <!-- Mobile View -->
+          <div class="md:hidden">
+            <% if (transactions && transactions.length > 0) { %>
+              <div class="space-y-4 px-4">
+                <% transactions.forEach((transaction, index) => { %>
+                  <div class="bg-white rounded-lg border border-gray-100 p-4 hover:bg-gray-50/50 transition-colors duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="far fa-calendar-alt text-primary"></i>
+                        <span><%= new Date(transaction.date).toDateString() %></span>
+                      </div>
+                      <span class="<%= parseFloat(transaction.amount) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
+                        <%= parseFloat(transaction.amount) > 0 ? '+' : '' %>₹<%= transaction.amount %>
+                      </span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                      <i class="fas fa-info-circle text-primary"></i>
+                      <span class="break-words"><%= transaction.description %></span>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="flex flex-col items-center text-gray-500 py-8">
+                <i class="fas fa-receipt text-4xl mb-2"></i>
+                <p>No transactions found</p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Desktop View -->
+          <div class="hidden md:block overflow-x-auto w-full">
+            <table class="w-full table-fixed border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-primary to-primary-dark text-white">
+                  <th class="px-6 py-4 text-left text-sm font-semibold rounded-tl-xl w-1/4">Date</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold w-2/4">Description</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold rounded-tr-xl w-1/4">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white">
+                <% if (transactions && transactions.length > 0) { %>
+                  <% transactions.forEach((transaction, index) => { %>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors duration-200">
+                      <td class="px-2 py-4 text-sm text-gray-600">
+                        <div class="flex items-center space-x-2">
+                          <i class="far fa-calendar-alt text-primary"></i>
+                          <span><%= new Date(transaction.date).toDateString() %></span>
+                        </div>
+                      </td>
+                      <td class="px-3 py-4 text-sm text-gray-600">
+                        <div class="flex items-center space-x-2">
+                          <i class="fas fa-info-circle text-primary"></i>
+                          <span class="break-words"><%= transaction.description %></span>
+                        </div>
+                      </td>
+                      <td class="px-3 py-4">
+                        <span class="<%= parseFloat(transaction.amount) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
+                          <%= parseFloat(transaction.amount) > 0 ? '+' : '' %>₹<%= transaction.amount %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="px-6 py-8 text-center">
+                      <div class="flex flex-col items-center text-gray-500">
+                        <i class="fas fa-receipt text-4xl mb-2"></i>
+                        <p>No transactions found</p>
+                      </div>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <% if (totalPages > 1) { %>
+            <div class="flex justify-center space-x-2 mt-6 pb-4">
+              <% for(let i = 1; i <= totalPages; i++) { %>
+                <a href="?page=<%= i %>" 
+                   class="px-4 py-2 rounded-lg <%= i === currentPage ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' %> transition-colors duration-200">
+                  <%= i %>
+                </a>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 <%- include('footer') %>
 
@@ -73,23 +224,17 @@
         const form = document.getElementById('add-money-form');
         form.style.display = form.style.display === 'block' ? 'none' : 'block';
     }
+    
     function addMoney() {
         const amount = document.getElementById('amount').value;
         axios.post('/account/wallet/add-money', { amount })
             .then(response => {
                 toastr.success('Money added successfully!');
                 document.getElementById('add-money-form').style.display = 'none';
-                document.querySelector('h3.text-xl.font-bold span').innerText = `₹${response.data.balance}`;
+                document.querySelector('h2.text-3xl.font-bold').innerText = `₹${response.data.balance}`;
                 
-                // Update transaction history
-                const transactionHistory = document.querySelector('tbody');
-                const newTransaction = document.createElement('tr');
-                newTransaction.innerHTML = `
-                    <td class="py-2 px-4 text-center border-b">${new Date().toDateString()}</td>
-                    <td class="py-2 px-4 text-center border-b">Added money to wallet</td>
-                    <td class="py-2 px-4 text-center border-b">${amount}</td>
-                `;
-                transactionHistory.prepend(newTransaction);
+                // Refresh page to show updated transaction history
+                window.location.reload();
             })
             .catch(error => {
                 console.error('Error adding money:', error);

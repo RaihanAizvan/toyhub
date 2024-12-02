@@ -54,34 +54,3 @@
 </header>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function handleSearchInput(value) {
-        const suggestions = document.getElementById('suggestions');
-        if (value.length >= 2) {
-            axios.get(`/search?q=${value}`)
-                .then(response => {
-                    const data = response.data;
-                    suggestions.innerHTML = data.map(item => `<div class="p-2 cursor-pointer hover:bg-gray-100" onclick="searchItem('${item.name}')">${item.name}</div>`).join('');
-                    suggestions.classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error('Error fetching search suggestions:', error);
-                });
-        } else {
-            suggestions.classList.add('hidden');
-        }
-    }
-
-    function searchItem(itemName) {
-        const query = itemName || '';
-        window.location.href = `/search/results?q=${query}`;
-    }
-
-    document.querySelector('input[type="text"]').addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            const query = this.value || '';
-            window.location.href = `/search/results?q=${query}`;
-        }
-    });
-</script>

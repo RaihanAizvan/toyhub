@@ -1,107 +1,277 @@
 <%- include('header') %>
 
-<div class="bg-gray-100 min-h-screen py-8">
-    <div class="container mx-auto w-8/12 bg-white shadow-sm rounded-lg p-6 flex">
-        <div class="flex-1 flex flex-col ">
-            <div class="flex justify-between">
-            <h1 class="text-3xl font-semibold text-gray-800 mb-6">Order Details</h1>
-                <% if(order.status == 'Delivered'){ %>
-                    <button class="bg-primary text-white py-2 px-6 rounded-lg h-10 shadow-md w-24 hover:bg-green-700 transition  duration-200" onclick="downloadInvoice('<%= order._id %>')">Invoice</button>
-                <% } %>
-                <!-- //retry payment if peyment method == razorpay and paid ==false -->
-                <% if(order.paymentMethod == 'razorpay' && order.paid == false){ %>
-                    <button class="bg-primary text-white py-2 px-6 rounded-lg h-10 shadow-md w-24 hover:bg-green-700 transition  duration-200" onclick="retryPayment('<%= order._id %>')">Retry Payment</button>
-                <% } %>
+<style>
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    /* Card hover effects */
+    .order-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+    }
+
+    .order-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 0.5rem 1.25rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-pending { 
+        background-color: #FEF3C7; 
+        color: #D97706;
+        border: 1px solid #F59E0B;
+    }
+    .status-shipped { 
+        background-color: #DBEAFE; 
+        color: #2563EB;
+        border: 1px solid #3B82F6;
+    }
+    .status-delivered { 
+        background-color: #D1FAE5; 
+        color: #059669;
+        border: 1px solid #10B981;
+    }
+    .status-cancelled { 
+        background-color: #FEE2E2; 
+        color: #DC2626;
+        border: 1px solid #EF4444;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+        height: 6px;
+        background: #E5E7EB;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10B981, #059669);
+        transition: width 0.8s ease;
+    }
+
+    /* Button styles */
+    .btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* Product card */
+    .product-card {
+        transition: all 0.3s ease;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-color: #10B981;
+    }
+
+    /* Image hover zoom */
+    .img-zoom {
+        transition: transform 0.4s ease;
+        overflow: hidden;
+    }
+
+    .img-zoom:hover {
+        transform: scale(1.08);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #10B981;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #059669;
+    }
+</style>
+
+<div class="bg-gray-50 min-h-screen mt-48 md:mt-0 py-8">
+    <div class="container mx-auto w-11/12 md:w-8/12 bg-white shadow-lg rounded-2xl p-8">
+        <div class="flex-1 flex flex-col space-y-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-800 fade-in">Order Details</h1>
+                <div class="flex gap-4">
+                    <% if(order.status == 'Delivered'){ %>
+                        <button class="btn bg-primary text-white py-3 px-6 rounded-xl shadow-md hover:bg-green-700 transition duration-300 flex items-center gap-2">
+                            <i class="fas fa-download"></i>
+                            Invoice
+                        </button>
+                    <% } %>
+                    <% if(order.paymentMethod == 'razorpay' && order.paid == false){ %>
+                        <button class="btn bg-primary text-white py-3 px-6 rounded-xl shadow-md hover:bg-green-700 transition duration-300 flex items-center gap-2">
+                            <i class="fas fa-redo"></i>
+                            Retry Payment
+                        </button>
+                    <% } %>
+                </div>
             </div>
 
             <!-- Order Info -->
-            <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-800">Order ID: <span class="text-primary"><%= order._id %></span></h2>
-                <p class="text-gray-600">Placed on: <%= new Date(order.orderDate).toLocaleDateString() %></p>
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-xl font-semibold text-gray-800">Order ID: <span class="text-primary">#<%= order._id %></span></h2>
+                <p class="text-gray-600 mt-2">
+                    <i class="far fa-calendar-alt mr-2"></i>
+                    Placed on: <%= new Date(order.orderDate).toLocaleDateString() %>
+                </p>
             </div>
 
             <!-- Customer Info -->
-            <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-700 mb-4">Customer Information</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <p><strong>Name:</strong> <%= order.address.user.name %></p>
-                        <p><strong>Email:</strong> <%= order.address.user.email %></p>
-                        <p><strong>Joined Date:</strong> <%= new Date(order.address.user.joined_date).toLocaleDateString() %></p>
-                        <p><strong>Phone:</strong> <%= order.address.user.phone_number %></p>
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">Customer Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user text-primary"></i>
+                            <p><strong>Name:</strong> <%= order.address.user.name %></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-envelope text-primary"></i>
+                            <p><strong>Email:</strong> <%= order.address.user.email %></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar-check text-primary"></i>
+                            <p><strong>Joined:</strong> <%= new Date(order.address.user.joined_date).toLocaleDateString() %></p>
+                        </div>
                     </div>
-                    <div>
-                        <p><strong>Phone:</strong> <%= order.user.phone_number %></p>
-                        <p><strong>Address: <br></strong> <%= order.address.name %>,<br> <%= order.address.street %>, <%= order.address.city %>, <br><%= order.address.state %>, <%= order.address.zip %>, Phone: <%= order.address.phone %></p>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-phone text-primary"></i>
+                            <p><strong>Phone:</strong> <%= order.user.phone_number %></p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt text-primary mt-1"></i>
+                            <p><strong>Shipping Address:</strong><br>
+                                <%= order.address.name %>,<br>
+                                <%= order.address.street %>,<br>
+                                <%= order.address.city %>, <%= order.address.state %>,<br>
+                                <%= order.address.zip %><br>
+                                Phone: <%= order.address.phone %>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Order Status -->
-            <div class="mb-6">
-                <h2 class="text-lg font-semibold text-gray-700 mb-4">Order Status</h2>
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <div class="relative">
-                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                                <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
-                            </div>
-                            <div class="relative flex justify-between">
-                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                    <span class="text-xs font-medium text-gray-900">1</span>
-                                </span>
-                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                    <span class="text-xs font-medium text-gray-900">2</span>
-                                </span>
-                                <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
-                                    <span class="text-xs font-medium text-gray-900">3</span>
-                                </span>
-                            </div>
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">Order Status</h2>
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t-2 <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-green-500' %>"></div>
+                    </div>
+                    <div class="relative flex justify-between">
+                        <div class="flex flex-col items-center">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'pending' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <i class="fas fa-box"></i>
+                            </span>
+                            <span class="mt-2 text-sm font-medium">Pending</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'Shipped' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <i class="fas fa-shipping-fast"></i>
+                            </span>
+                            <span class="mt-2 text-sm font-medium">Shipped</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'Delivered' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <span class="mt-2 text-sm font-medium">Delivered</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-between mt-2">
-                    <span class="text-sm font-medium text-gray-600">Pending</span>
-                    <span class="text-sm font-medium text-gray-600">Shipped</span>
-                    <span class="text-sm font-medium text-gray-600">Delivered</span>
-                </div>
                 <% if (order.status === 'Cancelled') { %>
-                    <div class="mt-4">
-                        <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
+                    <div class="mt-6 text-center">
+                        <span class="status-badge status-cancelled">
+                            <i class="fas fa-times-circle"></i>
+                            Order Cancelled
+                        </span>
                     </div>
-                    <% } %>
-                    <% if (order.paymentMethod == 'razorpay' && order.paid == false) { %>
-                        <div class="mt-4">
-                            <span class="text-sm font-medium text-red-600 line-through">Payment Failed</span>
-                        </div>
-                        <p class="text-sm font-medium text-red-600">please retry payment</p>
-                    <% } %>
-
+                <% } %>
+                
+                <% if (order.paymentMethod == 'razorpay' && order.paid == false) { %>
+                    <div class="mt-6 text-center">
+                        <span class="status-badge status-cancelled">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Payment Failed
+                        </span>
+                        <p class="text-red-600 mt-2">Please retry payment</p>
+                    </div>
+                <% } %>
             </div>
 
             <!-- Items Ordered -->
-            <div>
-                <h3 class="text-lg font-medium text-gray-800">Items in this order:</h3>
-                <div class="grid grid-cols-1 gap-4 mt-4">
+            <div class="space-y-6">
+                <h3 class="text-xl font-semibold text-gray-800">Order Items</h3>
+                <div class="grid grid-cols-1 gap-6">
                     <% order.items.forEach(item => { %>
-                        <div class="flex flex-col bg-white shadow-md rounded-lg p-4">
-                            <div class="flex items-center space-x-4">
-                                <!-- Product Image -->
-                                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-16 h-16 object-cover rounded-md">
-                                
-                                <!-- Product Details -->
-                                <div>
-                                    <h4 class="font-semibold text-gray-800"><%= item.product.name %></h4>
-                                    <p class="text-gray-600">Quantity: <%= item.quantity %></p>
-                                    <p class="text-gray-600">Price: ₹ <%= item.price %></p>
-                                    <p class="text-gray-600">Payment Method: <%= order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod %></p>
+                        <div class="product-card p-6">
+                            <div class="flex items-center gap-6">
+                                <div class="img-zoom w-24 h-24">
+                                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover rounded-lg">
                                 </div>
-                            </div>
-
-                            <!-- Item Total Price -->
-                            <div class="text-right mt-4">
-                                <p class="text-lg font-bold text-gray-800">₹ <%= item.price * item.quantity %></p>
+                                <div class="flex-grow">
+                                    <h4 class="text-lg font-semibold text-gray-800"><%= item.product.name %></h4>
+                                    <div class="mt-2 space-y-1">
+                                        <p class="text-gray-600">Quantity: <%= item.quantity %></p>
+                                        <p class="text-gray-600">Price: ₹<%= item.price.toFixed(2) %></p>
+                                        <p class="text-gray-600">Payment: <%= order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod %></p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold text-primary">₹<%= (item.price * item.quantity).toFixed(2) %></p>
+                                </div>
                             </div>
                         </div>
                     <% }) %>
@@ -109,22 +279,38 @@
             </div>
 
             <!-- Total Amount -->
-            <div class="mt-6 text-right">
-                <p class="text-gray-600">Subtotal: ₹ <%= order.subtotal %></p>
-                <p class="text-red-600">Coupon Discount: - ₹ <%= order.discount %></p>
-                <p class="text-red-600">Offer Discount: - ₹ <%= order.offerDiscount %></p>
-                <p class="text-2xl font-bold text-gray-800">Total Amount: ₹ <%= order.totalAmount %></p>
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-medium">₹<%= order.subtotal.toFixed(2) %></span>
+                    </div>
+                    <div class="flex justify-between text-red-600">
+                        <span>Coupon Discount:</span>
+                        <span>-₹<%= order.discount.toFixed(2) %></span>
+                    </div>
+                    <div class="flex justify-between text-red-600">
+                        <span>Offer Discount:</span>
+                        <span>-₹<%= order.offerDiscount.toFixed(2) %></span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <div class="flex justify-between">
+                            <span class="text-xl font-bold">Total Amount:</span>
+                            <span class="text-2xl font-bold text-primary">₹<%= order.totalAmount.toFixed(2) %></span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Go Back Button -->
-            <div class="mt-6">
-                <a href="/account/orders" class="bg-primary text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-200">Back to Orders</a>
+            <!-- Back Button -->
+            <div class="flex justify-center mt-8">
+                <a href="/account/orders" class="btn bg-primary text-white py-3 px-8 rounded-xl shadow-md hover:bg-green-700 transition duration-300 flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Orders
+                </a>
             </div>
         </div>
-        
     </div>
-
-        <!-- Address Details -->
 </div>
 
 <%- include('footer') %>

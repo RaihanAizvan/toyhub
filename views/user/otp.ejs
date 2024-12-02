@@ -1,26 +1,51 @@
 <%- include("./header-login") -%>
 
-<div class="container mx-auto my-52 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-sm mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">OTP</h2>
-        <p class="text-red-700 font-serif"> <%= locals.message %> </p>
-        <p class="text-black font-serif"> <%= locals.alertMessage %> </p>
-        <form action="/user/otp" method="post">
-            <div class="mb-4 flex flex-col space-x-4">
-                <div class="flex justify-center space-x-3">
-                    <input type="text" id="otp1" name="otp1" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp2')">
-                    <input type="text" id="otp2" name="otp2" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp3')">
-                    <input type="text" id="otp3" name="otp3" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp4')">
-                    <input type="text" id="otp4" name="otp4" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp5')">
-                    <input type="text" id="otp5" name="otp5" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1" onkeypress="moveOnMax(this, 'otp6')">
-                    <input type="text" id="otp6" name="otp6" class="w-12 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="1">
-                </div>
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4  md:mt-0 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-2xl space-y-6">
+        <div>
+            <h2 class="text-3xl font-extrabold text-center text-gray-900 mb-2">Enter OTP</h2>
+            <p class="text-center text-gray-600">Please enter the verification code sent to your email</p>
+        </div>
+
+        <% if (locals.message) { %>
+            <div class="p-4 rounded-md bg-red-50 border border-red-200">
+                <p class="text-red-700 font-medium"><%= locals.message %></p>
             </div>
-            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
-            <p class="mt-4 text-center text-gray-600">Didn't get the OTP? 
-                <a href="#" id="resend-otp" class="text-green-500 hover:underline disabled" onclick="resendOTP()">Try again in 
-                    <span id="countdown"><%= locals.remainingTime %></span> seconds</a>
-            </p>
+        <% } %>
+
+        <% if (locals.alertMessage) { %>
+            <div class="p-4 rounded-md bg-blue-50 border border-blue-200">
+                <p class="text-blue-700 font-medium"><%= locals.alertMessage %></p>
+            </div>
+        <% } %>
+
+        <form action="/user/otp" method="post" class="space-y-6">
+            <div class="flex justify-center gap-3">
+                <% for(let i=1; i<=6; i++) { %>
+                    <input 
+                        type="text" 
+                        id="otp<%= i %>" 
+                        name="otp<%= i %>" 
+                        class="w-12 h-12 text-center text-xl font-semibold border-2 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-all"
+                        maxlength="1"
+                        autocomplete="off"
+                        onkeyup="moveOnMax(this, 'otp<%= i+1 %>')"
+                    >
+                <% } %>
+            </div>
+
+            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                Verify OTP
+            </button>
+
+            <div class="text-center">
+                <p class="text-gray-600">
+                    Didn't get the OTP? 
+                    <a href="#" id="resend-otp" class="text-green-600 hover:text-green-800 font-medium disabled" onclick="resendOTP()">
+                        Try again in <span id="countdown"><%= locals.remainingTime %></span> seconds
+                    </a>
+                </p>
+            </div>
         </form>
     </div>
 </div>
@@ -32,9 +57,43 @@
     const countdownElement = document.getElementById('countdown');
     const resendButton = document.getElementById('resend-otp');
 
+    // Function to handle OTP input movement
+    function moveOnMax(field, nextFieldID) {
+        if (field.value.length >= field.maxLength) {
+            let nextField = document.getElementById(nextFieldID);
+            if (nextField) {
+                nextField.focus();
+            }
+        }
+        // Handle backspace
+        field.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && field.value.length === 0) {
+                let prevFieldId = 'otp' + (parseInt(field.id.replace('otp', '')) - 1);
+                let prevField = document.getElementById(prevFieldId);
+                if (prevField) {
+                    prevField.focus();
+                }
+            }
+        });
+    }
+
+    // Allow only numbers
+    document.querySelectorAll('input[id^="otp"]').forEach(input => {
+        input.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Auto focus first input on page load
+        if(input.id === 'otp1') {
+            input.focus();
+        }
+    });
+
     function startTimer() {
         if (timeLeft > 0) {
             resendButton.classList.add('disabled');
+            resendButton.style.opacity = '0.5';
+            resendButton.style.cursor = 'not-allowed';
         }
         
         const timer = setInterval(() => {
@@ -42,17 +101,18 @@
                 clearInterval(timer);
                 countdownElement.textContent = '';
                 resendButton.classList.remove('disabled');
-                resendButton.href = '/user/resend-otp';  // Enable link to resend OTP
-                resendButton.onclick = null;  // Remove the onclick event for automatic redirect
-                localStorage.removeItem('otpTimeLeft'); // Clear stored time
+                resendButton.style.opacity = '1';
+                resendButton.style.cursor = 'pointer';
+                resendButton.href = '/user/resend-otp';
+                resendButton.onclick = null;
+                localStorage.removeItem('otpTimeLeft');
             } else {
                 timeLeft -= 1;
                 countdownElement.textContent = timeLeft;
-                localStorage.setItem('otpTimeLeft', timeLeft); // Update stored time
+                localStorage.setItem('otpTimeLeft', timeLeft);
             }
         }, 1000);
     }
 
-    // Start the timer on page load
     window.onload = startTimer;
 </script>

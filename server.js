@@ -53,10 +53,19 @@ app.use((req, res, next) => {
   next(); 
 });
 
+app.use((req,res,next )=>{
+  req.session.user = {
+    id:"66d72a6ea0c029810e11757b",
+    name:"Achuu",
+  }
+  next();
+})
+
+
 // app.use((req,res,next )=>{
 //   req.session.user = {
-//     id:"66d72a6ea0c029810e11757b",
-//     name:"Achuu",
+//     id:"66dae94724e6805681a42e6a",
+//     name:"Muhammed Raihann",
 //   }
 //   next();
 // })

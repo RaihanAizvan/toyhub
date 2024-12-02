@@ -1,65 +1,77 @@
 <%- include('header') %>
-<div class="bg-gray-100 pt-4 w-full text-sm">
-    <div class="flex min-h-screen md:w-8/12 mx-auto">
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 pt-6 w-full text-sm min-h-screen">
+    <div class="flex max-w-7xl mx-auto px-4">
         <!-- Sidebar -->
         <%- include('profile-sidebar') %>
 
         <!-- Profile Content -->
-        <div class="flex-1 p-2">
+        <div class="flex-1 p-4 mt-48 md:mt-0">
             <!-- Personal Information Header -->
-            <div class="bg-white p-4 shadow-md mb-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-800">Edit Address</h2>
+            <div class="bg-white rounded-xl p-6 shadow-lg mb-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Edit Address</h2>
+                        <p class="text-gray-500 mt-1">Update your delivery location details</p>
+                    </div>
                 </div>
 
-                <!-- Hidden Form (Initially Hidden) -->
-                <div id="editAddressForm" class="mt-4">
-                    <form id="addressForm" action="/account/edit-address/<%= address._id %>" method="POST" class="bg-white p-4 shadow-md">
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <label class="block text-gray-600">Contact Name</label>
-                                <input type="text" name="name" class="w-full border p-2 rounded-lg" placeholder="Mohammed Raihan"  value="<%= address.name %>">
-                                <div class="text-red-500 hidden" id="nameError"></div>
+                <!-- Edit Address Form -->
+                <div id="editAddressForm">
+                    <form id="addressForm" action="/account/edit-address/<%= address._id %>" method="POST" class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Contact Name</label>
+                                <input type="text" name="name" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Mohammed Raihan" value="<%= address.name %>" oninput="validateName()">
+                                <p class="error text-red-500 text-sm" id="nameError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Street Address</label>
-                                <input type="text" name="street" class="w-full border p-2 rounded-lg" placeholder="123 Main Street, Anytown, USA, 12345"  value="<%= address.street %>">
-                                <div class="text-red-500 hidden" id="streetError"></div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Street Address</label>
+                                <input type="text" name="street" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="123 Main Street" value="<%= address.street %>" oninput="validateStreet()">
+                                <p class="error text-red-500 text-sm" id="streetError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">City</label>
-                                <input type="text" name="city" class="w-full border p-2 rounded-lg" placeholder="Trivandrum"  value="<%= address.city %>">
-                                <div class="text-red-500 hidden" id="cityError"></div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">City</label>
+                                <input type="text" name="city" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Trivandrum" value="<%= address.city %>" oninput="validateCity()">
+                                <p class="error text-red-500 text-sm" id="cityError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">State</label>
-                                <input type="text" name="state" class="w-full border p-2 rounded-lg" placeholder="Kerla"  value="<%= address.state %>">
-                                <div class="text-red-500 hidden" id="stateError"></div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">State</label>
+                                <input type="text" name="state" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Kerala" value="<%= address.state %>" oninput="validateState()">
+                                <p class="error text-red-500 text-sm" id="stateError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Postal Code</label>
-                                <input type="text" name="zip" class="w-full border p-2 rounded-lg" placeholder="695505"  value="<%= address.zip %>">
-                                <div class="text-red-500 hidden" id="zipError"></div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Postal Code</label>
+                                <input type="text" name="zip" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="695505" value="<%= address.zip %>" oninput="validateZip()">
+                                <p class="error text-red-500 text-sm" id="zipError"></p>
                             </div>
-                            <div>
-                                <label class="block text-gray-600">Phone Number</label>
-                                <input type="text" name="phone" class="w-full border p-2 rounded-lg" placeholder="9876543210"  value="<%= address.phone %>">
-                                <div class="text-red-500 hidden" id="phoneError"></div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Phone Number</label>
+                                <input type="text" name="phone" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="9876543210" value="<%= address.phone %>" oninput="validatePhone()">
+                                <p class="error text-red-500 text-sm" id="phoneError"></p>
                             </div>
                         </div>
-                        <div class="flex justify-end mt-4">
-                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md">Submit</button>
+                        <div class="flex justify-end mt-6">
+                            <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200">Update Address</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <div class="bg-white p-4 shadow-md">
-                <h3 class="text-lg font-semibold text-gray-800">Address Management</h3>
-                <p class="text-gray-600">Manage your delivery addresses for a smoother shopping experience. You can add, edit, or delete addresses as needed.</p>
-                <div class="mt-4">
-                    <p class="text-gray-600">To add a new address, click the "Add New Address" button above. You can edit or delete existing addresses by clicking on the respective icons next to each address.</p>
-                    <p class="text-gray-600">Please ensure to keep your addresses up-to-date to avoid any delivery issues.</p>
+            <div class="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Address Management Tips</h3>
+                <div class="space-y-4 text-gray-600">
+                    <p class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Keep your addresses up-to-date for smooth delivery
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Double-check all details before saving changes
+                    </p>
                 </div>
             </div>
         </div>
@@ -67,67 +79,123 @@
 </div>
 
 <script>
-    // Function to toggle the Edit Address form visibility
-    function toggleAddressForm() {
-        const form = document.getElementById('editAddressForm');
-        form.classList.toggle('hidden');
+    function validateAddressForm() {
+        return validateName() && validateStreet() && validateCity() && validateState() && validateZip() && validatePhone();
     }
 
-    // Form validation
-    document.getElementById('addressForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const form = event.target;
-        let isValid = true;
-
-        // Clear previous error messages
-        document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
-
+    function validateName() {
+        const name = document.forms["addressForm"]["name"].value;
+        const nameError = document.getElementById('nameError');
         const namePattern = /^[a-zA-Z\s]+$/;
-        const addressPattern = /^[a-zA-Z0-9\s,]+$/;
-        const phonePattern = /^[0-9]{10}$/;
+
+        if (!name) {
+            nameError.textContent = 'Contact Name is required.';
+            toastr.error('Contact Name is required.');
+            return false;
+        } else if (!namePattern.test(name)) {
+            nameError.textContent = 'Contact Name should only contain letters and spaces.';
+            toastr.error('Contact Name should only contain letters and spaces.');
+            return false;
+        } else {
+            nameError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateStreet() {
+        const street = document.forms["addressForm"]["street"].value;
+        const streetError = document.getElementById('streetError');
+
+        if (!street) {
+            streetError.textContent = 'Street Address is required.';
+            toastr.error('Street Address is required.');
+            return false;
+        } else {
+            streetError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateCity() {
+        const city = document.forms["addressForm"]["city"].value;
+        const cityError = document.getElementById('cityError');
+        const cityPattern = /^[a-zA-Z\s]+$/;
+
+        if (!city) {
+            cityError.textContent = 'City is required.';
+            toastr.error('City is required.');
+            return false;
+        } else if (!cityPattern.test(city)) {
+            cityError.textContent = 'City should only contain letters and spaces.';
+            toastr.error('City should only contain letters and spaces.');
+            return false;
+        } else {
+            cityError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateState() {
+        const state = document.forms["addressForm"]["state"].value;
+        const stateError = document.getElementById('stateError');
+        const statePattern = /^[a-zA-Z\s]+$/;
+
+        if (!state) {
+            stateError.textContent = 'State is required.';
+            toastr.error('State is required.');
+            return false;
+        } else if (!statePattern.test(state)) {
+            stateError.textContent = 'State should only contain letters and spaces.';
+            toastr.error('State should only contain letters and spaces.');
+            return false;
+        } else {
+            stateError.textContent = '';
+            return true;
+        }
+    }
+
+    function validateZip() {
+        const zip = document.forms["addressForm"]["zip"].value;
+        const zipError = document.getElementById('zipError');
         const zipPattern = /^[0-9]{5,6}$/;
 
-        if (!namePattern.test(form.name.value)) {
-            isValid = false;
-            const nameError = document.getElementById('nameError');
-            nameError.textContent = 'Contact Name should only contain letters and spaces.';
-            nameError.classList.remove('hidden');
-        }
-        if (!addressPattern.test(form.street.value)) {
-            isValid = false;
-            const streetError = document.getElementById('streetError');
-            streetError.textContent = 'Street Address should only contain letters, numbers, spaces, and commas.';
-            streetError.classList.remove('hidden');
-        }
-        if (!namePattern.test(form.city.value)) {
-            isValid = false;
-            const cityError = document.getElementById('cityError');
-            cityError.textContent = 'City should only contain letters and spaces.';
-            cityError.classList.remove('hidden');
-        }
-        if (!namePattern.test(form.state.value)) {
-            isValid = false;
-            const stateError = document.getElementById('stateError');
-            stateError.textContent = 'State should only contain letters and spaces.';
-            stateError.classList.remove('hidden');
-        }
-        if (!zipPattern.test(form.zip.value)) {
-            isValid = false;
-            const zipError = document.getElementById('zipError');
+        if (!zip) {
+            zipError.textContent = 'Postal Code is required.';
+            toastr.error('Postal Code is required.');
+            return false;
+        } else if (!zipPattern.test(zip)) {
             zipError.textContent = 'Postal Code should be 5 or 6 digits long.';
-            zipError.classList.remove('hidden');
-        }
-        if (!phonePattern.test(form.phone.value)) {
-            isValid = false;
-            const phoneError = document.getElementById('phoneError');
-            phoneError.textContent = 'Phone Number should be exactly 10 digits long.';
-            phoneError.classList.remove('hidden');
-        }
-
-        if (!isValid) {
-            toastr.error('Please correct the errors in the form.');
+            toastr.error('Postal Code should be 5 or 6 digits long.');
+            return false;
         } else {
-            form.submit();
+            zipError.textContent = '';
+            return true;
+        }
+    }
+
+    function validatePhone() {
+        const phone = document.forms["addressForm"]["phone"].value;
+        const phoneError = document.getElementById('phoneError');
+        const phonePattern = /^[0-9]{10}$/;
+
+        if (!phone) {
+            phoneError.textContent = 'Phone Number is required.';
+            toastr.error('Phone Number is required.');
+            return false;
+        } else if (!phonePattern.test(phone)) {
+            phoneError.textContent = 'Phone Number should be exactly 10 digits long.';
+            toastr.error('Phone Number should be exactly 10 digits long.');
+            return false;
+        } else {
+            phoneError.textContent = '';
+            return true;
+        }
+    }
+
+    document.getElementById('addressForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (validateAddressForm()) {
+            this.submit();
         }
     });
 </script>

@@ -1,4 +1,4 @@
-<div class="w-3/12 p-2 h-screen">
+<div class="hidden md:block w-3/12 p-2 h-screen">
     <!-- User Greeting -->
     <div class="mb-3 bg-white shadow-md p-3">
       <div class="text-gray-600 text-lg">Hello,</div>
@@ -21,7 +21,7 @@
   
       <div class="text-gray-500 font-bold px-4">MY STUFF</div>
       <a href="/account/coupons" class="block py-2 px-4 rounded hover:bg-gray-200">My Coupons</a>
-      <a href="/account/reviews" class="block py-2 px-4 rounded hover:bg-gray-200">My Reviews & Ratings</a>
+      <a href="/account/reviews" class="block py-2 px-4 rounded hover:bg-gray-200 <%= locals.title === 'My Reviews' ? 'bg-primary' : 'hover:bg-gray-200' %>">My Reviews & Ratings</a>
       <a href="/account/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200 <%= locals.title === 'Wishlist' ? 'bg-primary' : 'hover:bg-gray-200' %>">My Wishlist</a>
       <a href="/cart" class="block py-2 px-4 rounded hover:bg-gray-200">My Cart</a>
       <a href="/account/orders" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a>
@@ -33,26 +33,30 @@
 </div>
 
 <!-- Hamburger Menu for Mobile -->
-<!-- <div class="block md:hidden">
-    <button class="p-4" onclick="toggleMobileMenu()">
-        <i class="fas fa-bars"></i>
-    </button>
-    <div id="mobile-menu" class="hidden bg-white shadow-md space-y-2 p-3">
+<div class="md:hidden fixed mt-28 left-0 w-full bg-white shadow-md z-50">
+    <div class="flex justify-between items-center p-4">
+        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" onclick="toggleMobileMenu(event)">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+        <div class="text-lg font-semibold text-primary"><%= locals.name %></div>
+    </div>
+    
+    <div id="mobile-menu" class="hidden bg-white shadow-md space-y-2 p-3 absolute w-full transition-all duration-300 ease-in-out">
         <a href="/orders" class="block py-2 px-4 rounded hover:bg-gray-200">
             <i class="fas fa-box"></i> My Orders
         </a>
-        <div class="text-gray-500 font-bold px-4">ACCOUNT SETTINGS</div>
+        <div class="text-gray-500 font-bold px-4 mt-4">ACCOUNT SETTINGS</div>
         <a href="/account" class="block py-2 px-4 rounded <%= locals.title === 'Profile Edit'? 'bg-primary' : 'hover:bg-gray-200' %>">Profile Information</a>
         <a href="/account/address" class="block py-2 px-4 rounded <%= locals.title === 'Manage Addresses' || locals.title === 'Edit Address' ? 'bg-primary' : 'hover:bg-gray-200' %>">Manage Addresses</a>
         <a href="/account/change-password" class="block py-2 px-4 rounded <%= locals.title === 'Change Password' ? 'bg-primary' : 'hover:bg-gray-200' %>">Change Password</a>
     
-        <div class="text-gray-500 font-bold px-4"><i class="fab fa-amazon-pay"></i> PAYMENTS</div>
+        <div class="text-gray-500 font-bold px-4 mt-4"><i class="fab fa-amazon-pay"></i> PAYMENTS</div>
         <a href="/account/wallet" class="block py-2 px-4 rounded hover:bg-gray-200 <%= locals.title === 'Wallet' ? 'bg-primary' : 'hover:bg-gray-200' %>">Wallet</a>
         <a href="/account/card-details" class="block py-2 px-4 rounded hover:bg-gray-200">Card Details</a>
     
-        <div class="text-gray-500 font-bold px-4">MY STUFF</div>
+        <div class="text-gray-500 font-bold px-4 mt-4">MY STUFF</div>
         <a href="/account/coupons" class="block py-2 px-4 rounded hover:bg-gray-200">My Coupons</a>
-        <a href="/account/reviews" class="block py-2 px-4 rounded hover:bg-gray-200">My Reviews & Ratings</a>
+        <a href="/account/reviews" class="block py-2 px-4 rounded hover:bg-gray-200 <%= locals.title === 'My Reviews' ? 'bg-primary' : 'hover:bg-gray-200' %>">My Reviews & Ratings</a>
         <a href="/account/wishlist" class="block py-2 px-4 rounded hover:bg-gray-200 <%= locals.title === 'Wishlist' ? 'bg-primary' : 'hover:bg-gray-200' %>">My Wishlist</a>
         <a href="/cart" class="block py-2 px-4 rounded hover:bg-gray-200">My Cart</a>
         <a href="/account/orders" class="block py-2 px-4 rounded hover:bg-gray-200">My Orders</a>
@@ -61,11 +65,76 @@
             <i class="fas fa-power-off"></i> Logout
         </a>
     </div>
-</div> -->
+</div>
 
 <script>
-    function toggleMobileMenu() {
+    let isMenuOpen = false;
+    let isAnimating = false;
+
+    function toggleMobileMenu(event) {
+        event.stopPropagation();
+        if (isAnimating) return;
+
         const menu = document.getElementById('mobile-menu');
-        menu.classList.toggle('hidden');
+        isAnimating = true;
+        
+        if (!isMenuOpen) {
+            menu.classList.remove('hidden');
+            menu.classList.add('animate-slideDown');
+            isMenuOpen = true;
+            setTimeout(() => {
+                isAnimating = false;
+            }, 300);
+        } else {
+            menu.classList.add('animate-slideUp');
+            setTimeout(() => {
+                menu.classList.add('hidden');
+                menu.classList.remove('animate-slideUp');
+                isMenuOpen = false;
+                isAnimating = false;
+            }, 300);
+        }
     }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('mobile-menu');
+        const hamburgerBtn = document.querySelector('button');
+        
+        if (!menu.contains(event.target) && !hamburgerBtn.contains(event.target) && isMenuOpen) {
+            toggleMobileMenu(event);
+        }
+    });
 </script>
+
+<style>
+    @keyframes slideDown {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+    }
+
+    .animate-slideDown {
+        animation: slideDown 0.3s ease-out forwards;
+    }
+
+    .animate-slideUp {
+        animation: slideUp 0.3s ease-out forwards;
+    }
+</style>

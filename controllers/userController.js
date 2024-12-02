@@ -93,6 +93,8 @@ export const getCategoryList = category.getCategoryList
 
 export const viewAllCategories = category.viewAllCategories
 
+
+
 //* -----------------------------------------!                                         
 //s     Exporting singleproductPage          |
 //* -----------------------------------------!      
@@ -101,6 +103,10 @@ export const viewAllCategories = category.viewAllCategories
 export const getSingleProduct = singleProduct.getSingleProduct
 
 export const searchAndFilterProducts = singleProduct.searchAndFilterProducts
+
+export const searchProducts = singleProduct.searchProducts
+
+export const submitReview = singleProduct.submitReview
 
 
 
@@ -136,6 +142,7 @@ export const getWallet = profile.getWallet
 
 export const postAddMoney = profile.postAddMoney
 
+export const getReviews = profile.getReviews
 
 //* -----------------------------------------!                                         
 //s     Exporting address                    |

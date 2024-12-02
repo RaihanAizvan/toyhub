@@ -30,6 +30,18 @@
     .hamburger-spin.active {
         transform: rotate(180deg);
     }
+
+    /* Search suggestions dropdown */
+    #suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        margin-top: 4px;
+    }
 </style>
 
 
@@ -43,7 +55,7 @@
             </a>
         </div>
         <!-- Search Bar -->
-        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0">
+        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0 relative">
             <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
                 <option>All Categories</option>
                 <% if (locals.categories) { %>
@@ -54,11 +66,11 @@
             </select>
             <input type="text" placeholder="Search for items..."
                 class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
-                oninput="handleSearchInput(this.value)" />
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
+                id="searchInput" />
+            <button onclick="searchItem(document.getElementById('searchInput').value)" class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
                 <i class="fas fa-search"></i>
             </button>
-            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden"></div>
+            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden w-full"></div>
         </div>
 
         <!-- Desktop Navigation -->
@@ -92,7 +104,7 @@
 
     <div id="mobileMenu" class="bg-white shadow-lg md:hidden">
         <a href="/account" class="block px-4 py-2 hover:bg-gray-100">Profile - <%= locals.name %></a>
-        <a href="/account/cart" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
+        <a href="/cart" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
         <a href="/account/wishlist" class="block px-4 py-2 hover:bg-gray-100">Wishlist</a>
         <a href="/orders" class="block px-4 py-2 hover:bg-gray-100">Orders</a>
         <button id="logout-btn" onclick="logout()" class="block px-4 py-2 hover:bg-gray-100">Logout</button>
@@ -110,6 +122,7 @@
     </nav>
 </header>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
     // Hamburger Menu Toggle
     const hamburgerButton = document.getElementById("hamburgerButton");
@@ -124,56 +137,92 @@
     const desktopProfileTrigger = document.getElementById("desktopProfileTrigger");
     const desktopProfileDropdown = document.getElementById("desktopProfileDropdown");
 
-    desktopProfileTrigger.addEventListener("click", () => {
-        desktopProfileDropdown.classList.toggle("hidden");
-    });
+    if (desktopProfileTrigger) {
+        desktopProfileTrigger.addEventListener("click", () => {
+            desktopProfileDropdown.classList.toggle("hidden");
+        });
+    }
 
     // Close profile dropdown if clicked outside
     document.addEventListener("click", (event) => {
-        if (!desktopProfileTrigger.contains(event.target) && !desktopProfileDropdown.contains(event.target)) {
+        if (desktopProfileDropdown && !desktopProfileTrigger?.contains(event.target) && !desktopProfileDropdown.contains(event.target)) {
             desktopProfileDropdown.classList.add("hidden");
         }
     });
 
-    function handleSearchInput(value) {
-        const suggestions = document.getElementById('suggestions');
-        if (value.length >= 2) {
-            axios.get(`/search?q=${value}`)
-                .then(response => {
-                    const data = response.data;
-                    // Render suggestions dynamically (if needed)
-                    suggestions.innerHTML = data.map(item => `<div class="p-2 cursor-pointer hover:bg-gray-100" onclick="searchItem('${item.name}')">${item.name}</div>`).join('');
-                    suggestions.classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error('Error fetching search suggestions:', error);
-                });
-        } else {
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const suggestions = document.getElementById('suggestions');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const value = this.value.trim();
+        
+        if (value.length < 2) {
+            suggestions.classList.add('hidden');
+            suggestions.innerHTML = '';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            handleSearchInput(value);
+        }, 300);
+    });
+
+    searchInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchItem(this.value);
+        }
+    });
+
+    // Click outside to close suggestions
+    document.addEventListener('click', function(event) {
+        if (!searchInput.contains(event.target) && !suggestions.contains(event.target)) {
             suggestions.classList.add('hidden');
         }
+    });
+
+    function handleSearchInput(value) {
+        if (!value) return;
+
+        axios.get(`/search/?q=${encodeURIComponent(value)}`)
+            .then(response => {
+                const data = response.data;
+                if (!data) {
+                    suggestions.innerHTML = '<div class="p-3 text-red-500">No data received from server</div>';
+                    suggestions.classList.remove('hidden');
+                    return;
+                }
+
+                if (Array.isArray(data) && data.length > 0) {
+                    suggestions.innerHTML = data
+                        .map(item => `
+                            <div class="p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0" 
+                                onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
+                                ${item.name || 'Unnamed Item'}
+                            </div>
+                        `).join('');
+                    suggestions.classList.remove('hidden');
+                } else {
+                    suggestions.innerHTML = '<div class="p-3 text-gray-500">No results found</div>';
+                    suggestions.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                suggestions.innerHTML = '<div class="p-3 text-red-500">Error fetching results: ' + error.message + '</div>';
+                suggestions.classList.remove('hidden');
+            });
     }
 
-    function searchItem(itemName) {
-        const query = itemName || '';
-        window.location.href = `/search/results?q=${query}`; // Redirect to results page with the selected item name
+    function searchItem(query) {
+        if (!query) return;
+        window.location.href = `/search/results?q=${encodeURIComponent(query.trim())}`;
     }
 
-    document.querySelector('input[type="text"]').addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent form submission if using a form element
-            const query = this.value || '';
-            window.location.href = `/search/results?q=${query}`; // Redirect to results page
-        }
-    });
-
-    document.getElementById('desktopProfileTrigger').addEventListener('mouseover', () => {
-        document.getElementById('desktopProfileDropdown').classList.remove('hidden');
-    });
-
-    document.getElementById('desktopProfileDropdown').addEventListener('mouseleave', () => {
-        document.getElementById('desktopProfileDropdown').classList.add('hidden');
-    });
-    
+    // Logout functionality
     function logout() {
         Swal.fire({
             title: 'Ready to Take Off?',
@@ -214,5 +263,4 @@
             }
         });
     }
-
 </script>

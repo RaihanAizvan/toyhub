@@ -1,78 +1,177 @@
 <%- include('header') %>
-    <div class="bg-gray-100 pt-4 w-full text-sm">
-        <div class="flex min-h-screen md:w-8/12 mx-auto">
-            <!-- Sidebar -->
-            <%- include('profile-sidebar') %>
-                <!-- Profile Content -->
-                <div class="flex-1 p-2">
-                    <!-- Personal Information Header -->
-                    <div class="bg-white p-4 shadow-md mb-4">
-                        <div class="flex items-center">
-                            <h2 class="text-xl font-semibold text-gray-800">Wishlist</h2>
-                        </div>
-                        <div class="grid grid-cols-1 gap-4 mt-4">
-                            <% if (wishlistItems.length> 0) { %> <% wishlistItems.forEach(item=> { %> 
-                                <a href="/product/<%= item._id %>">
-                                    <div class="bg-white p-4 shadow-md flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <img src="<%= item.images[0] %>" alt="<%= item.name %>"
-                                                class="w-16 h-16 object-cover rounded-lg">
-                                            <div class="ml-4">
-                                                <h3 class="text-lg font-semibold text-gray-800">
-                                                    <%= item.name %>
-                                                </h3>
-                                                <p class="text-gray-600 font-bold text-lg">₹<%= item.price %>
-                                                </p>
-                                                <p class="text-gray-600">
-                                                    <%= item.description1 %>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="text-red-500 hover:text-red-700"
-                                            onclick="deleteWishlistItem('<%= item._id %>')">
-                                            <i class="fas fa-trash-alt"></i>
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 pt-4 w-full text-sm min-h-screen">
+    <div class="flex md:w-8/12 mx-auto">
+        <!-- Sidebar -->
+        <%- include('profile-sidebar') %>
+        
+        <!-- Profile Content -->
+        <div class="flex-1 p-4 mt-48 md:mt-0">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+                <h1 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-heart text-primary mr-2"></i>My Wishlist
+                </h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <% if (wishlistItems.length > 0) { %>
+                        <% wishlistItems.forEach(item => { %>
+                            <!-- Mobile View -->
+                            <div class="md:hidden group bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-300 overflow-hidden flex w-full mb-4">
+                                <!-- Image Section -->
+                                <div class="relative w-24 h-24 flex-shrink-0">
+                                    <img src="<%= item.images[0] %>" 
+                                         alt="<%= item.name %>"
+                                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                                    <div class="absolute top-1 right-1">
+                                        <button onclick="deleteWishlistItem('<%= item._id %>')" 
+                                                class="p-1 bg-white/80 backdrop-blur-sm hover:bg-red-500 hover:text-white rounded-full shadow-md transition-all duration-300">
+                                            <i class="fas fa-trash-alt text-xs"></i>
                                         </button>
                                     </div>
-                                </a>
-                                <% }) %>
-                            <% } else { %>
-                                <p class="text-gray-600">Your wishlist is currently empty.</p>
-                            <% } %>
+                                </div>
+
+                                <!-- Content Section -->
+                                <div class="flex-1 p-2 flex flex-col justify-between">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-800 mb-0.5 line-clamp-1 group-hover:text-primary transition-colors duration-300">
+                                            <%= item.name %>
+                                        </h3>
+                                        <p class="text-xs text-gray-600 line-clamp-1 mb-1">
+                                            <%= item.description1 %>
+                                        </p>
+                                    </div>
+
+                                    <div class="flex items-center justify-between mt-auto">
+                                        <div class="flex items-center gap-1">
+                                            <div class="text-base font-bold text-primary">
+                                                ₹<%= item.priceAfterDiscount %>
+                                            </div>
+                                            <div class="text-xs line-through text-gray-500">
+                                                ₹<%= item.price %>
+                                            </div>
+                                        </div>
+                                        <a href="/product/<%= item._id %>" 
+                                           class="text-xs bg-primary hover:bg-primary-dark text-white px-2 py-1 rounded-lg transition-all duration-300">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Desktop View -->
+                            <div class="hidden md:grid group bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-300 w-full mb-4 grid-cols-[128px_1fr] gap-4">
+                                <!-- Image Section -->
+                                <div class="relative w-32 h-32">
+                                    <div class="w-full h-full overflow-hidden">
+                                        <img src="<%= item.images[0] %>" 
+                                             alt="<%= item.name %>"
+                                             class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                                    </div>
+                                    <div class="absolute top-2 right-2 z-10">
+                                        <button onclick="deleteWishlistItem('<%= item._id %>')" 
+                                                class="p-1.5 bg-white/80 backdrop-blur-sm hover:bg-red-500 hover:text-white rounded-full shadow-md transition-all duration-300">
+                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Content Section -->
+                                <div class="p-4 grid grid-rows-[auto_1fr_auto] gap-2">
+                                    <div>
+                                        <h3 class="text-base font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-primary transition-colors duration-300">
+                                            <%= item.name %>
+                                        </h3>
+                                        <p class="text-sm text-gray-600 line-clamp-2 mb-2">
+                                            <%= item.description1 %>
+                                        </p>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 items-center justify-between mt-auto">
+                                        <div class="flex items-center gap-1.5">
+                                            <div class="text-lg font-bold text-primary">
+                                                ₹<%= item.priceAfterDiscount %>
+                                            </div>
+                                            <div class="text-xs line-through text-gray-500">
+                                                ₹<%= item.price %>
+                                            </div>
+                                        </div>
+                                        <a href="/product/<%= item._id %>" 
+                                           class="text-sm bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-all duration-300 justify-self-end">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-span-full text-center py-8">
+                            <div class="text-5xl text-gray-300 mb-3">
+                                <i class="far fa-heart"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">Your wishlist is empty</h3>
+                            <p class="text-gray-500 mb-4">Start adding items you love!</p>
+                            <a href="/products" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg inline-block transition-all duration-300">
+                                Explore Products
+                            </a>
                         </div>
-                    </div>
-                    <div class="bg-white p-4 shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-800">Wishlist Tips</h3>
-                        <div class="mt-4 space-y-4">
-                            <div>
-                                <h4 class="font-semibold text-gray-600">How to add items to your wishlist?</h4>
-                                <p class="text-gray-500">Browse through our products and click on the heart icon to add
-                                    items to your wishlist.</p>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-gray-600">Why use a wishlist?</h4>
-                                <p class="text-gray-500">A wishlist helps you keep track of items you love and plan to
-                                    purchase in the future.</p>
-                            </div>
+                    <% } %>
+                </div>
+
+                <!-- Tips Section -->
+                <div class="mt-6 bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-lightbulb text-primary mr-2"></i>Quick Tips
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-gray-700 mb-1 text-sm">
+                                <i class="fas fa-plus-circle text-primary mr-1"></i>Adding Items
+                            </h4>
+                            <p class="text-xs text-gray-600">Click the heart icon on any product to add it to your wishlist.</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-gray-700 mb-1 text-sm">
+                                <i class="fas fa-star text-primary mr-1"></i>Benefits
+                            </h4>
+                            <p class="text-xs text-gray-600">Track favorite items and get price drop notifications.</p>
                         </div>
                     </div>
                 </div>
+            </div>
         </div>
     </div>
-    <script>
-        function deleteWishlistItem(productId) {
-            axios.delete('/account/wishlist', { data: { productId: productId } })
-                .then(response => {
-                    console.log('Success:', response.data);
-                    toastr.success(response.data.message || 'Product removed from wishlist!');
-                    // Remove the item from the DOM
-                    const itemElement = document.querySelector(`[onclick="deleteWishlistItem('${productId}')"]`).closest('.flex');
-                    if (itemElement) {
+</div>
+
+<script>
+    function deleteWishlistItem(productId) {
+        axios.delete('/account/wishlist', { data: { productId: productId } })
+            .then(response => {
+                toastr.success(response.data.message || 'Product removed from wishlist!');
+                const itemElement = document.querySelector(`[onclick="deleteWishlistItem('${productId}')"]`).closest('.group');
+                if (itemElement) {
+                    itemElement.classList.add('animate-fadeOut');
+                    setTimeout(() => {
                         itemElement.remove();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error(error.response?.data?.message || 'Failed to remove product from wishlist.');
-                });
-        }
-    </script>
+                        // Check if wishlist is empty after removal
+                        if (document.querySelectorAll('.group').length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error(error.response?.data?.message || 'Failed to remove product from wishlist.');
+            });
+    }
+</script>
+
+<style>
+    @keyframes fadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.95); }
+    }
+    
+    .animate-fadeOut {
+        animation: fadeOut 0.3s ease-out forwards;
+    }
+</style>

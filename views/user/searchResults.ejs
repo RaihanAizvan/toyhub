@@ -1,190 +1,278 @@
 <%- include('./header') %>
-<div class="grid grid-cols-1 md:grid-cols-8 pb-16 gap-6 mx-6">
-    <!-- Filter Options Section -->
-    <div class="filter-options space-y-6 border-r pr-10 ml-10 box-content md:col-span-1 my-10">
-        <div class="filter-section">
-            <h3 class="text-lg font-semibold mb-4">Filter By Price</h3>
-            <form id="filterForm">
-                <!-- Filter Checkboxes -->
-                <div class="filter-checkboxes space-y-2">
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input id="checkbox-1" name="sort" type="radio" value="lowToHigh"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                            onclick="handleFilters()">
-                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: Low to High</span>
-                    </label>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input id="checkbox-2" name="sort" type="radio" value="highToLow"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                            onclick="handleFilters()">
-                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Price: High to Low</span>
-                    </label>
-                </div>
-                <!-- Filter by Name -->
-                <div class="filter-checkboxes space-y-2 mt-4">
-                    <h3 class="text-lg font-semibold mb-4">Filter By Name</h3>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input id="checkbox-3" name="sort" type="radio" value="atoz"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                            onclick="handleFilters()">
-                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: A to Z</span>
-                    </label>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input id="checkbox-4" name="sort" type="radio" value="ztoa"
-                            class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                            onclick="handleFilters()">
-                        <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">Name: Z to A</span>
-                    </label>
-                </div>
-                <!-- Categories Filter -->
-                <div class="filter-categories space-y-2 mt-4">
-                    <h4 class="text-lg font-semibold mb-2">Categories</h4>
-                    <% categories.forEach(category => { %>
-                        <label class="inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="category" value="<%= category._id %>"
-                                class="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
-                                onclick="handleFilters()">
-                            <span class="ml-3 block text-gray-500 sm:text-sm sm:leading-5">
-                                <%= category.name %>
-                            </span>
-                        </label>
-                    <% }) %>
-                </div>
-            </form>
-        </div>
-    </div>
+<div class="container mx-auto px-4 lg:px-8 mt-48 md:mt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- Filter Options Section -->
+        <!-- Mobile Filter Button -->
+        <button onclick="toggleFilters()" id="filterToggle" class=" lg:hidden inline-flex items-center mb-4 px-4 py-2.5 bg-primary text-white rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 w-40">
+            <span class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                </svg>
+            </span>
+            Filters
+        </button>
 
-    <!-- Product Listing Section -->
-    <div class="search-results md:col-span-7 ml-5 space-y-6 mt-10">
-        <h2 class="text-2xl font-bold mb-4">Search Results for "<%= locals.query %>"</h2>
-        <% if (results.length > 0) { %>
-            <% results.forEach(product => { %>
-                <a href="/product/<%= product._id %>">
-                    <div class="product-list-item flex items-start hover:bg-gray-100 border-t p-4 border-b border-gray-200">
-                        <img src="<%= product.images[0] %>" alt="<%= product.name %>"
-                            class="w-24 h-24 object-cover mr-4" />
-                        <div class="product-info">
-                            <h2 class="text-lg font-semibold text-gray-800">
-                                <%= product.name %>
-                            </h2>
-                            <p class="text-gray-600 mt-1">
-                                <%= product.description1 %>
-                            </p>
-                            <div class="flex">
-                                <p class="text-green-600 font-bold mt-2">Price: <span class="text-2xl">₹<%= product.priceAfterDiscount %></span></p>
-                                <p class="text-gray-600 mt-2"> <span class="ml-2 line-through">₹<%= product.price %></span></p>
-                            </div>
-                            <p class="text-gray-600 mt-1">
-                                <%= product.description2 %>
-                            </p>
-                            <% if (product.stock === 0) { %>
-                                <p class="text-red-600 font-bold mt-2">Out of Stock</p>
-                            <% } else if (product.stock > 0 && product.stock < 5) { %>
-                                <p class="text-yellow-600 font-bold mt-2">Few Stock Left</p>
-                            <% } %>
+        <div class="lg:col-span-3 transform transition-all duration-300 ease-in-out lg:max-h-full overflow-hidden lg:overflow-visible lg:block hidden" id="filterSection">
+            <div class="sticky top-20 bg-white rounded-lg shadow-sm p-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Filters</h3>
+                <form id="filterForm" class="space-y-6">
+                    <!-- Price Filter -->
+                    <div class="space-y-3">
+                        <h4 class="text-base font-semibold text-gray-700">Price</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center hover:bg-gray-50 p-1.5 rounded-md transition cursor-pointer">
+                                <input id="checkbox-1" name="sort" type="radio" value="lowToHigh"
+                                    class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                    onclick="handleFilters()">
+                                <span class="ml-2 text-sm text-gray-700">Price: Low to High</span>
+                            </label>
+                            <label class="flex items-center hover:bg-gray-50 p-1.5 rounded-md transition cursor-pointer">
+                                <input id="checkbox-2" name="sort" type="radio" value="highToLow"
+                                    class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                    onclick="handleFilters()">
+                                <span class="ml-2 text-sm text-gray-700">Price: High to Low</span>
+                            </label>
                         </div>
                     </div>
-                </a>
-            <% }) %>
-        <% } else { %>
-            <p class="text-gray-600 font-semibold mt-4">No products found matching your criteria.</p>
-        <% } %>
-    </div>
-</div>
 
-<!-- Pagination Section -->
-<div class="pagination flex justify-center items-center space-x-4 mt-10">
-    <% if (page > 1) { %>
-        <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page - 1 %>&sort=<%= sort %>&category=<%= category %>"
-           class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
-    <% } else { %>
-        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Previous</span>
-    <% } %>
+                    <!-- Name Filter -->
+                    <div class="space-y-3">
+                        <h4 class="text-base font-semibold text-gray-700">Sort by Name</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center hover:bg-gray-50 p-1.5 rounded-md transition cursor-pointer">
+                                <input id="checkbox-3" name="sort" type="radio" value="atoz"
+                                    class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                    onclick="handleFilters()">
+                                <span class="ml-2 text-sm text-gray-700">A to Z</span>
+                            </label>
+                            <label class="flex items-center hover:bg-gray-50 p-1.5 rounded-md transition cursor-pointer">
+                                <input id="checkbox-4" name="sort" type="radio" value="ztoa"
+                                    class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                    onclick="handleFilters()">
+                                <span class="ml-2 text-sm text-gray-700">Z to A</span>
+                            </label>
+                        </div>
+                    </div>
 
-    <% if (pages > 1) { %>
-        <div class="flex space-x-1">
-            <% for (let i = 1; i <= pages; i++) { %>
-                <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= i %>&sort=<%= sort %>&category=<%= category %>"
-                   class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= page === i ? 'bg-gray-300' : '' %>">
-                    <%= i %>
-                </a>
-            <% } %>
+                    <!-- Categories Filter -->
+                    <div class="space-y-3">
+                        <h4 class="text-base font-semibold text-gray-700">Categories</h4>
+                        <div class="space-y-2 max-h-36 overflow-y-auto">
+                            <% categories.forEach(category => { %>
+                                <label class="flex items-center hover:bg-gray-50 p-1.5 rounded-md transition cursor-pointer">
+                                    <input type="checkbox" name="category" value="<%= category._id %>"
+                                        class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                                        onclick="handleFilters()">
+                                    <span class="ml-2 text-sm text-gray-700"><%= category.name %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    <% } %>
 
-    <% if (page < pages) { %>
-        <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page + 1 %>&sort=<%= sort %>&category=<%= category %>"
-           class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
-    <% } else { %>
-        <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 border border-gray-300 rounded-lg">Next</span>
-    <% } %>
+        <!-- Product Listing Section -->
+        <div class="lg:col-span-9">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Results for "<%= locals.query %>"</h2>
+            
+            <% if (results.length > 0) { %>
+                <div class="grid grid-cols-1 gap-3">
+                    <% results.forEach(product => { %>
+                        <a href="/product/<%= product._id %>" class="block">
+                            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div class="flex">
+                                    <div class="w-32 sm:w-48 p-2">
+                                        <img src="<%= product.images[0] %>" alt="<%= product.name %>"
+                                            class="w-full h-32 object-cover rounded-md" />
+                                    </div>
+                                    <div class="flex-1 p-3">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                                            <%= product.name %>
+                                        </h3>
+                                        <p class="text-sm text-gray-600 mb-2">
+                                            <%= product.description1 %>
+                                        </p>
+                                        <div class="flex items-baseline gap-2 mb-2">
+                                            <span class="text-lg font-bold text-green-600">₹<%= product.priceAfterDiscount %></span>
+                                            <span class="text-sm text-gray-500 line-through">₹<%= product.price %></span>
+                                            <span class="text-xs text-green-600 font-medium">
+                                                <%= Math.round((product.price - product.priceAfterDiscount) / product.price * 100) %>% OFF
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-2">
+                                            <%= product.description2 %>
+                                        </p>
+                                        <% if (product.stock === 0) { %>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Out of Stock
+                                            </span>
+                                        <% } else if (product.stock > 0 && product.stock < 5) { %>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Only <%= product.stock %> left
+                                            </span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-8">
+                    <p class="text-lg text-gray-600">No products found matching your criteria.</p>
+                </div>
+            <% } %>
+
+            <!-- Pagination -->
+            <div class="mt-8 flex justify-center items-center gap-1">
+                <% if (page > 1) { %>
+                    <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page - 1 %>&sort=<%= sort %>&category=<%= category %>"
+                       class="px-3 py-1 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md">
+                       Previous
+                    </a>
+                <% } %>
+
+                <% if (pages > 1) { %>
+                    <div class="hidden md:flex gap-1">
+                        <% 
+                        let start = Math.max(1, page - 2);
+                        let end = Math.min(pages, start + 4);
+                        
+                        if (end - start < 4) {
+                            start = Math.max(1, end - 4);
+                        }
+
+                        if (start > 1) { %>
+                            <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=1&sort=<%= sort %>&category=<%= category %>"
+                               class="px-3 py-1 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md">
+                                1
+                            </a>
+                            <% if(start > 2) { %>
+                                <span class="px-2 py-1">...</span>
+                            <% } %>
+                        <% } %>
+
+                        <% for (let i = start; i <= end; i++) { %>
+                            <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= i %>&sort=<%= sort %>&category=<%= category %>"
+                               class="px-3 py-1 text-sm font-medium <%= page === i ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white hover:bg-gray-50' %> border border-gray-300 rounded-md">
+                                <%= i %>
+                            </a>
+                        <% } %>
+
+                        <% if (end < pages) { %>
+                            <% if(end < pages - 1) { %>
+                                <span class="px-2 py-1">...</span>
+                            <% } %>
+                            <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= pages %>&sort=<%= sort %>&category=<%= category %>"
+                               class="px-3 py-1 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md">
+                                <%= pages %>
+                            </a>
+                        <% } %>
+                    </div>
+                <% } %>
+
+                <% if (page < pages) { %>
+                    <a href="/search/results?q=<%= encodeURIComponent(query) %>&page=<%= page + 1 %>&sort=<%= sort %>&category=<%= category %>"
+                       class="px-3 py-1 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md">
+                       Next
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
 </div>
 
 <%- include('./footer') %>
 
 <script>
-    const handleFilters = () => {
-    const form = document.getElementById('filterForm');
-    const formData = new FormData(form);
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    // Preserve search query
-    const searchQuery = searchParams.get('q');
-    if (searchQuery) {
-        formData.append('q', searchQuery);
+    function handleFilters() {
+        const form = document.getElementById('filterForm');
+        if (!form) return;
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const searchQuery = searchParams.get('q');
+        
+        // Create new URLSearchParams for building the query
+        const newParams = new URLSearchParams();
+        
+        // Add search query if it exists
+        if (searchQuery) {
+            newParams.set('q', searchQuery);
+        }
+
+        // Add sort parameter if selected
+        const sortOption = form.querySelector('input[name="sort"]:checked');
+        if (sortOption) {
+            newParams.set('sort', sortOption.value);
+        }
+
+        // Add selected categories
+        const selectedCategories = Array.from(form.querySelectorAll('input[name="category"]:checked'))
+            .map(input => input.value);
+        if (selectedCategories.length > 0) {
+            newParams.set('category', selectedCategories.join(','));
+        }
+
+        // Reset to page 1 when filters change
+        newParams.set('page', '1');
+
+        // Navigate to new URL
+        window.location.href = `/search/results?${newParams.toString()}`;
     }
 
-    // Get selected categories
-    const selectedCategories = Array.from(form.querySelectorAll('input[name="category"]:checked'))
-        .map(input => input.value);
-    
-    if (selectedCategories.length > 0) {
-        formData.set('category', selectedCategories.join(','));
+    function toggleFilters() {
+        const filterSection = document.getElementById('filterSection');
+        const filterToggle = document.getElementById('filterToggle');
+        
+        if (!filterSection || !filterToggle) {
+            console.error('Required filter elements not found');
+            return;
+        }
+
+        // Toggle the hidden class
+        filterSection.classList.toggle('hidden');
+        
+        // Update button text and icon
+        const buttonSpan = filterToggle.querySelector('span');
+        const toggleIcon = filterToggle.querySelector('svg');
+        
+        if (buttonSpan && toggleIcon) {
+            const isHidden = filterSection.classList.contains('hidden');
+            buttonSpan.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 ${isHidden ? '' : 'rotate-180'}" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                </svg>
+                ${isHidden ? 'Show Filters' : 'Hide Filters'}
+            `;
+        }
     }
 
-    // Get sort option
-    const sortOption = form.querySelector('input[name="sort"]:checked');
-    if (sortOption) {
-        formData.set('sort', sortOption.value);
-    }
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize filters based on URL parameters
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        // Set sort radio buttons
+        const sortValue = searchParams.get('sort');
+        if (sortValue) {
+            const sortRadio = document.querySelector(`input[name="sort"][value="${sortValue}"]`);
+            if (sortRadio) sortRadio.checked = true;
+        }
 
-    // Reset to first page when filters change
-    formData.set('page', '1');
+        // Set category checkboxes
+        const categories = searchParams.get('category');
+        if (categories) {
+            categories.split(',').forEach(category => {
+                const checkbox = document.querySelector(`input[name="category"][value="${category}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
 
-    // Build and navigate to URL
-    const queryString = new URLSearchParams(formData).toString();
-    window.location.href = `/search/results?${queryString}`;
-};
-
-// Initialize filters based on URL parameters
-const initializeFilters = () => {
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    // Set sort radio buttons
-    const sortValue = searchParams.get('sort');
-    if (sortValue) {
-        const sortRadio = document.querySelector(`input[name="sort"][value="${sortValue}"]`);
-        if (sortRadio) sortRadio.checked = true;
-    }
-
-    // Set category checkboxes
-    const categories = searchParams.get('category');
-    if (categories) {
-        categories.split(',').forEach(category => {
-            const checkbox = document.querySelector(`input[name="category"][value="${category}"]`);
-            if (checkbox) checkbox.checked = true;
+        // Add change event listeners to all filter inputs
+        document.querySelectorAll('#filterForm input').forEach(input => {
+            input.addEventListener('change', handleFilters);
         });
-    }
-};
-
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    initializeFilters();
-    
-    // Add change event listeners to all filter inputs
-    document.querySelectorAll('#filterForm input').forEach(input => {
-        input.addEventListener('change', handleFilters);
     });
-});
-
 </script>

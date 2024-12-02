@@ -3,30 +3,82 @@
         min-width: 100px;
         text-align: right;
     }
+
+    /* Animations */
+    .cart-item {
+        transform: translateX(-20px);
+        opacity: 0;
+        animation: slideIn 0.5s ease forwards;
+    }
+
+    @keyframes slideIn {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .cart-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    /* Scroll animations */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease-out;
+    }
+
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Mouse hover effects */
+    .hover-scale {
+        transition: transform 0.2s ease;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.02);
+    }
+
+    .hover-glow:hover {
+        box-shadow: 0 0 15px rgba(0,128,0,0.2);
+    }
+
+    /* Smooth scroll behavior */
+    html {
+        scroll-behavior: smooth;
+    }
 </style>
 
 <%- include('header') %>
 
-<div class="bg-gray-50 pt-4 w-full text-sm">
-    <div class="md:w-8/12 mx-auto bg-white p-6 rounded-lg shadow-xl">
-        <h1 class="text-2xl font-bold text-center mb-6">Your Cart</h1>
+<div class="bg-gray-50 pt-4 w-full text-sm mt-48 md:mt-0 ">
+    <div class="md:w-8/12 mx-auto bg-white px-6 rounded-lg shadow-xl hover-glow">
+        <h1 class="text-2xl font-bold text-center mb-6 fade-in">Your Cart</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Cart Items Section -->
             <div class="col-span-2 space-y-4">
                 <% if (cart && cart.items && cart.items.length > 0) { %>
-                    <% cart.items.forEach(item => { %>
-                        <div class="flex justify-between items-center border-b pb-4" id="cart-item-<%= item.product._id %>">
+                    <% cart.items.forEach((item, index) => { %>
+                        <div class="flex justify-between items-center border-b pb-4 cart-item hover-scale" 
+                             id="cart-item-<%= item.product._id %>"
+                             style="animation-delay: <%= index * 0.1 %>s">
                             <div class="flex items-center w-full">
                                 <!-- Product Image -->
-                                <a href="/product/<%= item.product._id %>">
+                                <a href="/product/<%= item.product._id %>" class="transform transition-transform hover:scale-105">
                                     <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-20 h-20 object-cover rounded-md mr-4">
                                 </a>
 
-                                <div class="flex-grow">
+                                <div class="flex-grow fade-in">
                                     <!-- Product Info -->
                                     <h2 class="font-semibold">
-                                        <a href="/product/<%= item.product._id %>">
+                                        <a href="/product/<%= item.product._id %>" class="hover:text-primary transition-colors">
                                             <%= item.product.name %>
                                         </a>
                                     </h2>
@@ -35,7 +87,8 @@
                                     <!-- Quantity Selector -->
                                     <div class="flex items-center mt-2">
                                         <p class="text-gray-500 mr-2">Quantity:</p>
-                                        <select class="border border-gray-300 rounded-md p-1" onchange="updateQuantity(this, '<%= item.product._id %>', <%= item.price %>)">
+                                        <select class="border border-gray-300 rounded-md p-1 hover:border-primary focus:ring-2 focus:ring-primary transition-all" 
+                                                onchange="updateQuantity(this, '<%= item.product._id %>', <%= item.price %>)">
                                             <% let max = Math.min(item.product.stock, 10); %>
                                             <% for (let i = 1; i <= max; i++) { %>
                                                 <option value="<%= i %>" <% if(i === item.quantity) { %> selected <% } %>><%= i %></option>
@@ -43,7 +96,7 @@
                                         </select>
                                     </div>
                                     <% if (item.offerDiscount > 0) { %>
-                                        <div class="mt-2 text-sm text-green-500">
+                                        <div class="mt-2 text-sm text-green-500 fade-in">
                                             <p>Offer Discount: -₹<%= item.offerDiscount.toFixed(2) %></p>
                                             <% item.offers.forEach(offer => { %>
                                                 <p><%= offer.offerDescription %></p>
@@ -54,54 +107,52 @@
                             </div>
 
                             <!-- Individual Item Price -->
-                            <div class="text-lg font-bold text-green-600 ml-4" id="item-price-<%= item.product._id %>">
+                            <div class="text-lg font-bold text-green-600 ml-4 fade-in" id="item-price-<%= item.product._id %>">
                                 ₹<%= (item.quantity * item.price).toFixed(2) %>
                             </div>
-
 
                             <!-- Remove Icon -->
                             <form id="removeForm">
                                 <input type="hidden" id="cartId" name="cartId" value="<%= cart._id %>">
-                                <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" class="ml-5 hover:text-gray-500 text-red-500" >
+                                <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" 
+                                        class="ml-5 hover:text-red-600 text-red-500 transform transition-all hover:scale-110" >
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
                         </div>
                     <% }) %>
                     <% if (cart.items.some(item => item.product.stock <= 0)) { %>
-                        <p class="text-red-500 text-lg">Some products are out of stock. Please adjust your cart before proceeding to checkout.</p>
+                        <p class="text-red-500 text-lg fade-in">Some products are out of stock. Please adjust your cart before proceeding to checkout.</p>
                     <% } %>
                 <% } else { %>
-                    <p class="text-gray-500 text-lg">Your cart is empty.</p>
+                    <p class="text-gray-500 text-lg fade-in">Your cart is empty.</p>
                 <% } %>
             </div>
 
             <!-- Cart Summary Section -->
-            <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
+            <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl hover-glow fade-in">
                 <h2 class="text-xl font-bold mb-4">Cart Summary</h2>
 
                 <!-- available offers -->
-
-
                 
                 <div class="space-y-2">
                     <!-- Subtotal -->
-                    <div class="flex justify-between items-center" id="subtotal">
+                    <div class="flex justify-between items-center fade-in" id="subtotal">
                         <span>Subtotal:</span>
                         <span class="font-bold price" id="subtotal-amount">₹<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
                     </div>
                     
                     <!-- Discount -->
                     <% if (cart.discount) { %>
-                    <div class="flex justify-between items-center text-green-600">
+                    <div class="flex justify-between items-center text-green-600 fade-in">
                         <span>Discount:</span>
-                        <span class="font-bold price" id="discount">-₹<%= cart.discount ?    cart.discount.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price" id="discount">-₹<%= cart.discount ? cart.discount.toFixed(2) : '0.00' %></span>
                     </div>
                     <% } %>
                 
                     <!-- Offer Discount -->
                     <% if (cart.offerDiscount) { %>
-                        <div class="flex justify-between items-center text-green-600">
+                        <div class="flex justify-between items-center text-green-600 fade-in">
                             <span>Offer Discount:</span>
                             <span class="font-bold price">-₹<%= cart.offerDiscount.toFixed(2) %></span>
                         </div>
@@ -109,14 +160,14 @@
 
                     <!-- Cutoff Amount -->
                     <% if (cart.cutoffAmount) { %>
-                        <div class="flex justify-between items-center text-red-600">
+                        <div class="flex justify-between items-center text-red-600 fade-in">
                             <span>Cutoff Amount:</span>
                             <span class="font-bold price">+₹<%= cart.cutoffAmount.toFixed(2) %></span>
                         </div>
                     <% } %>
 
                     <!-- Total -->
-                    <div class="flex justify-between items-center text-lg font-bold text-green-600" id="total-price">
+                    <div class="flex justify-between items-center text-lg font-bold text-green-600 fade-in" id="total-price">
                         <span>Total:</span>
                         <span class="font-bold price" id="total-amount">₹<%= cart.total.toFixed(2) %></span>
                     </div>
@@ -124,16 +175,16 @@
 
                 <!-- Proceed to Checkout Button -->
                 <% if (cart.items.length > 0 && !cart.items.some(item => item.product.stock <= 0)) { %>
-                    <div class="mt-8" id="proceed-to-checkout">
-                        <a href="/checkout"  class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
+                    <div class="mt-8 fade-in" id="proceed-to-checkout">
+                        <a href="/checkout" class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition-all duration-300 block text-center hover:scale-105 transform">
                             Proceed to Checkout
                         </a>
                     </div>
                 <% } %>
 
                 <!-- Continue Shopping Button -->
-                <div class="mt-4 text-center">
-                    <a href="/" class="text-gray-500 underline">
+                <div class="mt-4 text-center fade-in">
+                    <a href="/" class="text-gray-500 hover:text-primary transition-colors underline">
                         Continue Shopping
                     </a>
                 </div>
@@ -145,12 +196,27 @@
 <%- include('footer') %>
 
 <script>
+// Scroll animation
+function handleScrollAnimation() {
+    const elements = document.querySelectorAll('.fade-in');
+    elements.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        const elementBottom = element.getBoundingClientRect().bottom;
+        
+        if (elementTop < window.innerHeight && elementBottom > 0) {
+            element.classList.add('visible');
+        }
+    });
+}
 
+// Initial check and scroll listener
+handleScrollAnimation();
+window.addEventListener('scroll', handleScrollAnimation);
 
 // Function to update quantity
 function updateQuantity(element, productId, itemPrice) {
     const quantity = element.value;
-    const cartId = document.getElementById('cartId').value; // Add a hidden input with cart ID in your HTML
+    const cartId = document.getElementById('cartId').value;
 
     axios.post('/cart/update-quantity', {
         cartId: cartId,
@@ -159,7 +225,6 @@ function updateQuantity(element, productId, itemPrice) {
     })
     .then(response => {
         const { subtotal, total, discount, message } = response.data;
-        // updateCartSummary(subtotal, total, discount);
         toastr.success(message);
         window.location.reload()
     })
@@ -170,8 +235,7 @@ function updateQuantity(element, productId, itemPrice) {
 
 // Function to remove item from cart
 function removeItemFromCart(event, productId) {
-    console.log(1);
-    event.preventDefault(); // Prevent form submission
+    event.preventDefault();
     const cartIdElement = document.getElementById('cartId');
     if (!cartIdElement) {
         console.error('Cart ID element not found.');
@@ -180,40 +244,43 @@ function removeItemFromCart(event, productId) {
     }
     const cartId = cartIdElement.value;
 
-    axios.post('/cart/remove-item', {
-        cartId: cartId,
-        productId: productId
-    })
-    .then(response => {
-        const { message, subtotal, total, discount, cartItemCount } = response.data;
+    const itemElement = document.getElementById(`cart-item-${productId}`);
+    if (itemElement) {
+        itemElement.style.transform = 'translateX(100%)';
+        itemElement.style.opacity = '0';
+        itemElement.style.transition = 'all 0.3s ease';
+    }
 
-        // Attempt to get the item element
-        const itemElement = document.getElementById(`cart-item-${productId}`);
-        if (itemElement) {
-            itemElement.remove(); // Remove the item if it exists
-        } else {
-            console.error(`Element with ID cart-item-${productId} not found.`);
-        }
-
-        // Update cart summary and item count
-        updateCartSummary(subtotal, total, discount);
-        updateCartItemCount(cartItemCount);
-
-        // Remove proceed to checkout button if the item being removed is the last item in the cart
-        const itemElement2 = document.getElementById(`cart-item-${productId}`);
-        if (itemElement2 && !itemElement2.nextElementSibling && !itemElement2.previousElementSibling) {
-            const checkoutDiv = document.getElementById('proceed-to-checkout');
-            if (checkoutDiv) {
-                checkoutDiv.classList.add("hidden");
+    setTimeout(() => {
+        axios.post('/cart/remove-item', {
+            cartId: cartId,
+            productId: productId
+        })
+        .then(response => {
+            const { message, subtotal, total, discount, cartItemCount } = response.data;
+            
+            if (itemElement) {
+                itemElement.remove();
             }
-        }
 
-        toastr.success(message);
-    })
-    .catch(error => {
-        toastr.error('Failed to remove item from cart.');
-        console.error('Error removing item:', error);
-    });
+            updateCartSummary(subtotal, total, discount);
+            updateCartItemCount(cartItemCount);
+
+            const itemElement2 = document.getElementById(`cart-item-${productId}`);
+            if (itemElement2 && !itemElement2.nextElementSibling && !itemElement2.previousElementSibling) {
+                const checkoutDiv = document.getElementById('proceed-to-checkout');
+                if (checkoutDiv) {
+                    checkoutDiv.classList.add("hidden");
+                }
+            }
+
+            toastr.success(message);
+        })
+        .catch(error => {
+            toastr.error('Failed to remove item from cart.');
+            console.error('Error removing item:', error);
+        });
+    }, 300);
 }
 
 // Helper function to update cart summary
@@ -240,6 +307,4 @@ toastr.options = {
     positionClass: "toast-top-right",
     timeOut: 3000
 };
-    
-
 </script>

@@ -1,32 +1,92 @@
 <%- include('header') %>
-<div class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto md:w-8/12 py-8">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800">My Orders</h1>
+<style>
+    .order-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-        <!-- Check if there are any orders -->
+    .order-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .fade-in {
+        opacity: 0;
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1; 
+            transform: translateY(0);
+        }
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-cancelled { background-color: #FEE2E2; color: #DC2626; }
+    .status-pending { background-color: #DBEAFE; color: #2563EB; }
+    .status-delivered { background-color: #D1FAE5; color: #059669; }
+    .status-processing { background-color: #FEF3C7; color: #D97706; }
+</style>
+
+<div class="bg-gray-50 min-h-screen mt-44 md:mt-0 py-8">
+    <div class="container mx-auto md:w-8/12 px-4">
+        <h1 class="text-3xl font-bold mb-8 text-gray-800 fade-in">My Orders</h1>
+
         <% if (orders.length > 0) { %>
             <div class="grid grid-cols-1 gap-6">
                 <% orders.forEach((order, index) => { %>
-                    <div class="bg-white shadow-md rounded-lg p-6">
-                        <div class="flex items-center mb-4">
+                    <div class="order-card bg-white shadow-lg rounded-xl p-6 fade-in" style="animation-delay: <%= index * 0.1 %>s">
+                        <div class="flex flex-col md:flex-row md:items-center mb-6">
                             <% if (order.items.length > 0 && order.items[0].product && order.items[0].product.images && order.items[0].product.images.length > 0) { %>
-                                <img src="<%= order.items[0].product.images[0] %>" alt="<%= order.items[0].product.name %>" class="w-16 h-16 object-contain rounded-md mr-4">
+                                <img src="<%= order.items[0].product.images[0] %>" alt="<%= order.items[0].product.name %>" class="w-24 h-24 object-contain rounded-lg shadow-sm mr-6">
                             <% } else { %>
-                                <img src="path/to/default/image.jpg" alt="No image available" class="w-16 h-16 object-contain rounded-md mr-4"> <!-- Default image -->
+                                <img src="path/to/default/image.jpg" alt="No image available" class="w-24 h-24 object-contain rounded-lg shadow-sm mr-6">
                             <% } %>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-800">Order ID: <a href="/account/orders/<%= order._id %>" class="text-blue-500 hover:underline"><%= order._id %></a></h2>
-                                <p class="text-gray-600">Order Date: <%= new Date(order.orderDate).toLocaleString() %></p>
-                                <p class="text-gray-600">Total Products: <%= order.items.length %></p>
+                            <div class="flex-grow mt-4 md:mt-0">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-2">Order ID: 
+                                    <a href="/account/orders/<%= order._id %>" class="text-primary hover:text-primary-dark transition-colors">
+                                        <%= order._id %>
+                                    </a>
+                                </h2>
+                                <div class="space-y-2">
+                                    <p class="text-gray-600">
+                                        <i class="far fa-calendar-alt mr-2"></i>
+                                        <%= new Date(order.orderDate).toLocaleString() %>
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <i class="fas fa-box mr-2"></i>
+                                        <%= order.items.length %> Products
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-4 flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-600">Total Amount: <span class="font-semibold">$<%= order.totalAmount %></span></p>
-                                <p class="text-gray-600">Order Status: <span class="font-bold <%= order.status === 'Cancelled' ? 'text-red-500' : order.status === 'pending' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-green-500' : 'text-yellow-500' %>"><%= order.status %></span></p>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center pt-4 border-t">
+                            <div class="space-y-2">
+                                <p class="text-gray-700">Total Amount: 
+                                    <span class="font-bold text-xl text-primary">₹<%= order.totalAmount %></span>
+                                </p>
+                                <p class="text-gray-700">Status: 
+                                    <span class="status-badge <%= order.status === 'Cancelled' ? 'status-cancelled' : order.status === 'pending' ? 'status-pending' : order.status === 'Delivered' ? 'status-delivered' : 'status-processing' %>">
+                                        <%= order.status %>
+                                    </span>
+                                </p>
                             </div>
+                            
                             <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
-                                <a href="/account/orders/<%= order._id %>/cancel-reason" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                <a href="/account/orders/<%= order._id %>/cancel-reason" 
+                                   class="mt-4 md:mt-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-flex items-center">
+                                    <i class="fas fa-times-circle mr-2"></i>
                                     Cancel Order
                                 </a>
                             <% } %>
@@ -35,7 +95,10 @@
                 <% }) %>
             </div>
         <% } else { %>
-            <p class="text-gray-600">No orders found.</p>
+            <div class="text-center py-12">
+                <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-xl text-gray-600">No orders found.</p>
+            </div>
         <% } %>
     </div>
 </div>

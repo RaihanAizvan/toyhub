@@ -2,6 +2,7 @@
 import Category from '../../models/categories.model.js';
 import Product from '../../models/product.models.js';
 
+
 async function getProductsByCategory(req,res){
     const categoryId = req.params.id;
   try {
@@ -42,6 +43,7 @@ async function viewAllCategories(req, res) {
       res.status(500).redirect('/');
   }
 }
+
 
 
 

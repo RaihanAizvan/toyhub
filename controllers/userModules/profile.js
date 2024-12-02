@@ -3,6 +3,7 @@ import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
 import Wallet from "../../models/wallets.models.js"
+import Rating from "../../models/ratings.models.js"
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -549,6 +550,33 @@ export const postDownloadInvoice = async (req, res) => {
     }
 }
 
+export const getReviews = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        
+        // Fetch reviews with populated product details
+        const reviews = await Rating.find({ userId })
+            .populate({
+                path: 'productId',
+                select: 'name images price' // Only get needed fields
+            })
+            .sort({ date: -1 }); // Sort by newest first
+
+        res.render('user/reviews', {
+            reviews,
+            title: 'My Reviews',
+            error: null
+        });
+
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.render('user/reviews', {
+            reviews: [],
+            title: 'My Reviews', 
+            error: 'Failed to load reviews'
+        });
+    }
+}
 
 export default {
     getProfileEdit,
@@ -564,5 +592,6 @@ export default {
     deleteWishlist,
     getWallet,
     postAddMoney,
-    postDownloadInvoice
+    postDownloadInvoice,
+    getReviews
 }

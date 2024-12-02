@@ -1,200 +1,237 @@
 <%- include('header') %>
-    <div class="bg-gray-200 py-6 w-full text-sm">
-        <div class="md:w-8/12 mx-auto bg-gray-100 p-6 mb-16 rounded-lg shadow-xl">
-            <h1 class="text-2xl font-bold text-center mb-6">Checkout</h1>
-            <form id="checkoutForm">
-                <div class="grid grid-cols-1 bg-gray-50 md:grid-cols-3 gap-6">
-                    <div class="col-span-2 space-y-6">
-                        <!-- Address Selector -->
-                        <div class="bg-white p-4 rounded-lg shadow">
-                            <h2 class="font-semibold text-lg mb-4">Select Delivery Address</h2>
-                            <% if (user && user.addresses && user.addresses.length> 0) { %> <% user.addresses.forEach((address,
-                                    index)=> { %> <div class="flex items-start space-x-4 mb-4">
-                                        <input type="radio" name="selectedAddress" id="address-<%= index %>"
-                                            value="<%= address._id %>" <%=index===0 ? 'checked' : '' %> class="mt-1
-                                        address-input" data-addressId="<%= address._id %>"> <label
-                                                for="address-<%= index %>" class="w-full">
-                                                <p class="font-semibold">
-                                                    <%= address.name %>
-                                                </p>
-                                                <p>
-                                                    <%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%=
-                                                                    address.postalCode %>
-                                                </p>
-                                                <p class="text-gray-500">
-                                                    <%= address.phone %>
-                                                </p>
-                                            </label>
-                                    </div>
-                                    <% }) %>
-                                        <% } else { %>
-                                            <p class="text-gray-500">No address found. Please add one from your profile.
-                                            </p>
-                                            <% } %>
-                        </div>
-                        <div class="flex justify-end mt-4">
-                            <a href="/account/address" class="bg-primary text-white px-4 py-2 rounded-md">Add New
-                                Address</a>
-                        </div>
-                        <!-- show available offers -->
-                        <div class="bg-white p-4 rounded-lg shadow">
-                            <h2 class="font-semibold text-lg mb-4">Available Offers</h2>
-                            <% offers.forEach(offer=> { %> <p class="text-gray-600 mb-1"> <span
-                                        class="font-semibold text-green-800">
-                                        <%= offer.name %> :
-                                    </span>
-                                    <%= offer.description %>
-                                </p>
-                                <% }) %>
-                        </div>
-                        <!-- Coupon Code Entry -->
-                        <div class="bg-white p-4 rounded-lg shadow">
-                            <h2 class="font-semibold text-lg mb-4">Apply Coupon</h2>
-                            <div class="flex">
-                                <% if (cart.cutoffAmount> 0) { %> <p class="text-red-600">Coupons cannot be applied when
-                                        a cutoff amount is present.</p>
-                                    <% } else { %>
-                                        <select id="couponCode" name="couponCode"
-                                            class="border border-gray-300 p-2 rounded-l-md w-full"
-                                            title="Select a Coupon">
-                                            <option value="" selected disabled>Select a Coupon</option>
-                                            <% if (coupons && coupons.length> 0) { %> <% coupons.forEach(coupon=> { %>
-                                                    <option value="<%= coupon.couponCode %>">
-                                                        <%= coupon.couponCode %> - <%= coupon.discount %>
-                                                                <%= coupon.discountType==='percentage' ? '%' : '' %> -
-                                                                    Min Spend: <%= coupon.minSpend %>
-                                                    </option>
-                                                    <% }) %>
-                                                        <% } else { %>
-                                                            <option value="" disabled>No coupons available</option>
-                                                            <% } %>
-                                        </select>
-                                        <button type="button" onclick="applyCoupon()" id="applyCouponButton"
-                                            class="bg-primary text-white p-2">Apply</button>
-                                        <button type="button" onclick="clearCoupon()" id="removeCouponButton"
-                                            class="bg-red-500 text-white p-2 ml-2">Remove</button>  
-                                        <% } %>
-                            </div>
-                            <p id="couponFeedback" class="text-green-600 mt-2 hidden">Coupon Applied!</p>
-                            <p id="couponError" class="text-red-600 hidden">Coupon cannot be applied. Minimum spend
-                                required: <%= coupons.minSpend %>
-                            </p> <!-- Error message for coupon -->
-                        </div>
-                        <!-- Payment Methods -->
-                        <div class="bg-white p-4 rounded-lg shadow">
-                            <h2 class="font-semibold text-lg mb-4">Payment Method</h2>
-                            <div class="space-y-2">
-                                <div class="flex items-center">
-                                    <input type="radio" name="paymentMethod" id="razorpay" value="razorpay"
-                                        class="mr-2">
-                                    <label for="razorpay" class="text-gray-600">Razorpay</label>
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 w-full text-sm mt-48 md:mt-0 min-h-screen">
+    <div class="md:w-8/12 mx-auto bg-white px-8 mb-16 rounded-2xl shadow-xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+            <i class="fas fa-shopping-cart text-primary mr-2"></i>Checkout
+        </h1>
+        <form id="checkoutForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="col-span-2 space-y-8">
+                    <!-- Address Selector -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                        <h2 class="font-semibold text-xl mb-6 flex items-center text-gray-800">
+                            <i class="fas fa-map-marker-alt text-primary mr-2"></i>Select Delivery Address
+                        </h2>
+                        <% if (user && user.addresses && user.addresses.length > 0) { %>
+                            <% user.addresses.forEach((address, index) => { %>
+                                <div class="flex items-start space-x-4 mb-4 p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                    <input type="radio" name="selectedAddress" id="address-<%= index %>" 
+                                           value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %> 
+                                           class="mt-1 address-input w-4 h-4 text-primary" 
+                                           data-addressId="<%= address._id %>">
+                                    <label for="address-<%= index %>" class="w-full cursor-pointer">
+                                        <p class="font-semibold text-gray-800"><%= address.name %></p>
+                                        <p class="text-gray-600 mt-1"><%= address.line1 %>, <%= address.line2 %>, <%= address.city %>, <%= address.postalCode %></p>
+                                        <p class="text-gray-500 mt-1"><i class="fas fa-phone-alt mr-2"></i><%= address.phone %></p>
+                                    </label>
                                 </div>
-                                <!-- cod should not be allowed for orders above 1000 -->
-                                <% if (cart && cart.subtotal <=1000) { %>
-                                    <div class="flex items-center">
-                                        <input type="radio" name="paymentMethod" id="cod" value="cod" checked
-                                            class="mr-2">
-                                        <label for="cod" class="text-gray-600">Cash on Delivery</label>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center py-8">
+                                <i class="fas fa-home text-gray-300 text-5xl mb-4"></i>
+                                <p class="text-gray-500 mb-4">No address found. Please add one from your profile.</p>
+                            </div>
+                        <% } %>
+                        <div class="flex justify-end mt-6">
+                            <a href="/account/address" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors duration-300 flex items-center">
+                                <i class="fas fa-plus mr-2"></i>Add New Address
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Available Offers -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                        <h2 class="font-semibold text-xl mb-6 flex items-center text-gray-800">
+                            <i class="fas fa-gift text-primary mr-2"></i>Available Offers
+                        </h2>
+                        <div class="space-y-3">
+                            <% offers.forEach(offer => { %>
+                                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <i class="fas fa-tag text-green-600 mt-1"></i>
+                                    <div>
+                                        <span class="font-semibold text-green-800"><%= offer.name %></span>
+                                        <p class="text-gray-600 mt-1"><%= offer.description %></p>
                                     </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+
+                    <!-- Coupon Code Entry -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                        <h2 class="font-semibold text-xl mb-6 flex items-center text-gray-800">
+                            <i class="fas fa-ticket-alt text-primary mr-2"></i>Apply Coupon
+                        </h2>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <% if (cart.cutoffAmount > 0) { %>
+                                <p class="text-red-600"><i class="fas fa-exclamation-circle mr-2"></i>Coupons cannot be applied when a cutoff amount is present.</p>
+                            <% } else { %>
+                                <select id="couponCode" name="couponCode" 
+                                        class="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
+                                        title="Select a Coupon">
+                                    <option value="" selected disabled>Select a Coupon</option>
+                                    <% if (coupons && coupons.length > 0) { %>
+                                        <% coupons.forEach(coupon => { %>
+                                            <option value="<%= coupon.couponCode %>">
+                                                <%= coupon.couponCode %> - <%= coupon.discount %><%= coupon.discountType === 'percentage' ? '%' : '' %> - Min Spend: ₹<%= coupon.minSpend %>
+                                            </option>
+                                        <% }) %>
                                     <% } else { %>
-                                        <p class="text-red-600">Cash on Delivery is not available for orders above
-                                            1000.</p>
-                                        <% } %>
-                                            <div class="flex items-center">
-                                                <input type="radio" name="paymentMethod" id="wallet" value="wallet"
-                                                    class="mr-2">
-                                                <label for="wallet" class="text-gray-600">Wallet</label>
-                                            </div>
+                                        <option value="" disabled>No coupons available</option>
+                                    <% } %>
+                                </select>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="applyCoupon()" id="applyCouponButton"
+                                            class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors duration-300">
+                                        <i class="fas fa-check mr-2"></i>Apply
+                                    </button>
+                                    <button type="button" onclick="clearCoupon()" id="removeCouponButton"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors duration-300">
+                                        <i class="fas fa-times mr-2"></i>Remove
+                                    </button>
+                                </div>
+                            <% } %>
+                        </div>
+                        <p id="couponFeedback" class="text-green-600 mt-3 hidden"><i class="fas fa-check-circle mr-2"></i>Coupon Applied!</p>
+                        <p id="couponError" class="text-red-600 mt-3 hidden"><i class="fas fa-exclamation-circle mr-2"></i>Coupon cannot be applied. Minimum spend required: ₹<%= coupons.minSpend %></p>
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                        <h2 class="font-semibold text-xl mb-6 flex items-center text-gray-800">
+                            <i class="fas fa-credit-card text-primary mr-2"></i>Payment Method
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                <input type="radio" name="paymentMethod" id="razorpay" value="razorpay" class="w-4 h-4 text-primary">
+                                <label for="razorpay" class="ml-3 flex items-center">
+                                    <img src="/images/razorpay-icon.png" alt="Razorpay" class="h-6 mr-2">
+                                    
+                                </label>
+                            </div>
+
+                            <% if (cart && cart.subtotal <= 1000) { %>
+                                <div class="flex items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                    <input type="radio" name="paymentMethod" id="cod" value="cod" checked class="w-4 h-4 text-primary">
+                                    <label for="cod" class="ml-3 flex items-center">
+                                        <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                                        <span class="text-gray-700">Cash on Delivery</span>
+                                    </label>
+                                </div>
+                            <% } else { %>
+                                <p class="text-red-600 p-4 bg-red-50 rounded-lg">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>Cash on Delivery is not available for orders above ₹1000.
+                                </p>
+                            <% } %>
+
+                            <div class="flex items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                <input type="radio" name="paymentMethod" id="wallet" value="wallet" class="w-4 h-4 text-primary">
+                                <label for="wallet" class="ml-3 flex items-center">
+                                    <i class="fas fa-wallet text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">Wallet</span>
+                                </label>
                             </div>
                         </div>
                     </div>
-                    <!-- Right Section: Order Summary -->
-                    <div class="col-span-1 bg-gray-50 p-6 rounded-lg shadow-xl">
-                        <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-                        <!-- List of Products in the Cart -->
-                        <div class="space-y-4">
-                            <% if (cart && cart.items && cart.items.length> 0) { %> <% cart.items.forEach(item=> { %>
-                                    <div class="flex justify-between items-center">
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-span-1">
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300 sticky top-4">
+                        <h2 class="text-xl font-bold mb-6 flex items-center text-gray-800">
+                            <i class="fas fa-receipt text-primary mr-2"></i>Order Summary
+                        </h2>
+
+                        <!-- Cart Items -->
+                        <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                            <% if (cart && cart.items && cart.items.length > 0) { %>
+                                <% cart.items.forEach(item => { %>
+                                    <div class="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                                         <div class="flex items-center space-x-4">
-                                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>"
-                                                class="w-16 h-16 object-contain rounded-md">
+                                            <div class="relative w-16 h-16">
+                                                <img src="<%= item.product.images[0] %>" 
+                                                     alt="<%= item.product.name %>"
+                                                     class="w-full h-full object-contain rounded-lg">
+                                                <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                                    <%= item.quantity %>
+                                                </span>
+                                            </div>
                                             <div>
-                                                <h3 class="font-semibold">
-                                                    <%= item.product.name %>
-                                                </h3>
-                                                <p class="text-gray-500">Qty: <%= item.quantity %>
-                                                </p>
+                                                <h3 class="font-semibold text-gray-800 line-clamp-1"><%= item.product.name %></h3>
+                                                <p class="text-gray-500 text-sm">₹<%= item.price.toFixed(2) %> × <%= item.quantity %></p>
                                             </div>
                                         </div>
-                                        <p class="font-semibold price"><%= (item.quantity * item.price).toFixed(2) %>
-                                        </p>
+                                        <p class="font-semibold text-gray-800">₹<%= (item.quantity * item.price).toFixed(2) %></p>
                                     </div>
-                                    <hr>
-                                    <% }) %>
-                                        <% } else { %>
-                                            <p class="text-gray-500">No items in the cart.</p>
-                                            <% } %>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="text-center py-8">
+                                    <i class="fas fa-shopping-cart text-gray-300 text-5xl mb-4"></i>
+                                    <p class="text-gray-500">No items in the cart.</p>
+                                </div>
+                            <% } %>
                         </div>
+
                         <!-- Price Details -->
-                        <div class="mt-6 space-y-2">
-                            <div class="flex justify-between">
+                        <div class="mt-6 space-y-3 border-t pt-4">
+                            <div class="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span class="font-bold" id="subtotal">₹<%= cart ? cart.subtotal ?
-                                        cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
+                                <span class="font-bold" id="subtotal">₹<%= cart ? cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' : '0.00' %></span>
                             </div>
+
                             <div class="flex justify-between text-green-600 hidden" id="couponDiscountContainer">
                                 <span>Coupon Discount</span>
                                 <span class="font-bold" id="couponDiscount">-₹0.00</span>
                             </div>
-                            <!-- offers -->
-                            <% if (cart.offerDiscount && cart.offerDiscount> 0) { %> <div
-                                    class="flex justify-between text-green-600" id="offerDiscountContainer">
+
+                            <% if (cart.offerDiscount && cart.offerDiscount > 0) { %>
+                                <div class="flex justify-between text-green-600" id="offerDiscountContainer">
                                     <span>Offer Discount</span>
-                                    <span class="font-bold" id="offerDiscount">-₹<%= cart.offerDiscount.toFixed(2) %>
-                                            </span>
+                                    <span class="font-bold" id="offerDiscount">-₹<%= cart.offerDiscount.toFixed(2) %></span>
                                 </div>
-                                <% } %>
-                                    <% if (cart.discount && cart.discount> 0) { %> <!-- normal discount -->
-                                        <div class="flex justify-between text-green-600" id="discountContainer">
-                                            <span>Discount</span>
-                                            <span class="font-bold" id="discount">-₹<%= cart.discount.toFixed(2) %>
-                                                    </span>
-                                        </div>
-                                        <% } %>
-                                            <% if (cart.cutoffAmount && cart.cutoffAmount> 0) { %> <div
-                                                    class="flex justify-between text-red-600"
-                                                    id="cutoffAmountContainer">
-                                                    <span>Cutoff Amount</span>
-                                                    <span class="font-bold" id="cutoffAmount">+₹<%=
-                                                            cart.cutoffAmount.toFixed(2) %></span>
-                                                </div>
-                                                <% } %>
-                                                    <hr>
-                                                    <div class="flex justify-between text-lg font-bold ">
-                                                        <span>Total</span>
-                                                        <span class="font-bold" id="total">₹<%= cart.total.toFixed(2) %>
-                                                                </span>
-                                                        <input type="hidden" name="totalAmount" id="totalAmount"
-                                                            value="<%= cart.total.toFixed(2) %>">
-                                                    </div>
-                        </div>
-                        <!-- Place Order Button -->
-                        <% if (cart && cart.items && cart.items.length> 0) { %> <div class="mt-8">
-                                <button type="button" id="place-order-button"
-                                    class="bg-primary text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-green-700 transition duration-300 block text-center">
-                                    Place Order </button>
+                            <% } %>
+
+                            <% if (cart.discount && cart.discount > 0) { %>
+                                <div class="flex justify-between text-green-600" id="discountContainer">
+                                    <span>Discount</span>
+                                    <span class="font-bold" id="discount">-₹<%= cart.discount.toFixed(2) %></span>
+                                </div>
+                            <% } %>
+
+                            <% if (cart.cutoffAmount && cart.cutoffAmount > 0) { %>
+                                <div class="flex justify-between text-red-600" id="cutoffAmountContainer">
+                                    <span>Cutoff Amount</span>
+                                    <span class="font-bold" id="cutoffAmount">+₹<%= cart.cutoffAmount.toFixed(2) %></span>
+                                </div>
+                            <% } %>
+
+                            <div class="flex justify-between text-lg font-bold text-gray-800 border-t pt-4 mt-4">
+                                <span>Total</span>
+                                <span id="total">₹<%= cart.total.toFixed(2) %></span>
+                                <input type="hidden" name="totalAmount" id="totalAmount" value="<%= cart.total.toFixed(2) %>">
                             </div>
-                            <% } else { %>
-                                <script>
-                                    toastr.error('Your cart is empty. Please add items to proceed to checkout.');
-                                </script>
-                                <% } %>
+                        </div>
+
+                        <!-- Place Order Button -->
+                        <% if (cart && cart.items && cart.items.length > 0) { %>
+                            <div class="mt-8">
+                                <button type="button" id="place-order-button"
+                                        class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center">
+                                    <i class="fas fa-shopping-bag mr-2"></i>Place Order
+                                </button>
+                            </div>
+                        <% } else { %>
+                            <script>
+                                toastr.error('Your cart is empty. Please add items to proceed to checkout.');
+                            </script>
+                        <% } %>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
-    <%- include('footer') %>
+</div>
+<%- include('footer') %>
        
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         
@@ -327,7 +364,7 @@
 
             checkoutBtn.addEventListener("click", (e) => {
                 e.preventDefault();
-                console.debug("Checkout button clicked");
+           
 
                 const addressInput = document.querySelectorAll(".address-input");
                 let addressSelected = false;
@@ -444,9 +481,36 @@
                                         console.log('response.data', response.data);
                                         const { orderId, paymentMethod, totalAmount } = response.data;
                                         Swal.fire({
-                                            title: "Order Success",
-                                            html: `Order placed successfully!<br>Order ID: ${orderId}<br>Payment Method: ${paymentMethod}<br>Total Amount: ₹${totalAmount}`,
-                                            icon: "success",
+                                            title: '<span class="text-2xl font-bold text-green-600">Order Placed Successfully!</span>',
+                                            html: `
+                                                <div class="p-4">
+                                                    <div class="mb-6">
+                                                        <svg class="mx-auto" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#00A845" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                            <path d="M8 12l2 2 4-4"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="space-y-3 text-left">
+                                                        <p class="flex justify-between border-b pb-2">
+                                                            <span class="font-semibold text-gray-600">Order ID:</span>
+                                                            <span class="text-gray-800">${orderId}</span>
+                                                        </p>
+                                                        <p class="flex justify-between border-b pb-2">
+                                                            <span class="font-semibold text-gray-600">Payment Method:</span>
+                                                            <span class="text-gray-800">${paymentMethod}</span>
+                                                        </p>
+                                                        <p class="flex justify-between font-bold text-lg">
+                                                            <span class="text-gray-600">Total Amount:</span>
+                                                            <span class="text-green-600">₹${totalAmount}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            `,
+                                            icon: false,
+                                            customClass: {
+                                                popup: 'rounded-lg shadow-xl',
+                                                content: 'p-0'
+                                            },
                                         }).then(() => {
                                             window.location.href = "/account/orders";
                                         });

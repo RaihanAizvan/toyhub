@@ -2,17 +2,72 @@ import Product from "../../models/product.models.js"
 import Category from '../../models/categories.model.js'
 import User from '../../models/users.models.js'
 import Offer from '../../models/offers.models.js'
+import mongoose from 'mongoose'
+import Rating from '../../models/ratings.models.js'
+
+
 
 export const getSingleProduct = async (req, res) => {
     try {
         // Get the product ID from the URL params
         const productId = req.params.id;
 
+        // Validate if productId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(404).redirect('/');
+        }
+
         // Fetch the product from the database
-        const product = await Product.findById(productId).populate('category');
-        const offers = await Offer.find({isBlocked:false})
+        const product = await Product.findById(productId)
+            .populate('category')
+            .populate({
+                path: 'ratings',
+                populate: {
+                    path: 'userId',
+                    select: 'name'
+                }
+            });
+        
+        // Check if product exists
+        if (!product) {
+            return res.status(404).redirect('/');
+        }
+
+        const reviews = await Rating.find({ productId: productId }).populate('userId')
         
 
+        const offers = await Offer.find({isBlocked:false})
+
+        const productFromSameCategory = await Product.find({category:product.category}).limit(8);
+        // First try to find related products based on name/description match
+        let relatedProducts = await Product.find({
+            $and: [
+                { _id: { $ne: productId } },
+                {
+                    $or: [
+                        { name: { $regex: new RegExp(product.name.split(' ').join('|'), 'i') } },
+                        { description1: { $regex: new RegExp(product.name.split(' ').join('|'), 'i') } }
+                    ]
+                }
+            ]
+        }).limit(7);
+
+        // If no related products found, get products from same category
+        if (relatedProducts.length === 0) {
+            relatedProducts = await Product.find({
+                _id: { $ne: productId },
+                category: product.category
+            }).limit(7);
+        }
+
+        // If still no products, get random products
+        if (relatedProducts.length === 0) {
+            relatedProducts = await Product.aggregate([
+                { $match: { _id: { $ne: product._id } } },
+                { $sample: { size: 7 } }
+            ]);
+        }
+        
         if (!product) {
             return res.status(404).redirect('/');
         }
@@ -22,13 +77,15 @@ export const getSingleProduct = async (req, res) => {
             const userWithWishlist = await User.findById(req.session.user.id);
             wishlist = userWithWishlist ? userWithWishlist.wishlist : [];
         }
-
         // Render the product page with dynamic data
         res.render('user/singleProduct', {
             title: product.name,
             product,
             wishlist,
-            offers
+            offers,
+            productFromSameCategory,
+            relatedProducts,
+            reviews
         });
     } catch (error) {
         console.error("Error fetching product:", error);
@@ -154,5 +211,103 @@ export const searchAndFilterProducts = async (req, res) => {
     }
 };
 
+async function submitReview(req, res) {
+    try {
+        //check for user
+        if (!req.session.user) {
+            return res.status(401).json({ message: 'You must be logged in to submit a review' });
+        }
+      const { rating, title, comment } = req.body;
+      const productId = req.params.id;
+      const userId = req.session.user.id;
 
-export default {getSingleProduct, searchAndFilterProducts}
+      // Validate userId
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+      }
+  
+      // Create new rating document
+      const newRating = new Rating({
+        userId,
+        productId,
+        rating,
+        title,
+        comment,
+        date: new Date(),
+        isVerifiedPurchase: false // Could check order history to verify
+      });
+  
+      // Save the rating
+      await newRating.save();
+  
+      // Add rating reference to user
+      await User.findByIdAndUpdate(userId, {
+        $push: { ratings: newRating._id }
+      });
+  
+      // Update product with new rating
+      const product = await Product.findById(productId);
+      product.ratings.push(newRating._id);
+      
+      // Recalculate average rating
+      const allRatings = await Rating.find({ productId });
+      const ratingSum = allRatings.reduce((sum, r) => sum + r.rating, 0);
+      product.averageRating = ratingSum / allRatings.length;
+      product.ratingCount = allRatings.length;
+      
+      // Update rating stats
+      product.ratingStats = allRatings.reduce((stats, r) => {
+        stats[r.rating] = (stats[r.rating] || 0) + 1;
+        return stats;
+      }, {});
+  
+      await product.save();
+  
+      res.status(200).json({ message: 'Review submitted successfully' });
+  
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      res.status(500).json({ message: 'Failed to submit review' });
+    }
+  }
+
+export const searchProducts = async (req, res) => {
+    try {
+        const { q } = req.query;
+        
+        // Return empty array if query is too short
+        if (!q || q.length < 2) {
+            console.log("No query")
+            return res.json([]);
+        }
+
+        // Find products matching name or description with case-insensitive regex
+        // Limit to 5 suggestions for better UX
+        const products = await Product.find(
+            {
+                $or: [
+                    { name: { $regex: q, $options: 'i' } },
+                    { description1: { $regex: q, $options: 'i' } },
+                    { description2: { $regex: q, $options: 'i' } }
+                ],
+                isBlocked: false
+            },
+            { name: 1, _id: 1 } // Include _id field
+        ).limit(5);
+
+
+
+        if (!products) {
+            console.log("No products found");
+            return res.json([]);
+        }
+
+        res.json(products);
+
+    } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+export default {getSingleProduct, searchAndFilterProducts, submitReview, searchProducts}
