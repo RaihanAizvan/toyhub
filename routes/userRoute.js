@@ -21,6 +21,14 @@ router.get('/resend-otp', userController.postResentOtp);
 
 router.get('/logout',userController.getLogout)
 
+router.get('/forgot-password',userController.getForgotPassword)
+
+router.post('/forgot-password',userController.postForgotPassword)
+
+router.get('/reset-password',userController.getResetPassword)
+
+router.post('/reset-password',userController.postResetPassword)
+
 //home
 router.get('/category/:id', userController.getProductsByCategory);
 

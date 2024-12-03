@@ -6,7 +6,7 @@ import autoTable from 'jspdf-autotable';
 // Utility function to get date ranges based on filter
 const getDateRange = (period) => {
   const today = new Date();
-  
+
   const ranges = {
     daily: {
       start: new Date(today.setHours(0, 0, 0, 0)),
@@ -40,10 +40,10 @@ const getDateRange = (period) => {
 const formatOrderData = (order) => ({
   _id: order._id,
   customerName: order.address.user.name,
-  orderDate: new Date(order.orderDate).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  orderDate: new Date(order.orderDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   }),
   address: `${order.address.street}, ${order.address.city}, ${order.address.state}, ${order.address.zip}`,
   totalAmount: order.totalAmount,
@@ -171,12 +171,46 @@ export const exportSalesReport = async (req, res) => {
   }
 };
 
+
 export const exportSalesReportPdf = async (req, res) => {
   try {
     const period = req.query.period || 'all';
     let dateFilter = {};
-    
-    if (period !== 'all') {
+
+    if (period === 'custom') {
+      // Validate dates before creating Date objects
+      const startDateStr = req.query.startDate;
+      const endDateStr = req.query.endDate;
+
+      if (!startDateStr || !endDateStr) {
+        return res.status(400).send('Start date and end date are required for custom date range');
+      }
+
+      // Create dates at the start and end of the respective days
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).send('Invalid date format. Please use YYYY-MM-DD format');
+      }
+
+      // Set time to start of day for start date and end of day for end date
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      dateFilter = {
+        orderDate: {
+          $gte: startDate,
+          $lte: endDate
+        },
+        status: "Delivered" // Add status filter here
+      };
+
+      console.log('Date Filter:', {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      });
+    } else if (period !== 'all') {
       const dateRange = getDateRange(period);
       dateFilter = {
         orderDate: {
@@ -185,9 +219,37 @@ export const exportSalesReportPdf = async (req, res) => {
         },
         status: "Delivered"
       };
+    } else {
+      // If period is 'all', only filter by status
+      dateFilter = {
+        status: "Delivered"
+      };
     }
 
-    const orders = await Order.find(dateFilter).sort({ orderDate: -1 });
+    // Debug log
+    console.log('Final Date Filter:', dateFilter);
+    
+    const orders = await Order.find(dateFilter)
+      .populate({
+        path: 'address.user',
+        select: 'name email joined_date phone_number'
+      })
+      .sort({ orderDate: -1 });
+
+    // Debug log
+    console.log('Orders found:', orders.length);
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).send('No orders found for the selected period');
+    }
+
+    // Calculate sales summary
+    const summary = {
+      totalOrders: orders.length,
+      totalRevenue: orders.reduce((sum, order) => sum + order.subtotal, 0),
+      totalDiscount: orders.reduce((sum, order) => sum + order.discount + order.offerDiscount + order.couponDiscount, 0),
+      averageOrderValue: orders.length ? orders.reduce((sum, order) => sum + order.subtotal, 0) / orders.length : 0
+    };
 
     // Initialize PDF
     const doc = new jsPDF('landscape');
@@ -197,8 +259,25 @@ export const exportSalesReportPdf = async (req, res) => {
     doc.text("ToyHub", 14, 10);
     doc.setFontSize(12);
     doc.text("Sales Report", 14, 20);
-    doc.text(`Period: ${period.charAt(0).toUpperCase() + period.slice(1)}`, 14, 30);
-    doc.text(`Generated on: ${new Date().toLocaleDateString('en-US')}`, 14, 40);
+
+    // Update period text for custom date range
+    let periodText = period;
+    if (period === 'custom') {
+      periodText = `${new Date(req.query.startDate).toISOString().split('T')[0]} - ${new Date(req.query.endDate).toISOString().split('T')[0]}`;
+    } else {
+      periodText = period.charAt(0).toUpperCase() + period.slice(1);
+    }
+    doc.text(`Period: ${periodText}`, 14, 30);
+    doc.text(`Generated on: ${new Date().toISOString().split('T')[0]}`, 14, 40);
+
+    // Add summary section
+    doc.setFontSize(14);
+    doc.text("Sales Summary", 14, 55);
+    doc.setFontSize(12);
+    doc.text(`Total Orders: ${summary.totalOrders}`, 14, 65);
+    doc.text(`Total Revenue: ₹${summary.totalRevenue.toFixed(2)}`, 14, 75);
+    doc.text(`Total Discounts: ₹${summary.totalDiscount.toFixed(2)}`, 14, 85);
+    doc.text(`Average Order Value: ₹${summary.averageOrderValue.toFixed(2)}`, 14, 95);
 
     // Define table columns
     const tableColumn = [
@@ -217,9 +296,10 @@ export const exportSalesReportPdf = async (req, res) => {
       { header: "Status", dataKey: "status", width: 20 }
     ];
 
-    // Prepare table data
+    // Prepare table data with formatted dates
     const tableRows = orders.map((order, index) => ({
       ...formatOrderData(order),
+      orderDate: new Date(order.orderDate).toISOString(),
       sno: index + 1
     }));
 
@@ -227,7 +307,7 @@ export const exportSalesReportPdf = async (req, res) => {
     doc.autoTable({
       columns: tableColumn,
       body: tableRows,
-      startY: 50,
+      startY: 105,
       theme: 'grid',
       columnStyles: {
         _id: { cellWidth: 40 },
@@ -253,7 +333,7 @@ export const exportSalesReportPdf = async (req, res) => {
     res.send(Buffer.from(pdfOutput, 'binary'));
   } catch (error) {
     console.error('Failed to export sales report as PDF:', error);
-    res.status(500).send('Failed to export sales report as PDF');
+    res.status(400).send(error.message || 'Failed to export sales report as PDF');
   }
 };
 

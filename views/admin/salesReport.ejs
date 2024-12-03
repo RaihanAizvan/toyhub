@@ -105,6 +105,9 @@
                 </select>
                 <input type="date" id="startDate" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 hidden">
                 <input type="date" id="endDate" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 hidden">
+                <button id="applyCustomDate" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all hidden">
+                  Apply
+                </button>
               </div>
               <!-- Download Excel Button -->
               <button id="downloadPdf" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all">
@@ -225,6 +228,7 @@
       const filterPeriod = document.getElementById('filterPeriod');
       const startDateInput = document.getElementById('startDate');
       const endDateInput = document.getElementById('endDate');
+      const applyCustomDateBtn = document.getElementById('applyCustomDate');
       const downloadExcelButton = document.getElementById('downloadExcel');
       const downloadPdfButton = document.getElementById('downloadPdf');
       const salesReportTableBody = document.getElementById('salesReportTableBody');
@@ -239,7 +243,15 @@
   
       function renderOrders(orders) {
         salesReportTableBody.innerHTML = '';
+        if (!Array.isArray(orders)) {
+          console.error('Orders is not an array:', orders);
+          return;
+        }
         orders.forEach(order => {
+          if (!order || !order.orderDate) {
+            console.error('Invalid order:', order);
+            return;
+          }
           const formattedDate = new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
           const row = `
             <tr class="border-b border-gray-200 hover:bg-gray-100">
@@ -248,18 +260,18 @@
                   <span>${order._id}</span>
                 </div>
               </td>
-              <td class="py-3 px-6 text-center">${order.address.user.name}</td>
+              <td class="py-3 px-6 text-center">${order.address?.user?.name || 'N/A'}</td>
               <td class="py-3 px-6 text-center">${formattedDate}</td>
-              <td class="py-3 px-6 text-center">${order.totalAmount}</td>
-              <td class="py-3 px-6 text-center">${order.discount}</td>
-              <td class="py-3 px-6 text-center">${order.offerDiscount}</td>
-              <td class="py-3 px-6 text-center">${order.couponDiscount}</td>
-              <td class="py-3 px-6 text-center">${order.cutoffAmount}</td>
-              <td class="py-3 px-6 text-center">${order.subtotal}</td>
-              <td class="py-3 px-6 text-center">${order.paymentMethod}</td>
+              <td class="py-3 px-6 text-center">${order.totalAmount || 0}</td>
+              <td class="py-3 px-6 text-center">${order.discount || 0}</td>
+              <td class="py-3 px-6 text-center">${order.offerDiscount || 0}</td>
+              <td class="py-3 px-6 text-center">${order.couponDiscount || 0}</td>
+              <td class="py-3 px-6 text-center">${order.cutoffAmount || 0}</td>
+              <td class="py-3 px-6 text-center">${order.subtotal || 0}</td>
+              <td class="py-3 px-6 text-center">${order.paymentMethod || 'N/A'}</td>
               <td class="py-3 px-6 text-center">
                 <span class="${order.status === 'pending' ? 'text-yellow-500' : order.status === 'completed' ? 'text-green-500' : 'text-red-500'}">
-                  ${order.status}
+                  ${order.status || 'N/A'}
                 </span>
               </td>
             </tr>
@@ -268,30 +280,85 @@
         });
       }
   
-      // Set initial filter value to "all" and render all orders
-      filterPeriod.value = "all"; 
-      renderOrders(orders.all);
-  
       filterPeriod.addEventListener('change', function() {
         if (filterPeriod.value === 'custom') {
           startDateInput.classList.remove('hidden');
           endDateInput.classList.remove('hidden');
+          applyCustomDateBtn.classList.remove('hidden');
         } else {
           startDateInput.classList.add('hidden');
           endDateInput.classList.add('hidden');
-          renderOrders(orders[filterPeriod.value]);
+          applyCustomDateBtn.classList.add('hidden');
+          if (orders[filterPeriod.value]) {
+            renderOrders(orders[filterPeriod.value]);
+          } else {
+            console.error('Invalid filter period:', filterPeriod.value);
+          }
         }
+      });
+
+      applyCustomDateBtn.addEventListener('click', function() {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) {
+          alert('Please select valid start and end dates');
+          return;
+        }
+        
+        if (endDate < startDate) {
+          alert('End date must be after start date');
+          return;
+        }
+        
+        // Set time to start of day for start date and end of day for end date
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        
+        // Filter orders between start and end dates
+        const filteredOrders = orders.all.filter(order => {
+          if (!order || !order.orderDate) return false;
+          const orderDate = new Date(order.orderDate);
+          return orderDate >= startDate && orderDate <= endDate;
+        });
+        
+        renderOrders(filteredOrders);
       });
   
       downloadExcelButton.addEventListener('click', function() {
-        const period = document.getElementById('filterPeriod').value
-        window.location.href = `/admin/salesReport/export?period=${period}`;
+        const period = filterPeriod.value;
+        if (period === 'custom') {
+          if (!startDateInput.value || !endDateInput.value) {
+            alert('Please select both start and end dates');
+            return;
+          }
+          window.location.href = `/admin/salesReport/export?period=${period}&startDate=${startDateInput.value}&endDate=${endDateInput.value}`;
+        } else {
+          window.location.href = `/admin/salesReport/export?period=${period}`;
+        }
       });
   
       downloadPdfButton.addEventListener('click', function() {
-        const period = document.getElementById('filterPeriod').value
-        console.log(period);
-        window.location.href = `/admin/salesReport/export-pdf?period=${period}`;
+        const period = filterPeriod.value;
+        if (period === 'custom') {
+          if (!startDateInput.value || !endDateInput.value) {
+            alert('Please select both start and end dates');
+            return;
+          }
+          
+          const formattedStartDate = new Date(startDateInput.value).toISOString().split('T')[0];
+          const formattedEndDate = new Date(endDateInput.value).toISOString().split('T')[0];
+          
+          window.location.href = `/admin/salesReport/export-pdf?period=${period}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+        } else {
+          window.location.href = `/admin/salesReport/export-pdf?period=${period}`;
+        }
       });
+
+      // Set initial filter value to "all" and render all orders
+      filterPeriod.value = "all";
+      if (orders.all) {
+        renderOrders(orders.all);
+      }
     });
   </script>

@@ -293,7 +293,7 @@ export const searchProducts = async (req, res) => {
                 isBlocked: false
             },
             { name: 1, _id: 1 } // Include _id field
-        ).limit(5);
+        );
 
 
 

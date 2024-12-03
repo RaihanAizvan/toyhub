@@ -5,6 +5,18 @@
         padding: 5px 14px;
         border-radius: 5px;
     }
+
+    /* Search suggestions dropdown */
+    #suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        margin-top: 4px;
+    }
 </style>
 
 <header class="bg-white shadow-md fixed md:relative w-full top-0 left-0 z-10">
@@ -16,7 +28,7 @@
             </a>
         </div>
         <!-- Search Bar -->
-        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0">
+        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0 relative">
             <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
                 <option>All Categories</option>
                 <% if (locals.categories) { %>
@@ -27,11 +39,11 @@
             </select>
             <input type="text" placeholder="Search for items..."
                 class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
-                oninput="handleSearchInput(this.value)" />
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
+                id="searchInput" />
+            <button onclick="searchItem(document.getElementById('searchInput').value)" class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
                 <i class="fas fa-search"></i>
             </button>
-            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden"></div>
+            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden w-full"></div>
         </div>
 
         <!-- Navigation -->
@@ -54,3 +66,77 @@
 </header>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const suggestions = document.getElementById('suggestions');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const value = this.value.trim();
+        
+        if (value.length < 2) {
+            suggestions.classList.add('hidden');
+            suggestions.innerHTML = '';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            handleSearchInput(value);
+        }, 300);
+    });
+
+    searchInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchItem(this.value);
+        }
+    });
+
+    // Click outside to close suggestions
+    document.addEventListener('click', function(event) {
+        if (!searchInput.contains(event.target) && !suggestions.contains(event.target)) {
+            suggestions.classList.add('hidden');
+        }
+    });
+
+    function handleSearchInput(value) {
+        if (!value) return;
+
+        axios.get(`/search/?q=${encodeURIComponent(value)}`)
+            .then(response => {
+                const data = response.data;
+                if (!data) {
+                    suggestions.innerHTML = '<div class="p-3 text-red-500">No data received from server</div>';
+                    suggestions.classList.remove('hidden');
+                    return;
+                }
+
+                if (Array.isArray(data) && data.length > 0) {
+                    suggestions.innerHTML = data
+                        .map(item => `
+                            <div class="p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0" 
+                                onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
+                                ${item.name || 'Unnamed Item'}
+                            </div>
+                        `).join('');
+                    suggestions.classList.remove('hidden');
+                } else {
+                    suggestions.innerHTML = '<div class="p-3 text-gray-500">No results found</div>';
+                    suggestions.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                suggestions.innerHTML = '<div class="p-3 text-red-500">Error fetching results: ' + error.message + '</div>';
+                suggestions.classList.remove('hidden');
+            });
+    }
+
+    function searchItem(query) {
+        if (!query) return;
+        window.location.href = `/search/results?q=${encodeURIComponent(query.trim())}`;
+    }
+</script>

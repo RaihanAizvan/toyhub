@@ -81,6 +81,14 @@ export const postResentOtp = userAuthentication.postResendOtp
 
 export const getLogout = userAuthentication.getLogout
 
+export const getForgotPassword = userAuthentication.getForgotPassword
+
+export const postForgotPassword = userAuthentication.postForgotPassword
+
+export const getResetPassword = userAuthentication.getResetPassword
+
+export const postResetPassword = userAuthentication.postResetPassword
+
 //* -----------------------------------------!                                         
 //s       Exporting landingPage              |
 //* -----------------------------------------!      

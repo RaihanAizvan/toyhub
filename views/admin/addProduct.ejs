@@ -1,11 +1,17 @@
 <!-- add product page -->
-<div class="flex min-h-screen">
+<div class="flex flex-col md:flex-row min-h-screen">
   <!-- Sidebar -->
-  <div class="w-64 bg-white p-4">
+  <div class="w-full md:w-64 bg-white p-4">
     <div class="flex items-center justify-between px-6 py-4">
       <span class="text-xl font-semibold">ToyHub</span>
+      <!-- Mobile menu button -->
+      <button class="md:hidden rounded-lg focus:outline-none focus:shadow-outline" id="menuButton">
+        <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6">
+          <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z"></path>
+        </svg>
+      </button>
     </div>
-    <nav>
+    <nav id="mobileMenu" class="hidden md:block">
       <ul class="space-y-2">
         <li>
           <a href="/admin"
@@ -42,7 +48,7 @@
 
       </ul>
     </nav>
-    <div class="mt-6">
+    <div class="mt-6 hidden md:block" id="categoriesMenu">
       <h3 class="text-sm font-semibold ">Categories</h3>
       <hr>
       <ul class="mt-2 space-y-2">
@@ -72,15 +78,15 @@
     </div>
   </div>
   <!-- Content Area -->
-  <div class="flex-1 p-8">
+  <div class="flex-1 p-4 md:p-8">
     <h1 class="text-2xl font-semibold">Add Product</h1>
     <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Add New Product</p>
     <!-- Form container -->
-    <div class="bg-white p-8 rounded-lg shadow-md">
-      <form id="productForm" class="w-3/4 grid grid-cols-2 gap-6" method="POST" action="/admin/addProduct"
+    <div class="bg-white p-4 md:p-8 rounded-lg shadow-md">
+      <form id="productForm" class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6" method="POST" action="/admin/addProduct"
         enctype="multipart/form-data">  
         <!-- Product Title -->
-        <div class="col-span-2">
+        <div class="col-span-1 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
           <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md"
             placeholder="Type name here" value="">
@@ -94,7 +100,7 @@
               </p>
         </div>
         <!-- Description 1 -->
-        <div class="col-span-2">
+        <div class="col-span-1 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
           <textarea id="description1" name="description1" class="mt-1 p-2 w-full border rounded-md"
             placeholder="Type Description here" value="">This is a action toy</textarea>
@@ -105,7 +111,7 @@
             <% } %>
         </div>
         <!-- Description 2 -->
-        <div class="col-span-2">
+        <div class="col-span-1 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
           <textarea id="description2" name="description2" class="mt-1 p-2 w-full border rounded-md"
             placeholder="Type Description here" value="">This toy is good for use</textarea>
@@ -234,7 +240,7 @@
             </p>
             <% } %>
         </div>
-        <div class="col-span-2">
+        <div class="col-span-1 md:col-span-2">
           <label for="dropzone-file"
             class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50">
             <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -260,8 +266,8 @@
           </p>
           <% } %>
             <!-- Cropper modal -->
-            <div id="cropper-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden">
-              <div class="bg-white p-4 rounded-lg max-w-2xl w-full">
+            <div id="cropper-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden p-4">
+              <div class="bg-white p-4 rounded-lg max-w-2xl w-full mx-auto">
                 <img id="cropper-image" class="max-w-full h-auto" alt="Crop Image">
                 <div class="mt-4 flex justify-end">
                   <button type="button" id="cancel-crop"
@@ -272,9 +278,9 @@
               </div>
             </div>
             <!-- Submit Button -->
-            <div class="col-span-2">
+            <div class="col-span-1 md:col-span-2">
               <button id="submit-button" type="submit"
-                class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Product </button>
+                class="w-full md:w-auto px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Product </button>
             </div>
       </form>
     </div>
@@ -294,9 +300,18 @@
     const cancelCropButton = document.getElementById('cancel-crop');
     const productForm = document.getElementById('productForm');
     const submitButton = document.getElementById('submit-button');
+    const menuButton = document.getElementById('menuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const categoriesMenu = document.getElementById('categoriesMenu');
     let cropper;
     let currentImageElement;
     let croppedImages = []; // Array to store cropped image data
+
+    // Mobile menu toggle
+    menuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      categoriesMenu.classList.toggle('hidden');
+    });
 
     fileInput.addEventListener('change', handleFileSelect);
     applyCropButton.addEventListener('click', applyCrop);

@@ -44,7 +44,7 @@ function getSignup(req, res) {
 async function postSignup(req, res) {
     // Generate a random 6-digit OTP and define its expiration time
     let otp = Math.floor(100000 + Math.random() * 900000);
-    const otpExpires = Date.now() + 1 * 60 * 1000; // OTP expires in 5 minutes
+    const otpExpires = Date.now() + 5 * 60 * 1000; // OTP expires in 5 minutes
 
     const { name, email, phone_number, password, confirmPassword } = req.body;
     try {
@@ -253,6 +253,113 @@ async function getLogout(req,res){
     }
 }
 
+function getForgotPassword(req,res){
+    res.render("user/forgot-password",{title:"Forgot Password"})
+}
+
+async function postForgotPassword(req,res){
+    try {
+        const {email} = req.body;
+        
+        // Find user with provided email
+        const user = await users.findOne({email});
+        
+        if(!user) {
+            return res.status(404).render("user/forgot-password", {
+                title: "Forgot Password",
+                message: "No account found with that email address"
+            });
+        }
+
+        // Generate random OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        
+        // Save OTP and expiry time to user document
+        user.resetPasswordOtp = otp;
+        user.resetPasswordExpires = Date.now() + 10*60*1000; // 10 minutes expiry
+        await user.save();
+
+        // Send OTP email
+        const mailOptions = {
+            to: email,
+            subject: 'Password Reset OTP',
+            html: `
+                <h1>Password Reset</h1>
+                <p>You requested a password reset. Here is your OTP:</p>
+                <h2>${otp}</h2>
+                <p>This OTP will expire in 10 minutes.</p>
+                <p>If you did not request this, please ignore this email.</p>
+            `
+        };
+
+        await sendMail(otp, email);
+
+        res.redirect(`/user/reset-password?email=${email}`);
+
+    } catch(err) {
+        console.error(err);
+        res.status(500).render("user/forgot-password", {
+            title: "Forgot Password", 
+            message: "Error sending reset email. Please try again."
+        });
+    }
+}
+
+function getResetPassword(req,res){
+    const email = req.query.email || req.body.email;
+    res.render("user/resend-otp",{
+        title:"Reset Password",
+        email
+    });
+}
+
+async function postResetPassword(req,res){
+    try {
+        const { otp, newPassword, confirmPassword } = req.body;
+        const email = req.query.email || req.body.email;
+
+        // Validate passwords match
+        if(newPassword !== confirmPassword) {
+            return res.render("user/resend-otp", {
+                title: "Reset Password",
+                email,
+                message: "Passwords do not match"
+            });
+        }
+
+        // Find user and validate OTP
+        const user = await users.findOne({
+            email,
+            
+        });
+
+        console.log(user);
+
+        if(!user) {
+            return res.render("user/resend-otp", {
+                title: "Reset Password", 
+                email,
+                message: "Invalid or expired OTP"
+            });
+        }
+
+        // Update password
+        user.password = await bcrypt.hash(newPassword, 10);
+        
+        await user.save();
+
+        res.redirect("/user/login");
+
+    } catch(err) {
+        console.error(err);
+        res.status(500).render("user/resend-otp", {
+            title: "Reset Password",
+            email: req.body.email,
+            message: "Error resetting password. Please try again."
+        });
+    }
+}
+
 export default {
     postSignup,
     getSignup,
@@ -261,5 +368,9 @@ export default {
     getLogin,
     postLogin,
     postResendOtp,
-    getLogout
+    getLogout,
+    getForgotPassword,
+    postForgotPassword,
+    getResetPassword,
+    postResetPassword
 }
