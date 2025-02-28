@@ -1,4 +1,3 @@
-
 <style>
     .active-tab{
         background-color: #19D16F;
@@ -23,6 +22,7 @@
     }
 
     /* Hamburger button animation */
+    
     .hamburger-spin {
         transition: transform 0.3s ease-in-out;
     }
@@ -64,9 +64,9 @@
                     <% }) %>
                 <% } %>
             </select>
-            <input type="text" placeholder="Search for items..."
+            <input type="text" placeholder="Search for items..." maxlength="50"
                 class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
-                id="searchInput" />
+                id="searchInput" oninput="handleSearchInput(this.value.replace(/[*\/${}]/g, ''))" />
             <button onclick="searchItem(document.getElementById('searchInput').value)" class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
                 <i class="fas fa-search"></i>
             </button>
@@ -159,6 +159,10 @@
         clearTimeout(debounceTimer);
         const value = this.value.trim();
         
+        // Sanitize input by removing MongoDB special characters
+        const sanitizedValue = value.replace(/[*\/${}]/g, '');
+        this.value = sanitizedValue;
+        
         if (value.length < 2) {
             suggestions.classList.add('hidden');
             suggestions.innerHTML = '';
@@ -166,7 +170,7 @@
         }
 
         debounceTimer = setTimeout(() => {
-            handleSearchInput(value);
+            handleSearchInput(sanitizedValue);
         }, 300);
     });
 
@@ -230,7 +234,7 @@
             icon: 'info',
             iconColor: '#19D16F',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Beam Me Out!',
+            confirmButtonText: 'Yes, Get Me Out!',
             cancelButtonText: 'Wait, Not Yet!',
             confirmButtonColor: '#19D16F',
             cancelButtonColor: '#ff6b6b',

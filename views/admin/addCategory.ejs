@@ -119,8 +119,10 @@
                             <div id="categoryRows" class="space-y-4">
                                 <div
                                     class="category-row bg-white p-4 border border-gray-300 rounded-lg shadow-md flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4 relative">
-                                    <input type="text" name="name" placeholder="Category Name" required
-                                        class="w-full md:w-auto border border-gray-300 p-2 rounded-md flex-1">
+                                    <input type="text" name="name" placeholder="Category Name" required minlength="3" maxlength="30"
+                                        class="w-full md:w-auto border border-gray-300 p-2 rounded-md flex-1"
+                                        oninput="validateCategoryName(this)">
+                                    <span class="text-sm text-gray-500">3-30 characters</span>
                                     <input type="file" name="image" accept="image/*"
                                         class="w-full md:w-auto border border-gray-300 p-2 rounded-md">
                                     <img src="" alt="" class="w-24 h-24 object-cover hidden">
@@ -175,13 +177,26 @@
             document.getElementById('mobileMenu').classList.toggle('hidden');
         });
 
+        // Function to validate category name
+        function validateCategoryName(input) {
+            const value = input.value;
+            if (value.length < 3) {
+                input.setCustomValidity('Category name must be at least 3 characters long');
+            } else if (value.length > 30) {
+                input.setCustomValidity('Category name cannot exceed 30 characters');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
         // Function to add a new category row
         document.getElementById('addRowButton').addEventListener('click', function () {
           const categoryRows = document.getElementById('categoryRows');
           const newRow = document.createElement('div');
           newRow.className = 'category-row bg-white p-4 border border-gray-300 rounded-lg shadow-md flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4 relative';
           newRow.innerHTML = `
-            <input type="text" name="name" placeholder="Category Name" required class="w-full md:w-auto border border-gray-300 p-2 rounded-md flex-1">
+            <input type="text" name="name" placeholder="Category Name" required minlength="3" maxlength="30" class="w-full md:w-auto border border-gray-300 p-2 rounded-md flex-1" oninput="validateCategoryName(this)">
+            <span class="text-sm text-gray-500">3-30 characters</span>
             <input type="file" name="image" accept="image/*" class="w-full md:w-auto border border-gray-300 p-2 rounded-md">
             <img src="" alt="" class="w-24 h-24 object-cover hidden">
             <button type="button" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 delete-button">X</button>

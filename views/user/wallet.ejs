@@ -106,7 +106,8 @@
               <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
               <input type="number" id="amount" name="amount" 
                      class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-                     placeholder="Enter amount" required>
+                     placeholder="Enter amount" min="1" max="10000" required>
+              <p class="text-sm text-gray-500 mt-2">Min: ₹1 | Max: ₹10,000</p>
             </div>
             <button onclick="addMoney()" 
                     class="mt-4 bg-primary hover:bg-primary-dark text-white py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
@@ -226,7 +227,14 @@
     }
     
     function addMoney() {
-        const amount = document.getElementById('amount').value;
+        const amountInput = document.getElementById('amount');
+        const amount = parseFloat(amountInput.value);
+        
+        if (amount < 1 || amount > 10000) {
+            toastr.error('Please enter an amount between ₹1 and ₹10,000');
+            return;
+        }
+        
         axios.post('/account/wallet/add-money', { amount })
             .then(response => {
                 toastr.success('Money added successfully!');

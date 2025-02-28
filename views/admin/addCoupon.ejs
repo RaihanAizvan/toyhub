@@ -65,8 +65,8 @@
           <% } %>
           <div class="mb-4">
             <label class="block text-gray-700">Coupon Code</label>
-            <input type="text" name="couponCode" class="w-full border px-3 py-2 rounded" />
-            <p class="error text-red-500 hidden" id="couponCodeError">Coupon code not contain spaces.</p>
+            <input type="text" name="couponCode" maxlength="10" class="w-full border px-3 py-2 rounded" />
+            <p class="error text-red-500 hidden" id="couponCodeError">Coupon code must be 3-10 characters without spaces.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Start Date</label>
@@ -82,18 +82,18 @@
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount</label>
-            <input type="number" name="discount" min="1" class="w-full border px-3 py-2 rounded" />
-            <p class="error text-red-500 hidden" id="discountError">Discount must be greater than zero.</p>
+            <input type="number" name="discount" min="1" max="90" class="w-full border px-3 py-2 rounded" />
+            <p class="error text-red-500 hidden" id="discountError">Discount must be between 1 and 90.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Usage Limit </label>
-            <input type="number" name="usageLimit" min="1" class="w-full border px-3 py-2 rounded" />
-            <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be greater than zero.</p>
+            <input type="number" name="usageLimit" min="1" max="1000" class="w-full border px-3 py-2 rounded" />
+            <p class="error text-red-500 hidden" id="usageLimitError">Usage limit must be between 1 and 1000.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Min Spend </label>
-            <input type="number" name="minSpend" min="1" class="w-full border px-3 py-2 rounded" />
-            <p class="error text-red-500 hidden" id="minSpendError">Min spend must be greater than zero.</p>
+            <input type="number" name="minSpend" min="1" max="10000" class="w-full border px-3 py-2 rounded" />
+            <p class="error text-red-500 hidden" id="minSpendError">Min spend must be between 1 and 10000.</p>
           </div>
           <div class="mb-4">
             <label class="block text-gray-700">Discount Type</label>
@@ -116,63 +116,69 @@
       const code = form.couponCode.value.toUpperCase(); // Convert to uppercase
       const startDate = form.startDate.value ? new Date(form.startDate.value) : null;
       const endDate = form.endDate.value ? new Date(form.endDate.value) : null;
-      const discount = form.discount.value;
-      const usageLimit = form.usageLimit.value;
-      const minSpend = form.minSpend.value;
-
+      const discount = Number(form.discount.value);
+      const usageLimit = Number(form.usageLimit.value);
+      const minSpend = Number(form.minSpend.value);
+      const discountType = form.discountType.value;
 
       let isValid = true;
 
-      if (code.trim() === '') {
+      // Coupon code validation
+      if (code.trim() === '' || code.length < 3 || code.length > 10 || /\s/.test(code)) {
         isValid = false;
         document.getElementById('couponCodeError').classList.remove('hidden');
       } else {
         document.getElementById('couponCodeError').classList.add('hidden');
       }
 
+      // Start date validation
       if (!startDate) {
         isValid = false;
         document.getElementById('startDateEmptyError').classList.remove('hidden');
       } else {
         document.getElementById('startDateEmptyError').classList.add('hidden');
+        
+        if (startDate < new Date().setHours(0, 0, 0, 0)) {
+          isValid = false;
+          document.getElementById('startDateError').classList.remove('hidden');
+        } else {
+          document.getElementById('startDateError').classList.add('hidden');
+        }
       }
 
-      if (startDate && startDate < new Date().setHours(0, 0, 0, 0)) {
-        isValid = false;
-        document.getElementById('startDateError').classList.remove('hidden');
-      } else {
-        document.getElementById('startDateError').classList.add('hidden');
-      }
-
+      // End date validation
       if (!endDate) {
         isValid = false;
         document.getElementById('endDateEmptyError').classList.remove('hidden');
       } else {
         document.getElementById('endDateEmptyError').classList.add('hidden');
+        
+        if (endDate <= startDate) {
+          isValid = false;
+          document.getElementById('endDateError').classList.remove('hidden');
+        } else {
+          document.getElementById('endDateError').classList.add('hidden');
+        }
       }
 
-      if (endDate && startDate && endDate <= startDate) {
-        isValid = false;
-        document.getElementById('endDateError').classList.remove('hidden');
-      } else {
-        document.getElementById('endDateError').classList.add('hidden');
-      }
-
-      if (!usageLimit || usageLimit <= 0) {
+      // Usage limit validation
+      if (!usageLimit || usageLimit < 1 || usageLimit > 1000) {
         isValid = false;
         document.getElementById('usageLimitError').classList.remove('hidden');
       } else {
         document.getElementById('usageLimitError').classList.add('hidden');
       }
 
-      if (discount <= 0) {
+      // Discount validation
+      if (!discount || discount < 1 || (discountType === 'percentage' && discount > 90)) {
         isValid = false;
         document.getElementById('discountError').classList.remove('hidden');
       } else {
         document.getElementById('discountError').classList.add('hidden');
       }
 
-      if (!minSpend || minSpend <= 0) {
+      // Min spend validation
+      if (!minSpend || minSpend < 1 || minSpend > 10000) {
         isValid = false;
         document.getElementById('minSpendError').classList.remove('hidden');
       } else {
@@ -185,7 +191,7 @@
           startDate: form.startDate.value,
           endDate: form.endDate.value,
           discount: discount,
-          discountType: form.discountType.value,
+          discountType: discountType,
           usageLimit: usageLimit,
           minSpend: minSpend
         })
