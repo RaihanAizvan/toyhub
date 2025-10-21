@@ -110,7 +110,7 @@
                         <% product.images.forEach((img, index) => { %>
                             <img alt="<%= product.name %> thumbnail"
                                  class="thumbnail w-24 h-24 object-cover border rounded-lg cursor-pointer transition-transform hover:scale-105 hover-float shine-effect animate-pop-in"
-                                 style="animation-delay: <%= index * 100 %>ms"
+                                 style="animation-delay: 100ms"
                                  src="<%= img %>"
                                  data-index="<%= index %>"
                                  onclick="updateMainImage('<%= img %>')" />

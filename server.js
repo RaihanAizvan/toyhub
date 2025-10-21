@@ -62,13 +62,13 @@ app.use((req, res, next) => {
 // })
 
 
-// app.use((req,res,next )=>{
-//   req.session.user = {
-//     id:"66dae94724e6805681a42e6a",
-//     name:"Muhammed Raihann",
-//   }
-//   next();
-// })
+app.use((req,res,next )=>{
+  req.session.user = {
+    id:"66dae94724e6805681a42e6a",
+    name:"Muhammed Raihann",
+  }
+  next();
+})
 
 app.use(nocache());
 
