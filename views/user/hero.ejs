@@ -54,6 +54,13 @@
 
     }
 
+    /* mobile */
+    @media (max-width: 768px) {
+        .bg-shape {
+        filter: blur(100px) !important;
+        }   
+    }
+
     /* --- END HEIGHT REDUCTION --- */
 
     /* Global styles (Kept for reference, assume parent file has these) */
@@ -74,7 +81,7 @@
 
     .bg-shape {
         position: absolute;
-        filter: blur(30px);
+        filter: blur(20px);
         z-index: 0;
         transition: background-color 1s ease;
     }
@@ -142,6 +149,9 @@
     .leading-09 {
         line-height: 0.9;
     }
+    .text-init {
+        color: white;
+    }
 </style>
 
 <!-- NOTE: We assume this content is placed inside a DIV/SECTION in your main EJS layout -->
@@ -150,7 +160,7 @@
     <main class="relative flex items-center overflow-hidden py-12">
 
         <!-- Background Orbs -->
-        <div id="bg-orb-1" class="bg-shape top--10 left--10 w-60vw h-60vw rounded-full bg-primary opacity-5"></div>
+        <div id="bg-orb-1" class="bg-shape top--10 left--10 w-60vw h-60vw rounded-full bg-white opacity-5"></div>
         <div id="bg-orb-2" class="bg-shape bottom--10 right--10 w-50vw h-50vw rounded-full bg-primary opacity-20"></div>
 
         <div class="container mx-auto mt-16 sm:mt-10 px-6 relative z-0 grid grid-cols-1 lg:grid-cols-2 items-center">
@@ -168,7 +178,7 @@
 
                 <!-- Main Headline: UPDATED GREEN GRADIENT -->
                 <h1
-                    class="text-4xl sm:text-6xl lg:text-7xl font-black leading-0.9 text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-500">
+                    class="text-4xl sm:text-6xl lg:text-7xl font-black leading-0.9 text-transparent bg-clip-text text-init">
                     <span id="slide-title">ROBOTIC<br>FUTURE</span>
                 </h1>
 
@@ -192,13 +202,14 @@
                 <!-- CTA/Navigation Buttons -->
                 <div class="flex items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
                     <button
-                        class="nav-btn bg-gray-900 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold text-sm sm:text-base hover:scale-105 transition-transform duration-200 shadow-xl shadow-gray-300/50">
+                        class="nav-btn bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold text-sm sm:text-base hover:scale-105 transition-transform duration-200 shadow-xl shadow-gray-300/50">
                         Shop Now
                     </button>
 
                     <div class="flex gap-4">
                         <button onclick="nextSlide()"
-                            class="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group text-gray-700">
+                            id="next-slide-btn"
+                            class="w-10 h-10 sm:w-12 sm:h-12 border border-green-500 rounded-full flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group text-gray-700">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:rotate-[-45deg] transition-transform"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -231,6 +242,24 @@
     // --- Configuration (Data remains the same) ---
     const slides = [
         {
+            title: "SMART\nPET",
+            desc: "Interactive robotic companions that learn and play like real pets. Use 'PETFRIEND' for 10% discount.",
+            price: "₹999.00",
+            discount: "-10% OFF",
+            tag: "Companion Bots",
+            colors: {
+                orb1: "#32cd32",
+                orb2: "#228b22",
+                tag: "#32cd32",
+                title: "##CEFABB",
+                discount: {
+                    backgroundColor: "#98fb98",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_wasv17wasv17wasv.png"
+        },
+        {
             title: "AL\nROBOT",
             desc: "Construct your own companion with our modular robotics kit. Claim special offer by coupon 'HELLOROBO'",
             price: "₹1149.00",
@@ -239,9 +268,12 @@
             colors :{
                 orb1: "#686054",
                 orb2: "#653217",
-                tag: "",
-                title: "",
-                discount: "",
+                tag: "#653217",
+                title: "#2D2114",
+                discount: {
+                    backgroundColor: "#E4E5DF",
+                    color: "black"
+                }
 
             },
             img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=1000&auto=format&fit=crop"
@@ -249,18 +281,75 @@
         {
             title: "RETRO\nGAMER",
             desc: "Limited edition consoles inspired by the golden age of arcade.",
-            price: "$89.00",
+            price: "₹899.00",
             discount: "-50% OFF",
             tag: "Limited Edition",
             colors :{
                 orb1: "#FFC4FF", //purple
                 orb2: "#91005F", // dark purple
-                tag: "",
-                title: "",
-                discount: "",
+                tag: "##9E0023",
+                title: "#9E0062",
+                discount: {
+                    backgroundColor: "#F386EC",
+                    color: "black"
+                },
 
             },
             img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop"
+        },
+        {
+            title: "NEON\nDRONE",
+            desc: "High-velocity racing drones with AI-assisted stabilization. Unlock 20% off with code 'FLYHIGH'.",
+            price: "₹2490.00",
+            discount: "-20% OFF",
+            tag: "Racing Series",
+            colors: {
+                orb1: "#0e7fff",
+                orb2: "#1e90ff",
+                tag: "#00bfff",
+                title: "#1e69ff",
+                discount: {
+                    backgroundColor: "#87ceeb",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_9d96029d96029d96.png"
+        },
+        {
+            title: "VR\nVISION",
+            desc: "Immersive reality headsets that transport you to new worlds. Special bundle with controllers for $399.",
+            price: "₹3490.00",
+            discount: "-25% OFF",
+            tag: "New Arrival",
+            colors: {
+                orb1: "#2f4f4f",
+                orb2: "#708090",
+                tag: "#708090",
+                title: "#f0f8ff",
+                discount: {
+                    backgroundColor: "#b0c4de",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_p1hh0fp1hh0fp1hh.png"
+        },
+        {
+            title: "ARCADE\nREVIVAL",
+            desc: "Bring back the classics with our restored arcade cabinets. Free shipping on orders over $500.",
+            price: "₹5999.00",
+            discount: "-30% OFF",
+            tag: "Retro Collection",
+            colors: {
+                orb1: "#202020",
+                orb2: "#202120",
+                tag: "#ff6347",
+                title: "#ffffff",
+                discount: {
+                    backgroundColor: "#ffa07a",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_uwxng2uwxng2uwxn.png"
         }
     ];
 
@@ -272,19 +361,21 @@
     // --- Initialization ---
     function init() {
         document.getElementById('total-idx').innerText = '0' + slides.length;
+        const nextDataIdx = (currentIndex ) % slides.length;
         renderCards();
         updateText(0);
+        updateBackground(slides[nextDataIdx].colors.orb1, slides[nextDataIdx].colors.orb2);
 
         // Add 3D Tilt Effect to the whole stack on mousemove
         document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 30;
-            const y = (window.innerHeight / 2 - e.pageY) / 30;
+            const x = (window.innerWidth / 2 - e.pageX -10) / 99;
+            const y = (window.innerHeight / 2 - e.pageY -10) / 99;
 
             gsap.to('.card-active', {
                 rotationY: x,
                 rotationX: y,
                 ease: "power1.out",
-                duration: 0.5
+                duration: 0.7
             });
         });
     }
@@ -319,7 +410,6 @@
         `;
         return div;
     }
-
     // --- Animation Logic (Remains the same) ---
     window.nextSlide = function () {
         if (isAnimating) return;
@@ -399,10 +489,12 @@
         document.getElementById('slide-tag').innerText = data.tag;
         document.getElementById('slide-discount').innerText = data.discount;
         document.getElementById('current-idx').innerText = '0' + (index + 1);
-
+        
         // Update colors
+        titleEl.style.color = data.colors.title;
         document.getElementById('slide-tag').style.color = data.colors.tag;
-        document.getElementById('slide-discount').style.backgroundColor = data.colors.discount;
+        document.getElementById('slide-discount').style.backgroundColor = data.colors.discount.backgroundColor;
+        document.getElementById('slide-discount').style.color = data.colors.discount.color;
     }
 
     function scrambleText(element, finalText) {
@@ -435,6 +527,6 @@
     }
 
     // Run - Using setTimeout to ensure the GSAP library is fully loaded before initialization
-    setTimeout(init, 100);
+    setTimeout(init, 0);
 
 </script>
