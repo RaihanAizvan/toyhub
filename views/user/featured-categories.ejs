@@ -1,152 +1,194 @@
 <style>
-    .category-card {
-        transform: perspective(1000px) rotateY(0deg);
-        transition: transform 0.5s ease;
+    /* 1. HIDE SCROLLBARS (Cross-browser) */
+    .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+
+    /* 2. CUSTOM ANIMATIONS */
+    @keyframes float-y {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .float-anim {
+        animation: float-y 4s ease-in-out infinite;
     }
     
-    .category-card:hover {
-        transform: perspective(1000px) rotateY(10deg) scale(1.05);
+    /* Stagger animations for variety */
+    .float-anim:nth-child(odd) { animation-duration: 4.5s; }
+    .float-anim:nth-child(even) { animation-duration: 5.2s; }
+
+    /* 3. GLASS CARD STYLING */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
     }
 
-    /* Custom scrollbar styling */
-    .overflow-x-auto::-webkit-scrollbar {
-        height: 6px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-track {
-        background: #E5E7EB;
-        border-radius: 10px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-thumb {
-        background: #10B981;
-        border-radius: 10px;
-    }
-    
-    .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-        background: #059669;
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.95);
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #34d399; /* Emerald-400 */
     }
 
-    /* Smooth scroll behavior with momentum */
-    .scroll-smooth {
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
+    /* 4. IMAGE HOVER EFFECT */
+    .img-zoom-container {
+        overflow: hidden;
+    }
+    .glass-card:hover .category-img {
+        transform: scale(1.15) rotate(3deg);
     }
 
-    .scroll-container {
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .category-card {
-        scroll-snap-align: center;
-        transition: transform 0.3s ease-out;
-    }
-
-    /* Add momentum-based scaling */
-    @media (max-width: 768px) {
-        .scroll-container.scrolling .category-card {
-            transform: scale(1.1);
-            transition: transform 0.3s ease-out;
-        }
-
-        .scroll-container.scrolling-fast .category-card {
-            transform: scale(1.15);
-        }
-
-        .scroll-container.scrolling-end .category-card {
-            transform: scale(1);
-            transition: transform 0.5s ease-out;
-        }
-    }
-
-    /* Floating animation */
-    .category-card {
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-        50% {
-            transform: translateY(-5px);
-        }
-        100% {
-            transform: translateY(0px);
-        }
+    /* 5. MESH GRADIENT BACKGROUND */
+    .mesh-bg {
+        background-color: #f3f4f6;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(167, 243, 208, 0.3) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
     }
 </style>
 
+<section class="py-12 mesh-bg overflow-hidden relative">
+    
+    <!-- Decorative background elements -->
+    <div class="absolute top-0 left-0 w-64 h-64 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute bottom-0 right-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
 
+    <div class="container mx-auto px-4 relative z-10">
+        <!-- Header -->
+        <div class="flex justify-between items-end mb-8 px-2">
+            <div>
+                <span class="text-green-600 font-bold tracking-widest uppercase text-xs">Explore</span>
+                <h2 class="text-3xl md:text-4xl font-black text-gray-800 mt-1">
+                    Top <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-500">Categories</span>
+                </h2>
+            </div>
+            
+            <!-- Custom Navigation Arrows (Visible on desktop) -->
+            <div class="hidden md:flex gap-2">
+                <button onclick="scrollCategories('left')" class="w-10 h-10 rounded-full bg-white shadow-md text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors flex items-center justify-center">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button onclick="scrollCategories('right')" class="w-10 h-10 rounded-full bg-white shadow-md text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors flex items-center justify-center">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
 
-<section class="bg-gradient-to-b from-gray-300 pt-10 to-gray-100 pb-8">
-    <div class="container mx-auto px-6">
-        <h2 class="text-3xl font-semibold mb-4 hover:text-green-600 transition-colors">Featured Categories</h2>
-        <div class="flex space-x-6 overflow-x-auto pb-4 scroll-smooth scroll-container" style="scrollbar-width: thin; scrollbar-color: #10B981 #E5E7EB;">
-            <% if(locals.categories ) { %>
-                <% categories.forEach(category => { %> 
-                    <div class="category-card bg-white shadow-lg hover:shadow-2xl hover:bg-gray-100 transition-all duration-300 rounded-lg p-4 w-48 flex-shrink-0">
-                        <a href="/user/category/<%= category.id %>">
-                            <img src="<%= category.image %>" alt="<%= category.name %>" class="h-20 transition-all duration-300 w-full hover:scale-110 transform object-contain rounded-t-lg">
-                            <h3 class="text-lg font-semibold text-center mt-2 hover:text-green-600">
-                                <%= category.name %>
-                            </h3>
-                            <p class="text-center text-gray-500 hover:text-green-500 transition-colors">
-                                <%= category.items %> items
-                            </p>
-                        </a>
-                    </div>
-                <% }); %>
-                <div class="category-card bg-white shadow-lg hover:shadow-2xl hover:bg-gray-100 transition-all duration-300 rounded-lg p-4 w-48 flex-shrink-0">
-                    <a href="/categories/all">
-                        <div class="flex flex-col items-center justify-around h-full">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBqSLszvfKsl1S6a21dGtqYjJgNhINSkRDbw&s" 
-                                height="40" width="40" alt=""
-                                class="transition-transform hover:rotate-12 hover:scale-110">
-                            <h3 class="text-lg font-semibold text-center mt-2 hover:text-green-600">
-                                 All Categories
-                            </h3>
+        <!-- Scrollable Container -->
+        <!-- Added 'padding-bottom' to allow hover effects not to get cut off -->
+        <div id="categoryScroll" class="flex overflow-x-auto hide-scrollbar pb-8 pt-2 px-2 gap-6 snap-x snap-mandatory scroll-smooth">
+            
+            <% if(locals.categories && categories.length > 0) { %>
+                <% categories.forEach((category, index) => { %> 
+                    <!-- Category Card -->
+                    <a href="/user/category/<%= category.id %>" class="float-anim flex-shrink-0 snap-center group">
+                        <div class="glass-card rounded-3xl w-48 h-64 md:w-56 md:h-72 flex flex-col items-center justify-between p-4 relative overflow-hidden">
+                            
+                            <!-- Glowing Orb Background inside card -->
+                            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent to-green-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                            <!-- Image Area -->
+                            <div class="w-full h-32 md:h-40 img-zoom-container rounded-2xl bg-white bg-opacity-40 flex items-center justify-center mb-4 relative z-10">
+                                <img 
+                                    src="<%= category.image %>" 
+                                    alt="<%= category.name %>" 
+                                    class="category-img w-3/4 h-3/4 object-contain transition-transform duration-500 ease-out"
+                                >
+                            </div>
+
+                            <!-- Text Area -->
+                            <div class="text-center relative z-10 w-full">
+                                <h3 class="text-lg font-bold text-gray-800 group-hover:text-green-600 transition-colors truncate">
+                                    <%= category.name %>
+                                </h3>
+                                
+                                <div class="mt-2 flex items-center justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <span class="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded-full group-hover:bg-green-100 group-hover:text-green-700 transition-colors">
+                                        <%= category.items %> Items
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Action Icon (Hidden by default, slides up on hover) -->
+                            <div class="absolute bottom-0 w-full flex justify-center pb-4 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                                <div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </div>
+                            </div>
                         </div>
                     </a>
+                <% }); %>
+
+                <!-- "View All" Card -->
+                <a href="/categories/all" class="float-anim flex-shrink-0 snap-center group">
+                    <div class="glass-card rounded-3xl w-48 h-64 md:w-56 md:h-72 flex flex-col items-center justify-center p-4 bg-gray-50 border-dashed border-2 border-gray-300 hover:border-green-400">
+                        <div class="w-16 h-16 rounded-full bg-green-100 text-green-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-th-large text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-700 group-hover:text-green-600">View All</h3>
+                        <p class="text-sm text-gray-400 mt-1">Discover More</p>
+                    </div>
+                </a>
+
+            <% } else { %>
+                <div class="w-full text-center py-10">
+                    <p class="text-gray-500">No categories found right now.</p>
                 </div>
-                <% } else { %>
-                    <p>No categories available</p>
-                <% } %>
-            </div>
+            <% } %>
+
+        </div>
     </div>
 </section>
 
-
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.querySelector('.scroll-container');
-        let scrollTimeout;
-        let lastScrollPos = 0;
-        let scrollVelocity = 0;
+    // Simple Scroll Logic for Buttons
+    function scrollCategories(direction) {
+        const container = document.getElementById('categoryScroll');
+        const scrollAmount = 300; // Adjust scroll distance
 
-        container.addEventListener('scroll', function() {
-            clearTimeout(scrollTimeout);
-            
-            const currentScrollPos = container.scrollLeft;
-            scrollVelocity = Math.abs(currentScrollPos - lastScrollPos);
-            lastScrollPos = currentScrollPos;
+        if (direction === 'left') {
+            container.scrollLeft -= scrollAmount;
+        } else {
+            container.scrollLeft += scrollAmount;
+        }
+    }
 
-            container.classList.add('scrolling');
-            
-            if (scrollVelocity > 10) {
-                container.classList.add('scrolling-fast');
-            }
+    // Add drag-to-scroll functionality for mouse users
+    const slider = document.getElementById('categoryScroll');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
 
-            scrollTimeout = setTimeout(() => {
-                container.classList.remove('scrolling', 'scrolling-fast');
-                container.classList.add('scrolling-end');
-                
-                setTimeout(() => {
-                    container.classList.remove('scrolling-end');
-                }, 500);
-            }, 150);
-        }, { passive: true });
+    slider.addEventListener('mousedown', (e) => {
+        isDown = true;
+        slider.style.cursor = 'grabbing';
+        startX = e.pageX - slider.offsetLeft;
+        scrollLeft = slider.scrollLeft;
+    });
+
+    slider.addEventListener('mouseleave', () => {
+        isDown = false;
+        slider.style.cursor = 'default';
+    });
+
+    slider.addEventListener('mouseup', () => {
+        isDown = false;
+        slider.style.cursor = 'default';
+    });
+
+    slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - slider.offsetLeft;
+        const walk = (x - startX) * 2; // Scroll-fast
+        slider.scrollLeft = scrollLeft - walk;
     });
 </script>
