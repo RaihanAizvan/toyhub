@@ -1,192 +1,454 @@
+<!-- Google Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
-    .active-tab{
-        background-color: #19D16F;
-        color:white;
-        padding: 5px 14px;
-        border-radius: 5px;
+    :root {
+        --primary: #19D16F;
+        --primary-dark: #12a355;
+        --dark: #1f2937;
     }
 
-    /* Add transitions for mobile menu */
+    body {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Glassmorphism Effect */
+    .glass-nav {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Custom Animations */
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-2px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .icon-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .icon-btn:hover {
+        color: var(--primary);
+        transform: translateY(-2px);
+        background-color: rgba(25, 209, 111, 0.1);
+    }
+
+    /* Search Bar Glow */
+    .search-container {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .search-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 4px 20px rgba(25, 209, 111, 0.15);
+        transform: scale(1.01);
+    }
+
+    /* Navigation Links Underline Animation */
+    .nav-link {
+        position: relative;
+        font-weight: 500;
+        color: #4b5563;
+        transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 0;
+        background-color: var(--primary);
+        transition: width 0.3s ease;
+        border-radius: 2px;
+    }
+
+    .nav-link:hover {
+        color: var(--primary);
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active-tab::after {
+        width: 100%;
+    }
+
+    .active-tab {
+        color: var(--primary);
+    }
+
+    /* Mobile Menu Transition */
     #mobileMenu {
-        transition: all 0.3s ease-in-out;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         transform-origin: top;
-        transform: scaleY(0);
         opacity: 0;
+        visibility: hidden;
         max-height: 0;
+        overflow: hidden;
     }
 
     #mobileMenu.show {
-        transform: scaleY(1);
         opacity: 1;
-        max-height: 500px;
+        visibility: visible;
+        max-height: 100vh;
+        /* Using vh instead of px for safety */
     }
 
-    /* Hamburger button animation */
-    
-    .hamburger-spin {
-        transition: transform 0.3s ease-in-out;
+    /* Hamburger Animation */
+    .hamburger-line {
+        transition: all 0.3s ease;
     }
 
-    .hamburger-spin.active {
-        transform: rotate(180deg);
+    .hamburger-active .line1 {
+        transform: rotate(45deg) translate(5px, 5px);
     }
 
-    /* Search suggestions dropdown */
+    .hamburger-active .line2 {
+        opacity: 0;
+    }
+
+    .hamburger-active .line3 {
+        transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    /* Suggestions Dropdown */
     #suggestions {
-        position: absolute;
         top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 300px;
+        margin-top: 8px;
+        max-height: 400px;
         overflow-y: auto;
-        z-index: 1000;
-        margin-top: 4px;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Scrollbar Styling */
+    #suggestions::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #suggestions::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .user-pill {
+        background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+        border: 1px solid #e5e7eb;
     }
 </style>
 
+<header class="fixed w-full top-0 left-0 z-50 transition-all duration-300 glass-nav shadow-sm">
+    <!-- Main Navbar Content -->
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-4">
 
-<header class="bg-white shadow-md fixed md:relative w-full top-0 left-0 z-10">
-    <div class="container mx-auto flex items-center justify-between py-3 px-4">
-        <!-- Logo (Visible on all screens, replaces "All Categories" on mobile) -->
-        <div class="flex items-center gap-4">
-            <!-- Hamburger Menu for Mobile -->
-            <a href="/" class="text-xl font-bold flex-shrink-0">
-                <img src="../images/logo.png" alt="ToyHub Logo" class="w-24 md:w-40 h-auto">
-            </a>
+            <!-- 1. Logo Section -->
+            <div class="flex-shrink-0 flex items-center">
+                <a href="/" class="block transform hover:scale-105 transition-transform duration-300">
+                    <!-- Adjusted width classes instead of arbitrary values -->
+                    <img src="../images/logo.png" alt="ToyHub" class="h-10 w-auto md:h-12">
+                </a>
+            </div>
+
+            <!-- 2. Search Section (Desktop) -->
+            <div class="hidden md:block flex-grow max-w-2xl mx-6 relative">
+                <div class="search-container flex items-center bg-gray-50 rounded-full px-2 py-1 shadow-inner">
+                    <!-- Categories Select -->
+                    <div class="relative border-r border-gray-200 pr-2">
+                        <select
+                            class="appearance-none bg-transparent text-sm text-gray-600 font-medium py-2 pl-3 pr-8 cursor-pointer focus:outline-none hover:text-green-600 transition-colors">
+                            <option>All Items</option>
+                            <% if (locals.categories) { %>
+                                <% categories.forEach(category=> { %>
+                                    <option value="<%= category._id %>">
+                                        <%= category.name %>
+                                    </option>
+                                    <% }) %>
+                                        <% } %>
+                        </select>
+                        <i
+                            class="fas fa-chevron-down absolute right-2 top-3 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Input -->
+                    <input type="text" id="searchInput" placeholder="What are you looking for?"
+                        class="flex-grow bg-transparent border-none px-4 py-2 text-gray-700 focus:ring-0 placeholder-gray-400"
+                        oninput="handleSearchInput(this.value.replace(/[*\/${}]/g, ''))">
+
+                    <!-- Search Button -->
+                    <button onclick="searchItem(document.getElementById('searchInput').value)" id=""
+                        class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md transform hover:rotate-12 transition-all duration-300">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+
+            </div>
+
+            <!-- 3. Actions & Profile -->
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- Mobile Search Toggle (Visible only on mobile) -->
+                <button class="md:hidden icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600"
+                    id="mobileSearchBtn">
+                    <i class="fas fa-search"></i>
+                </button>
+
+                <!-- Desktop Icons -->
+                <div class="hidden md:flex items-center gap-3">
+                    <a href="/cart"
+                        class="icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600 relative"
+                        title="Cart">
+                        <i class="fas fa-shopping-bag text-lg"></i>
+                        <!-- Optional Badge logic could go here -->
+                    </a>
+
+                    <a href="/account/wishlist"
+                        class="icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600"
+                        title="Wishlist">
+                        <i class="fas fa-heart text-lg"></i>
+                    </a>
+
+                    <!-- User Pill -->
+                    <div class="hidden lg:flex items-center gap-3 pl-2 pr-1 py-1 rounded-full user-pill ml-2">
+                        <div class="flex flex-col items-end leading-none px-2">
+                            <span class="text-xs text-gray-400 font-medium">Hello,</span>
+                            <span class="text-sm font-bold text-gray-700 truncate max-w-xs">
+                                <%= locals.name || 'Guest' %>
+                            </span>
+                        </div>
+                        <a href="/account"
+                            class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">
+                            <i class="fas fa-user"></i>
+                        </a>
+                    </div>
+
+                    <button onclick="logout()" class="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Logout">
+                        <i class="fas fa-power-off text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Hamburger Button -->
+                <button id="hamburgerButton"
+                    class="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 focus:outline-none">
+                    <span class="hamburger-line line1 w-6 h-0.5 bg-gray-800 block rounded-full"></span>
+                    <span class="hamburger-line line2 w-6 h-0.5 bg-gray-800 block rounded-full"></span>
+                    <span class="hamburger-line line3 w-6 h-0.5 bg-gray-800 block rounded-full"></span>
+                </button>
+            </div>
         </div>
-        <!-- Search Bar -->
-        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0 relative">
-            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
-                <option>All Categories</option>
-                <% if (locals.categories) { %>
-                    <% categories.forEach(category => { %>
-                        <option value="<%= category._id %>"><%= category.name %></option>
-                    <% }) %>
-                <% } %>
-            </select>
-            <input type="text" placeholder="Search for items..." maxlength="50"
-                class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
-                id="searchInput" oninput="handleSearchInput(this.value.replace(/[*\/${}]/g, ''))" />
-            <button onclick="searchItem(document.getElementById('searchInput').value)" class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
-                <i class="fas fa-search"></i>
-            </button>
-            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden w-full"></div>
+        <!-- Mobile Search -->
+        <div id="mobileSearch" class="p-4 border-b border-gray-100 hidden relative">
+            <div class="flex items-center bg-gray-50 rounded-lg px-3 py-2">
+                <i class="fas fa-search text-gray-400 mr-2"></i>
+
+                <input type="text" id="mobileSearchInput" placeholder="Search..."
+                    class="bg-transparent w-full focus:outline-none text-sm">
+
+                <button onclick="searchItem(document.getElementById('mobileSearchInput').value)"
+                    class="ml-2 text-green-600 font-semibold">
+                    Go
+                </button>
+            </div>
         </div>
 
-        <!-- Desktop Navigation -->
-        <div class="hidden md:flex items-center space-x-4">
-            <a href="/account" class="text-gray-700 hover:text-green-600 flex items-center">
-                <i class="fas fa-user mr-1"></i>
-            </a>
-            <a href="/cart" class="text-gray-700 hover:text-green-600">
-                <i class="fas fa-shopping-cart"></i>
-            </a>
-            <a href="/account/wishlist" class="text-gray-700 hover:text-green-600">
-                <i class="fas fa-heart"></i>
-            </a>
-            <a href="/account/orders" class="text-gray-700 hover:text-green-600">
-                <i class="fas fa-box"></i>
-            </a>
-            <button id="logout-btn" onclick="logout()" class="text-gray-700 hover:text-green-600">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-            <span class="text-sm"><%= locals.name %></span>
+
+        <!-- ! GLOBAL Suggestions Dropdown (works for desktop + mobile) -->
+        <div id="suggestions" class="hidden bg-white rounded-xl shadow-2xl border border-gray-100 z-50 absolute">
         </div>
-        <button id="hamburgerButton" class="md:hidden flex items-center hamburger-spin">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
-                </path>
-            </svg>
-        </button> 
+
+
+        <!-- 4. Secondary Navigation (Desktop) -->
+        <nav class="hidden md:flex justify-center mt-2 border-t border-gray-200 pt-3">
+            <ul class="flex gap-10">
+                <li>
+                    <a href="/"
+                        class="text-sm font-medium tracking-wider uppercase transition-all duration-200 hover:text-gray-900 hover:opacity-80 active-tab">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="text-sm font-medium tracking-wider uppercase transition-all duration-200 hover:text-gray-900 hover:opacity-80">
+                        About
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="text-sm font-medium tracking-wider uppercase transition-all duration-200 hover:text-gray-900 hover:opacity-80">
+                        Shop
+                    </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="text-sm font-medium tracking-wider uppercase transition-all duration-200 hover:text-gray-900 hover:opacity-80">
+                        Contact
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
     </div>
-    <!-- Mobile Menu -->
 
-    <div id="mobileMenu" class="bg-white shadow-lg md:hidden">
-        <a href="/account" class="block px-4 py-2 hover:bg-gray-100">Profile - <%= locals.name %></a>
-        <a href="/cart" class="block px-4 py-2 hover:bg-gray-100">Cart</a>
-        <a href="/account/wishlist" class="block px-4 py-2 hover:bg-gray-100">Wishlist</a>
-        <a href="/orders" class="block px-4 py-2 hover:bg-gray-100">Orders</a>
-        <button id="logout-btn" onclick="logout()" class="block px-4 py-2 hover:bg-gray-100">Logout</button>
-    </div>
+    <!-- 5. Mobile Menu (Drawer style) -->
+    <div id="mobileMenu" class="bg-white border-t border-gray-100 shadow-inner">
 
 
-    <nav class="w-full bg-white shadow-lg rounded-lg mt-2 text-xs md:text-lg">
-        <div class="flex justify-around p-4">
-            <a href="#" class="text-gray-700 hover:text-gray-900 active-tab">Home</a>
-            <a href="#" class="text-gray-700 hover:text-gray-900">About Us</a>
-            <a href="#" class="text-gray-700 hover:text-gray-900">Contact</a>
-            <a href="#" class="text-gray-700 hover:text-gray-900">Best Seller</a>
-            <a href="#" class="text-gray-700 hover:text-gray-900">Todays Deals</a>
+        <div class="grid grid-cols-2 gap-2 p-4">
+            <a href="/account"
+                class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                <i class="fas fa-user text-green-500 mb-2 text-xl"></i>
+                <span class="text-xs font-semibold text-gray-700">Profile</span>
+            </a>
+            <a href="/cart"
+                class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                <i class="fas fa-shopping-bag text-green-500 mb-2 text-xl"></i>
+                <span class="text-xs font-semibold text-gray-700">Cart</span>
+            </a>
+            <a href="/account/wishlist"
+                class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                <i class="fas fa-heart text-green-500 mb-2 text-xl"></i>
+                <span class="text-xs font-semibold text-gray-700">Wishlist</span>
+            </a>
+            <a href="/account/orders"
+                class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                <i class="fas fa-box text-green-500 mb-2 text-xl"></i>
+                <span class="text-xs font-semibold text-gray-700">Orders</span>
+            </a>
         </div>
-    </nav>
+
+        <div class="px-4 pb-4">
+            <button onclick="logout()"
+                class="w-full bg-red-50 text-red-500 py-3 rounded-xl font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
 </header>
+
+<!-- Spacer to prevent content overlap with fixed header -->
+<div style="height: 120px;" class="hidden md:block"></div>
+<div style="height: 80px;" class="md:hidden"></div>
+
+
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <script>
-    // Hamburger Menu Toggle
-    const hamburgerButton = document.getElementById("hamburgerButton");
+    // --- UI Interactions ---
+
+    // Hamburger Logic
+    const hamburgerBtn = document.getElementById("hamburgerButton");
     const mobileMenu = document.getElementById("mobileMenu");
 
-    hamburgerButton.addEventListener("click", () => {
-        mobileMenu.classList.toggle("show");
-        hamburgerButton.classList.toggle("active");
-    });
+    hamburgerBtn.addEventListener("click", () => {
+        const isExpanded = mobileMenu.classList.contains("show");
 
-    // Desktop Profile Dropdown Toggle
-    const desktopProfileTrigger = document.getElementById("desktopProfileTrigger");
-    const desktopProfileDropdown = document.getElementById("desktopProfileDropdown");
-
-    if (desktopProfileTrigger) {
-        desktopProfileTrigger.addEventListener("click", () => {
-            desktopProfileDropdown.classList.toggle("hidden");
-        });
-    }
-
-    // Close profile dropdown if clicked outside
-    document.addEventListener("click", (event) => {
-        if (desktopProfileDropdown && !desktopProfileTrigger?.contains(event.target) && !desktopProfileDropdown.contains(event.target)) {
-            desktopProfileDropdown.classList.add("hidden");
+        if (isExpanded) {
+            mobileMenu.classList.remove("show");
+            hamburgerBtn.classList.remove("hamburger-active");
+        } else {
+            mobileMenu.classList.add("show");
+            hamburgerBtn.classList.add("hamburger-active");
         }
     });
+    // toggle mobile search bar
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    const mobileSearchBar = document.getElementById('mobileSearch');
 
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
+    mobileSearchBtn.addEventListener('click', () => {
+        mobileSearchBar.classList.toggle('hidden');
+    });
+
+    // unified search logic
+    const desktopInput = document.getElementById('searchInput');
+    const mobileInput = document.getElementById('mobileSearchInput');
     const suggestions = document.getElementById('suggestions');
     let debounceTimer;
 
-    searchInput.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        const value = this.value.trim();
-        
-        // Sanitize input by removing MongoDB special characters
-        const sanitizedValue = value.replace(/[*\/${}]/g, '');
-        this.value = sanitizedValue;
-        
-        if (value.length < 2) {
+    function attachSearchEvents(input) {
+        if (!input) return;
+
+        input.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+
+            const value = this.value.trim();
+            const sanitized = value.replace(/[*\/${}]/g, '');
+            this.value = sanitized;
+
+            if (sanitized.length < 2) {
+                suggestions.classList.add('hidden');
+                suggestions.innerHTML = '';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                positionSuggestionsBelow(this);
+                handleSearchInput(sanitized);
+            }, 100);
+
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchItem(this.value);
+            }
+        });
+    }
+
+    attachSearchEvents(desktopInput);
+    attachSearchEvents(mobileInput);
+
+    // close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        const clickedInsideDesktop = desktopInput && desktopInput.contains(e.target);
+        const clickedInsideMobile = mobileInput && mobileInput.contains(e.target);
+        const clickedInsideSuggestions = suggestions.contains(e.target);
+
+        if (!clickedInsideDesktop && !clickedInsideMobile && !clickedInsideSuggestions) {
             suggestions.classList.add('hidden');
-            suggestions.innerHTML = '';
-            return;
-        }
-
-        debounceTimer = setTimeout(() => {
-            handleSearchInput(sanitizedValue);
-        }, 300);
-    });
-
-    searchInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            searchItem(this.value);
         }
     });
 
-    // Click outside to close suggestions
-    document.addEventListener('click', function(event) {
-        if (!searchInput.contains(event.target) && !suggestions.contains(event.target)) {
-            suggestions.classList.add('hidden');
-        }
-    });
+    // suggestions
+    function positionSuggestionsBelow(input) {
+        const rect = input.getBoundingClientRect();
+
+        suggestions.style.position = 'fixed';
+        suggestions.style.top = `${rect.bottom + 6}px`;
+        suggestions.style.left = `${rect.left}px`;
+        suggestions.style.width = `${rect.width}px`;
+    }
+
+
+    // --- API Logic ---
 
     function handleSearchInput(value) {
         if (!value) return;
@@ -194,30 +456,32 @@
         axios.get(`/search/?q=${encodeURIComponent(value)}`)
             .then(response => {
                 const data = response.data;
-                if (!data) {
-                    suggestions.innerHTML = '<div class="p-3 text-red-500">No data received from server</div>';
+
+                if (!data || (Array.isArray(data) && data.length === 0)) {
+                    suggestions.innerHTML = `
+                        <div class="p-4 text-center text-gray-500">
+                            <i class="far fa-sad-tear text-2xl mb-2 block"></i>
+                            <span class="text-sm">No items found</span>
+                        </div>`;
                     suggestions.classList.remove('hidden');
                     return;
                 }
 
-                if (Array.isArray(data) && data.length > 0) {
-                    suggestions.innerHTML = data
-                        .map(item => `
-                            <div class="p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0" 
-                                onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
-                                ${item.name || 'Unnamed Item'}
+                if (Array.isArray(data)) {
+                    suggestions.innerHTML = data.map(item => `
+                        <div class="px-4 py-3 cursor-pointer hover:bg-green-50 border-b border-gray-50 last:border-0 flex items-center transition-colors" 
+                            onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
+                            <div class="bg-gray-100 rounded p-2 mr-3 text-green-600">
+                                <i class="fas fa-tag text-xs"></i>
                             </div>
-                        `).join('');
-                    suggestions.classList.remove('hidden');
-                } else {
-                    suggestions.innerHTML = '<div class="p-3 text-gray-500">No results found</div>';
+                            <span class="text-sm font-medium text-gray-700">${item.name || 'Unnamed Item'}</span>
+                        </div>
+                    `).join('');
                     suggestions.classList.remove('hidden');
                 }
             })
             .catch(error => {
                 console.error('Search error:', error);
-                suggestions.innerHTML = '<div class="p-3 text-red-500">Error fetching results: ' + error.message + '</div>';
-                suggestions.classList.remove('hidden');
             });
     }
 
@@ -226,7 +490,7 @@
         window.location.href = `/search/results?q=${encodeURIComponent(query.trim())}`;
     }
 
-    // Logout functionality
+    // Logout Logic (Preserved SweetAlert)
     function logout() {
         Swal.fire({
             title: 'Ready to Take Off?',
@@ -239,18 +503,10 @@
             confirmButtonColor: '#19D16F',
             cancelButtonColor: '#ff6b6b',
             background: '#fff',
-            backdrop: `
-                rgba(25, 209, 111, 0.1)
-                url("/images/logo.png")
-                right top
-                no-repeat
-            `,
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
+            backdrop: `rgba(25, 209, 111, 0.1)`,
+            // Removed image form backdrop to keep it cleaner, added color tint
+            showClass: { popup: 'animate__animated animate__fadeInDown' },
+            hideClass: { popup: 'animate__animated animate__fadeOutUp' }
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
@@ -258,9 +514,7 @@
                     text: 'Saving your progress...',
                     timer: 1500,
                     timerProgressBar: true,
-                    didOpen: () => {
-                        Swal.showLoading()
-                    }
+                    didOpen: () => { Swal.showLoading() }
                 }).then(() => {
                     window.location.href = '/user/logout';
                 })
