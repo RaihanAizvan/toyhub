@@ -1,135 +1,535 @@
-<div class="bg-gradient-to-b from-gray-100 to-gray-300 pt-32 md:py-10">
-    <div class="relative w-11/12 md:w-10/12 mx-auto overflow-hidden">
-        <div class="flex transition-transform duration-500 ease-in-out" id="carousel">
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover" style="background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), url('/images/Banner/ai-generated-banner (1).png'); background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">High Quality Toys <br />Big Discount</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Save up to 50% off on your first order</p>
-                        <div class="mt-6 flex flex-col md:flex-row">
-                            <button class="bg-green-500 text-white px-4 py-1.5  rounded transition duration-300 hover:bg-green-600 md:rounded-r-lg md:rounded-b-none">
-                                Get Your Discount
-                            </button>
-                        </div>
+<style>
+    /* Custom size definitions to replace bracket syntax */
+    .w-60vw {
+        width: 60vw;
+    }
+
+    .h-60vw {
+        height: 60vw;
+    }
+
+    .w-50vw {
+        width: 50vw;
+    }
+
+    .h-50vw {
+        height: 50vw;
+    }
+
+    /* --- HEIGHT REDUCTION --- */
+    /* Card Stack Logic - Reduced height from 500px to 400px */
+    .card-stack {
+        perspective: 1000px;
+        position: relative;
+        width: 100%;
+        height: 300px;
+        /* Reduced height for concise section */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        position: absolute;
+        width: 400px;
+        /* Adjusted width */
+        height: 250px;
+        /* Reduced height from 480px */
+        border-radius: 16px;
+        background-size: cover;
+        background-position: center;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+        transform-style: preserve-3d;
+        will-change: transform, opacity;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* Desktop sizing for cards - Reduced height from 600px to 450px */
+    @media (min-width: 768px) {
+        .card {
+            width: 780px;
+            height: 450px;
+            /* Reduced height from 600px */
+        }
+
+    }
+
+    /* mobile */
+    @media (max-width: 768px) {
+        .bg-shape {
+        filter: blur(100px) !important;
+        }   
+    }
+
+    /* --- END HEIGHT REDUCTION --- */
+
+    /* Global styles (Kept for reference, assume parent file has these) */
+    .hero-container {
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+        background-color: #eeeeee;
+        /* Light gray background */
+        color: #151c25;
+        /* Dark text */
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: 'Syne', sans-serif;
+    }
+
+    .bg-shape {
+        position: absolute;
+        filter: blur(20px);
+        z-index: 0;
+        transition: background-color 1s ease;
+    }
+
+    .cursor-blink {
+        display: inline-block;
+        width: 10px;
+        height: 40px;
+        background: currentColor;
+        animation: blink 1s step-end infinite;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+
+    @keyframes blink {
+
+        /* ... existing styles ... */
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+    }
+
+    .nav-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.1);
+        transform: skewX(-20deg);
+        transition: left 0.3s ease;
+    }
+
+    .nav-btn:hover::after {
+        left: 100%;
+    }
+
+    .left--10 {
+        left: -10%;
+    }
+
+    .right--10 {
+        right: -10%;
+    }
+
+    .top--10 {
+        top: -10%;
+    }
+
+    .bottom--10 {
+        bottom: -10%;
+    }
+
+    .leading-09 {
+        line-height: 0.9;
+    }
+    .text-init {
+        color: white;
+    }
+</style>
+
+<!-- NOTE: We assume this content is placed inside a DIV/SECTION in your main EJS layout -->
+<div class="hero-container relative">
+
+    <main class="relative flex items-center overflow-hidden py-12">
+
+        <!-- Background Orbs -->
+        <div id="bg-orb-1" class="bg-shape top--10 left--10 w-60vw h-60vw rounded-full bg-white opacity-5"></div>
+        <div id="bg-orb-2" class="bg-shape bottom--10 right--10 w-50vw h-50vw rounded-full bg-primary opacity-20"></div>
+
+        <div class="container mx-auto mt-16 sm:mt-10 px-6 relative z-0 grid grid-cols-1 lg:grid-cols-2 items-center">
+
+            <!-- LEFT: Typography & Controls -->
+            <div id="main-text-column"
+                class="flex flex-col items-start justify-start sm:justify-center space-y-3 sm:space-y-6 order-2 lg:order-1">
+
+                <!-- Tagline -->
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <span class="w-8 h-px bg-yellow-600"></span>
+                    <p id="slide-tag" class="text-yellow-600 tracking-widest uppercase font-bold text-xs sm:text-sm">New
+                        Collection</p>
+                </div>
+
+                <!-- Main Headline: UPDATED GREEN GRADIENT -->
+                <h1
+                    class="text-4xl sm:text-6xl lg:text-7xl font-black leading-0.9 text-transparent bg-clip-text text-init">
+                    <span id="slide-title">ROBOTIC<br>FUTURE</span>
+                </h1>
+
+                <!-- Description -->
+                <p id="slide-desc" class="text-gray-600 text-sm sm:text-base max-w-md leading-relaxed">
+                    Experience the next generation of engineering. Save 50% on your first order.
+                </p>
+
+                <!-- Price/Discount -->
+                <div class="flex items-end gap-4 border-l-4 border-gray-300 pl-4 sm:pl-6 py-1 sm:py-2">
+                    <div>
+                        <span class="text-xs text-gray-500 uppercase block">Starting at</span>
+                        <span id="slide-price" class="text-xl sm:text-2xl font-bold text-gray-900">$129.00</span>
+                    </div>
+                    <div id="slide-discount"
+                        class="bg-red-600 text-xs font-bold px-2 py-1 rounded text-white mb-1 shadow-md">
+                        -50% OFF
+                    </div>
+                </div>
+
+                <!-- CTA/Navigation Buttons -->
+                <div class="flex items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
+                    <button
+                        class="nav-btn bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold text-sm sm:text-base hover:scale-105 transition-transform duration-200 shadow-xl shadow-gray-300/50">
+                        Shop Now
+                    </button>
+
+                    <div class="flex gap-4">
+                        <button onclick="nextSlide()"
+                            id="next-slide-btn"
+                            class="w-10 h-10 sm:w-12 sm:h-12 border border-green-500 rounded-full flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group text-gray-700">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:rotate-[-45deg] transition-transform"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover"
-                style="
-                background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), 
-                url('/images/Banner/ai-generated-banner (3).png'); 
-                background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2 flex flex-col items-start md:items-center">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">Exclusive Offers <br />Just for You</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Discover amazing deals on our latest products</p>
-                        <button class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">Shop Now</button>
-                        <span class="text-white text-xs mt-2">Limited Time Offer</span>
-                    </div>
-                </div>
-            </div>
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover"
-                style="
-                background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), 
-                url('/images/Banner/ai-generated-banner (2).png'); 
-                background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2 flex flex-col items-end md:items-center">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">New Arrivals <br />Check Them Out</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Explore our latest collection now</p>
-                        <button class="mt-4 bg-pink-100 border-rose-50 text-black px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Explore</button>
-                        <span class="text-white text-xs mt-2">New In</span>
-                    </div>
-                </div>
-            </div>
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover"
-                style="
-                background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), 
-                url('/images/Banner/ai-generated-banner (4).png'); 
-                background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2 flex flex-col items-start md:items-center">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">Limited Time Offer <br />Act Fast</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Hurry up! Offer ends soon</p>
-                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Shop Now</button>
-                        <span class="text-white text-xs mt-2">Hurry Up!</span>
-                    </div>
-                </div>
-            </div>
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover"
-                style="
-                background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), 
-                url('/images/Banner/ai-generated-banner (5).png'); 
-                background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2 flex flex-col items-end md:items-center">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">Seasonal Sale <br />Don't Miss Out</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Get the best deals of the season</p>
-                        <button class="mt-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300">Shop Now</button>
-                        <span class="text-white text-xs mt-2">Seasonal Favorites</span>
-                    </div>
-                </div>
-            </div>
-            <div class="slide flex-none w-full h-1/12 rounded-xl flex items-center justify-center py-6 md:py-16 mt-8 px-4 md:px-16 bg-cover"
-                style="
-                background-image: linear-gradient(to right, rgba(0, 0, 10, 1),rgba(0, 0, 0, 0)), 
-                url('/images/Banner/ai-generated-banner (6).png'); 
-                background-size: cover;">
-                <div class="container mx-auto px-4">
-                    <div class="w-full md:w-2/3 lg:w-1/2 flex flex-col items-start md:items-center">
-                        <h1 class="text-2xl text-white font-bold leading-tight md:text-4xl">Flash Sale <br />Limited Stock</h1>
-                        <p class="text-white text-sm mt-3 md:text-base">Grab your favorites before they're gone</p>
-                        <button class="mt-4 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition duration-300">Shop Now</button>
-                        <span class="text-white text-xs mt-2">Limited Stock</span>
-                    </div>
+
+            <!-- RIGHT: The 3D Card Stack -->
+            <div class="relative flex items-center justify-center order-1 lg:order-2 py-4 sm:py-8">
+                <div class="card-stack" id="card-stack">
+                    <!-- Cards injected via JS -->
                 </div>
             </div>
         </div>
-        <!-- Slider controls -->
-        <div class="absolute top-1/2 transform -translate-y-1/2 left-4 md:left-10 flex items-center">
-            <button class="bg-white p-2 rounded-full shadow-lg" onclick="prevSlide()">
-                <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
-                    </path>
-                </svg>
-            </button>
-        </div>
-        <div class="absolute top-1/2 transform -translate-y-1/2 right-4 md:right-10 flex items-center">
-            <button class="bg-white p-2 rounded-full shadow-lg" onclick="nextSlide()">
-                <svg class="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-        </div>
+    </main>
+
+    <!-- Indexer -->
+    <div class="absolute bottom-4 right-4 z-50 font-mono text-xs text-gray-500">
+        <span id="current-idx">01</span> / <span id="total-idx">04</span>
     </div>
 </div>
+
+<!-- *** FIX: Load GSAP library before your script uses it *** -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
 <script>
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.slide');
-    const carousel = document.getElementById('carousel');
+    // --- Configuration (Data remains the same) ---
+    const slides = [
+        {
+            title: "SMART\nPET",
+            desc: "Interactive robotic companions that learn and play like real pets. Use 'PETFRIEND' for 10% discount.",
+            price: "₹999.00",
+            discount: "-10% OFF",
+            tag: "Companion Bots",
+            colors: {
+                orb1: "#32cd32",
+                orb2: "#228b22",
+                tag: "#32cd32",
+                title: "##CEFABB",
+                discount: {
+                    backgroundColor: "#98fb98",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_wasv17wasv17wasv.png"
+        },
+        {
+            title: "AL\nROBOT",
+            desc: "Construct your own companion with our modular robotics kit. Claim special offer by coupon 'HELLOROBO'",
+            price: "₹1149.00",
+            discount: "-15% OFF",
+            tag: "DIY Kits",
+            colors :{
+                orb1: "#686054",
+                orb2: "#653217",
+                tag: "#653217",
+                title: "#2D2114",
+                discount: {
+                    backgroundColor: "#E4E5DF",
+                    color: "black"
+                }
 
-    function showSlide(index) {
-        carousel.style.transform = `translateX(-${index * 100}%)`;
+            },
+            img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=1000&auto=format&fit=crop"
+        },
+        {
+            title: "RETRO\nGAMER",
+            desc: "Limited edition consoles inspired by the golden age of arcade.",
+            price: "₹899.00",
+            discount: "-50% OFF",
+            tag: "Limited Edition",
+            colors :{
+                orb1: "#FFC4FF", //purple
+                orb2: "#91005F", // dark purple
+                tag: "##9E0023",
+                title: "#9E0062",
+                discount: {
+                    backgroundColor: "#F386EC",
+                    color: "black"
+                },
+
+            },
+            img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop"
+        },
+        {
+            title: "NEON\nDRONE",
+            desc: "High-velocity racing drones with AI-assisted stabilization. Unlock 20% off with code 'FLYHIGH'.",
+            price: "₹2490.00",
+            discount: "-20% OFF",
+            tag: "Racing Series",
+            colors: {
+                orb1: "#0e7fff",
+                orb2: "#1e90ff",
+                tag: "#00bfff",
+                title: "#1e69ff",
+                discount: {
+                    backgroundColor: "#87ceeb",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_9d96029d96029d96.png"
+        },
+        {
+            title: "VR\nVISION",
+            desc: "Immersive reality headsets that transport you to new worlds. Special bundle with controllers for $399.",
+            price: "₹3490.00",
+            discount: "-25% OFF",
+            tag: "New Arrival",
+            colors: {
+                orb1: "#2f4f4f",
+                orb2: "#708090",
+                tag: "#708090",
+                title: "#f0f8ff",
+                discount: {
+                    backgroundColor: "#b0c4de",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_p1hh0fp1hh0fp1hh.png"
+        },
+        {
+            title: "ARCADE\nREVIVAL",
+            desc: "Bring back the classics with our restored arcade cabinets. Free shipping on orders over $500.",
+            price: "₹5999.00",
+            discount: "-30% OFF",
+            tag: "Retro Collection",
+            colors: {
+                orb1: "#202020",
+                orb2: "#202120",
+                tag: "#ff6347",
+                title: "#ffffff",
+                discount: {
+                    backgroundColor: "#ffa07a",
+                    color: "black"
+                }
+            },
+            img: "/images/Banner/Gemini_Generated_Image_uwxng2uwxng2uwxn.png"
+        }
+    ];
+
+    // --- Setup ---
+    const stackContainer = document.getElementById('card-stack');
+    let currentIndex = 0;
+    let isAnimating = false;
+
+    // --- Initialization ---
+    function init() {
+        document.getElementById('total-idx').innerText = '0' + slides.length;
+        const nextDataIdx = (currentIndex ) % slides.length;
+        renderCards();
+        updateText(0);
+        updateBackground(slides[nextDataIdx].colors.orb1, slides[nextDataIdx].colors.orb2);
+
+        // Add 3D Tilt Effect to the whole stack on mousemove
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX -10) / 99;
+            const y = (window.innerHeight / 2 - e.pageY -10) / 99;
+
+            gsap.to('.card-active', {
+                rotationY: x,
+                rotationX: y,
+                ease: "power1.out",
+                duration: 0.7
+            });
+        });
     }
 
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
+    function renderCards() {
+        stackContainer.innerHTML = '';
+
+        let nextIdx = (currentIndex + 1) % slides.length;
+
+        // Create Next Card (Behind)
+        const nextCard = createCardElement(slides[nextIdx], 'card-next');
+        gsap.set(nextCard, { scale: 0.9, y: 30, opacity: 0.6, zIndex: 0 });
+        stackContainer.appendChild(nextCard);
+
+        // Create Active Card (Front)
+        const activeCard = createCardElement(slides[currentIndex], 'card-active');
+        gsap.set(activeCard, { scale: 1, y: 0, opacity: 1, zIndex: 10 });
+        stackContainer.appendChild(activeCard);
     }
 
-    function prevSlide() {
-        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-        showSlide(currentSlide);
+    function createCardElement(data, id) {
+        const div = document.createElement('div');
+        div.classList.add('card', id);
+        // Fallback for image loading issues: use a solid color if the image fails.
+        div.style.backgroundImage = `url(${data.img}), linear-gradient(135deg, ${data.colors.orb1} 20%, #e0e0e0 100%)`;
+
+        div.innerHTML = `
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-[24px]"></div>
+            <div class="absolute bottom-4 left-6 text-white">
+                <p class="font-bold text-lg">${data.title.replace('\n', ' ')}</p>
+            </div>
+        `;
+        return div;
+    }
+    // --- Animation Logic (Remains the same) ---
+    window.nextSlide = function () {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const activeCard = document.querySelector('.card-active');
+        const nextCard = document.querySelector('.card-next');
+
+        // 1. Throw Active Card Away
+        gsap.to(activeCard, {
+            x: 500,
+            scale: 0.85,
+            opacity: 0,
+            filter: "blur(6px)",
+            duration: 0.5,
+            ease: "power3.inOut",
+            onComplete: () => activeCard.remove()
+        });
+
+
+        // 2. Bring Next Card to Front
+        gsap.to(nextCard, {
+            scale: 1,
+            y: 0,
+            opacity: 1,
+            zIndex: 10,
+            duration: 0.6,
+            ease: "back.out(1.7)", // Bouncy effect
+            onComplete: () => {
+                nextCard.classList.remove('card-next');
+                nextCard.classList.add('card-active');
+
+                // Prepare the NEW 'next' card behind
+                currentIndex = (currentIndex + 1) % slides.length;
+                let futureIdx = (currentIndex + 1) % slides.length;
+
+                const futureCard = createCardElement(slides[futureIdx], 'card-next');
+                gsap.set(futureCard, { scale: 0.8, y: 50, opacity: 0, zIndex: 0 });
+                stackContainer.insertBefore(futureCard, stackContainer.firstChild); // Insert behind
+
+                // Animate entrance of background card
+                gsap.to(futureCard, {
+                    scale: 0.9,
+                    y: 30,
+                    opacity: 0.6,
+                    duration: 0.5
+                });
+
+                isAnimating = false;
+            }
+        });
+
+        // 3. Update Text Content
+        const nextDataIdx = (currentIndex + 1) % slides.length;
+        updateText(nextDataIdx);
+
+        // 4. Update Background
+        updateBackground(slides[nextDataIdx].colors.orb1, slides[nextDataIdx].colors.orb2);
+        // if you want to change the background uncomment this 
     }
 
-    function autoSlide() {
-        nextSlide();
-        setTimeout(autoSlide, 3000);
+    // --- Text Scramble Effect (Remains the same) ---
+    function updateText(index) {
+        const data = slides[index];
+        const titleEl = document.getElementById('slide-title');
+
+        // Scramble Title
+        scrambleText(titleEl, data.title);
+
+        // Fade/Slide others
+        gsap.fromTo('#slide-desc', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.2 });
+        gsap.fromTo('#slide-price', { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.5, delay: 0.3 });
+
+        // Update Static content
+        document.getElementById('slide-desc').innerText = data.desc;
+        document.getElementById('slide-price').innerText = data.price;
+        document.getElementById('slide-tag').innerText = data.tag;
+        document.getElementById('slide-discount').innerText = data.discount;
+        document.getElementById('current-idx').innerText = '0' + (index + 1);
+        
+        // Update colors
+        titleEl.style.color = data.colors.title;
+        document.getElementById('slide-tag').style.color = data.colors.tag;
+        document.getElementById('slide-discount').style.backgroundColor = data.colors.discount.backgroundColor;
+        document.getElementById('slide-discount').style.color = data.colors.discount.color;
     }
 
-    showSlide(currentSlide);
-    setTimeout(autoSlide, 3000);
+    function scrambleText(element, finalText) {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
+        let iterations = 0;
+
+        const interval = setInterval(() => {
+            element.innerText = finalText.split("")
+                .map((letter, index) => {
+                    if (letter === '\n') return '\n';
+                    if (index < iterations) {
+                        return finalText[index];
+                    }
+                    return chars[Math.floor(Math.random() * chars.length)];
+                })
+                .join("");
+
+            if (iterations >= finalText.length) {
+                clearInterval(interval);
+            }
+
+            iterations += 1 / 2; // Speed control
+        }, 30);
+    }
+
+    function updateBackground(color1, color2) {
+        // Opacity reduced for light theme orbs
+        gsap.to('#bg-orb-1', { backgroundColor: color1, opacity: 0.3, duration: 0.5 });
+        gsap.to('#bg-orb-2', { backgroundColor: color2, opacity: 0.3, duration: 0.7, delay: 0.2 });
+    }
+
+    // Run - Using setTimeout to ensure the GSAP library is fully loaded before initialization
+    setTimeout(init, 0);
+
+    //auto slide
+    setInterval(nextSlide, 4000);
+
 </script>
