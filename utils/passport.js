@@ -1,9 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
-import dotenv from 'dotenv';
+import { readEnv } from './config.js';
 import User from '../models/users.models.js'
-
-dotenv.config();
 
 passport.serializeUser((user, done) => {
     done(null, user.id);  // Store MongoDB's _id in the session
@@ -18,12 +16,17 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: process.env.CALLBACK_URL,
+const clientID = readEnv('CLIENT_ID');
+const clientSecret = readEnv('CLIENT_SECRET');
+const callbackURL = readEnv('CALLBACK_URL');
+
+if (clientID && clientSecret && callbackURL) {
+  passport.use(new GoogleStrategy({
+    clientID,
+    clientSecret,
+    callbackURL,
     passReqToCallback: true
-},
+  },
 async (req, accessToken, refreshToken, profile, done) => {
     try {
         let user = await User.findOne({ email: profile.emails[0].value });
@@ -41,5 +44,6 @@ async (req, accessToken, refreshToken, profile, done) => {
         return done(error, null);
     }
 }));
+}
 
 export default passport;

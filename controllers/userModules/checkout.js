@@ -8,6 +8,10 @@ import Offer from "../../models/offers.models.js";
 import Wallet from "../../models/wallets.models.js";
 import crypto from "crypto";
 import Razorpay from "razorpay";
+import { readEnv } from "../../utils/config.js";
+
+const razorpayKeyId = readEnv("RAZOR_KEY_ID");
+const razorpaySecretId = readEnv("RAZOR_SECRET_ID");
 
 
 
@@ -221,8 +225,8 @@ const createRazorPayOrder = async (req, res) => {
 
         // Create order on Razorpay
         const razorpay = new Razorpay({
-            key_id: process.env.RAZOR_KEY_ID,
-            key_secret: process.env.RAZOR_SECRET_ID,
+            key_id: razorpayKeyId,
+            key_secret: razorpaySecretId,
         });
 
         const options = {
@@ -247,7 +251,7 @@ const verifyPayment = async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, selectedAddress } = req.body;
         
-        const hmac = crypto.createHmac('sha256', process.env.RAZOR_SECRET_ID);
+        const hmac = crypto.createHmac('sha256', razorpaySecretId);
 
         hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
         const generatedSignature = hmac.digest('hex');
@@ -444,8 +448,8 @@ const retryPayment = async (req, res) => {
         const { orderId } = req.body;
 
         const razorpayInstance = new Razorpay({
-            key_id: process.env.RAZOR_KEY_ID,
-            key_secret: process.env.RAZOR_SECRET_ID,
+            key_id: razorpayKeyId,
+            key_secret: razorpaySecretId,
         });
 
 
@@ -486,7 +490,7 @@ const verifyRetryPayment = async (req, res) => {
         const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
         
 
-        const hmac = crypto.createHmac('sha256', process.env.RAZOR_SECRET_ID);
+        const hmac = crypto.createHmac('sha256', razorpaySecretId);
         hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
         const generatedSignature = hmac.digest('hex');
         

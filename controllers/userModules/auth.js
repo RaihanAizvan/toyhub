@@ -2,6 +2,7 @@ import users from "../../models/users.models.js"
 import nodemailer from "nodemailer"
 import bcrypt from 'bcrypt';
 import validator from "validator"
+import { readEnv } from "../../utils/config.js"
 
 // function for a timer for try again to sent otp
 function tryAgain(){
@@ -12,26 +13,26 @@ function tryAgain(){
 }
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: readEnv('MAIL_SERVICE') || 'gmail',
     auth: {
-        user: 'mohammedraihanco@gmail.com',
-        pass: 'wegz lokl zrfw dppx ', // password from my app password
+        user: readEnv('MAIL_USER'),
+        pass: readEnv('MAIL_PASSWORD')
     }
 });
 
 //function to send mail
 async function sendMail(otp, target) {
     const mailOptions = {
-        from: 'mohammedraihancogmail.com',
+        from: readEnv('MAIL_FROM'),
         to: target,
         subject: 'Your OTP for Signup',
         text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
     };
     try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`Mail sent successfully to ${target} with the otp ${otp}`);
+        await transporter.sendMail(mailOptions);
+        console.log('Mail sent successfully');
     } catch (error) {
-        console.log(error);
+        console.error('Mail delivery failed:', error.message);
     }
 }
 
