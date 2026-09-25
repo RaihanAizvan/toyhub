@@ -45,31 +45,6 @@ app.use((req, res, next) => {
   next();
 });
 
-//uncommentt this if you want user or admin always logged in
-
-
-app.use((req, res, next) => {
-  req.session.sAdminEmail = "admin@gmail.com"
-  next(); 
-});
-
-// app.use((req,res,next )=>{
-//   req.session.user = {
-//     id:"66d72a6ea0c029810e11757b",
-//     name:"Achuu",
-//   }
-//   next();
-// })
-
-
-app.use((req,res,next )=>{
-  req.session.user = {
-    id:"66dae94724e6805681a42e6a",
-    name:"Muhammed Raihann",
-  }
-  next();
-})
-
 app.use(nocache());
 
 // Initialize Passport and restore authentication state, if any, from the session
