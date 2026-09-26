@@ -18,6 +18,7 @@ import cartRoutes from "./routes/cartRoute.js"
 import checkoutRoutes from "./routes/checkoutRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
+import { assertRequiredEnv, requireEnv } from "./utils/config.js";
 
 
 
@@ -25,6 +26,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
+assertRequiredEnv();
 
 const app = express();
 
@@ -34,7 +36,7 @@ connectDB();
 // Set up session middleware
 app.use(
   session({
-    secret: 'yourSecret',
+    secret: requireEnv("SESSION_SECRET"),
     resave: false,
     saveUninitialized: true,
   })

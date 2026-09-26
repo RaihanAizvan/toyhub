@@ -97,3 +97,11 @@ TOYHUB<br>
   5. Start the development server:
   6. Access the application:
    Open your web browser and go to http://localhost:3000 to view the ToyHub platform.
+
+## Environment configuration
+
+Copy `.env.example` to `.env` and provide the required values before starting the application. Required values are `MONGO_URI`, `SESSION_SECRET`, `CLIENT_ID`, `CLIENT_SECRET`, `CALLBACK_URL`, `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_FROM`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `RAZOR_KEY_ID`, and `RAZOR_SECRET_ID`.
+
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` are optional one-time bootstrap values for creating the first admin with a hashed password. Remove them from the environment after provisioning if they are no longer needed.
+
+Never commit `.env` or real credentials. Rotate any credentials that were previously committed before deploying this application.
