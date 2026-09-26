@@ -9,6 +9,25 @@ import Wallet from "../../models/wallets.models.js";
 import crypto from "crypto";
 import Razorpay from "razorpay";
 import { readEnv } from "../../utils/config.js";
+import { isObjectId } from "../../utils/ownership.js";
+
+// The address a checkout uses has to belong to the session user, otherwise a
+// request could ship to, and store, somebody else's address.
+const findOwnAddress = (userId, addressId) => {
+    if (!userId || !isObjectId(addressId)) {
+        return null;
+    }
+    return Address.findOne({ _id: addressId, user: userId });
+};
+
+// Retry and success pages are order reads like any other, so they only ever
+// resolve orders of the session user.
+const findOwnOrder = (userId, orderId) => {
+    if (!userId || !isObjectId(orderId)) {
+        return null;
+    }
+    return Order.findOne({ _id: orderId, user: userId });
+};
 
 const razorpayKeyId = readEnv("RAZOR_KEY_ID");
 const razorpaySecretId = readEnv("RAZOR_SECRET_ID");
@@ -55,7 +74,7 @@ const postPlaceOrderInCheckout = async (req, res) => {
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
-        const address = await Address.findById(selectedAddress);
+        const address = await findOwnAddress(userId, selectedAddress);
         if (!address) {
             console.log('Invalid address');
             return res.status(400).json({ message: 'Invalid address' });
@@ -273,7 +292,11 @@ const verifyPayment = async (req, res) => {
             const user = await User.findById(userId);
         
 
-            const address = await Address.findById(selectedAddress); // Assuming selectedAddress is stored in cart
+            const address = await findOwnAddress(userId, selectedAddress);
+
+            if (!address) {
+                return res.status(400).json({ success: false, message: 'Invalid address' });
+            }
            
 
             const newOrder = new Order({
@@ -354,7 +377,7 @@ const postWalletPayment = async (req, res) => {
         }
 
         // Fetch the selected address
-        const address = await Address.findById(selectedAddress);
+        const address = await findOwnAddress(userId, selectedAddress);
         if (!address) {
             return res.status(400).json({ message: 'Invalid address' , paymentStatus: "failed"  });
         }
@@ -437,10 +460,19 @@ const postWalletPayment = async (req, res) => {
 
 
 const orderSuccess = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await findOwnOrder(req.session?.user?.id, orderId);
 
-    const { orderId } = req.body;
-    const order = await Order.findById(orderId);
-    res.render('user/order-successfull', { order });
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        res.render('user/order-successfull', { order });
+    } catch (error) {
+        console.error('Error rendering order success page:', error);
+        res.status(500).json({ success: false, message: 'An error occurred.' });
+    }
 }
 
 const retryPayment = async (req, res) => {
@@ -453,7 +485,11 @@ const retryPayment = async (req, res) => {
         });
 
 
-        const order = await Order.findById(orderId);
+        const order = await findOwnOrder(req.session?.user?.id, orderId);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
     
      
         
@@ -500,7 +536,7 @@ const verifyRetryPayment = async (req, res) => {
         }
 
         // Find the order by ID
-        const order = await Order.findById(orderId);
+        const order = await findOwnOrder(req.session?.user?.id, orderId);
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }

@@ -6,10 +6,22 @@ import Wallet from "../../models/wallets.models.js"
 import Rating from "../../models/ratings.models.js"
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { isObjectId } from "../../utils/ownership.js";
+
+// Every order endpoint answers from this one lookup, so an order id that
+// belongs to somebody else answers exactly like an id that does not exist.
+const findOwnOrder = (req, orderId) => {
+    const userId = req.session?.user?.id;
+    const filter = userId && isObjectId(orderId)
+        ? { _id: orderId, user: userId }
+        : { _id: null };
+    return Order.findOne(filter);
+};
 
 export async function getProfileEdit(req, res) {
     let theName = req.session.user?.name
-    let user = await Users.findOne({ name: theName })
+    // The session id is the identity, the name in the session is only a label.
+    let user = await Users.findById(req.session.user?.id)
     res.status(200).render('user/profile-edit', {
         user,
         title: 'Profile Edit',
@@ -147,7 +159,7 @@ export async function getOrderHistory(req, res) { //this function is used to sho
 export const getOrderDetail = async (req, res) => {
     try {
         const orderId = req.params.id; // Fetch the order ID from the URL parameters
-        const order = await Order.findById(orderId).populate('items.product'); // Populate the product details
+        const order = await findOwnOrder(req, orderId).populate('items.product'); // Populate the product details
 
         if (!order) {
             return res.status(404).send('Order not found');
@@ -166,7 +178,7 @@ export const postOrderCancel = async (req, res) => {
         const orderId = req.params.id;
 
         // Find the order by ID
-        const order = await Order.findById(orderId).populate('user');
+        const order = await findOwnOrder(req, orderId).populate('user');
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
@@ -192,14 +204,15 @@ export const postOrderCancel = async (req, res) => {
 
         // If the order type is Razorpay or Wallet, return the amount to the user's wallet
         if (order.paymentMethod === 'razorpay' || order.paymentMethod === 'wallet') {
+            const refund = Number(order.totalAmount) || 0;
             const user = order.user;
-            user.walletBalance += order.totalAmount;
-            user.wallet.balance += order.totalAmount;
+            user.walletBalance = (Number(user.walletBalance) || 0) + refund;
+            user.wallet.balance = (Number(user.wallet.balance) || 0) + refund;
             await user.save();
 
             const wallet = await Wallet.findById(user.wallet);
             wallet.transactions.push({
-                amount: order.totalAmount,
+                amount: refund,
                 description: `Refund for cancelled order ID: ${orderId}`
             });
             await wallet.save();
@@ -215,50 +228,18 @@ export const postOrderCancel = async (req, res) => {
 }
 
 export const getCancelReason = async (req, res) => {
-    const orderId = req.params.id;
-    const order = await Order.findById(orderId);
     try {
-        res.render('user/cancel-reason', { title: 'Cancel reason', order })
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-// deletion of product for individual item
-
-export const postCancelReason = async (req, res) => {
-    const { orderId } = req.params;
-    const { itemId } = req.body;
-
-    try {
-        // Find the order by ID
-        const order = await Order.findById(orderId);
+        const orderId = req.params.id;
+        const order = await findOwnOrder(req, orderId);
 
         if (!order) {
             return res.status(404).send('Order not found');
         }
 
-        // Find the item to cancel
-        const itemIndex = order.items.findIndex(item => item._id.toString() === itemId);
-
-        if (itemIndex === -1) {
-            return res.status(404).send('Item not found in order');
-        }
-
-        // Update item status to 'Cancelled' or remove it from the items array
-        order.items[itemIndex].status = 'Cancelled'; // or you could remove it if that's your design
-
-        // Optionally, update the total amount, if necessary
-        order.totalAmount -= order.items[itemIndex].price * order.items[itemIndex].quantity;
-
-        // Save the updated order
-        await order.save();
-
-        // Redirect back to the order details page with a success message
-        res.redirect(`/account/orders/${orderId}?message=Item cancelled successfully`);
+        res.render('user/cancel-reason', { title: 'Cancel reason', order })
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal server error');
+        console.log(error);
+        res.status(500).send('Server Error');
     }
 }
 
@@ -268,7 +249,7 @@ export const postItemCancel = async (req, res) => {
 
     try {
         // Find the order by ID
-        const order = await Order.findById(orderId);
+        const order = await findOwnOrder(req, orderId);
 
         if (!order) {
             return res.status(404).send('Order not found');
@@ -460,7 +441,7 @@ export const postAddMoney = async (req, res) => {
 export const postDownloadInvoice = async (req, res) => {
     const { orderId } = req.params;
     try {
-        const order = await Order.findById(orderId).populate('user').populate('items.product');
+        const order = await findOwnOrder(req, orderId).populate('user').populate('items.product');
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }

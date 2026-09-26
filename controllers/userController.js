@@ -166,6 +166,8 @@ export const postEditAddress = address.postEditAddress
 
 export const postDeleteAddress = address.postDeleteAddress
 
+export const postSetDefaultAddress = address.postSetDefaultAddress
+
 export const getChangePassword = address.getChangePassword
 
 export const postChangePassword = address.postChangePassword
@@ -183,7 +185,6 @@ export const postAddProductToCart = cart.postAddProductToCart
 
 export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
 
-export const postUpdateTotal = cart.postUpdateTotal
 
 
 //* -----------------------------------------!                                         
