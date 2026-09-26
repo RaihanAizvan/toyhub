@@ -82,7 +82,7 @@ describe("secret source guards", () => {
     );
 
     assert.doesNotMatch(serverSource, /secret:\s*['"][^'"]+['"]/);
-    assert.match(serverSource, /requireEnv\("SESSION_SECRET"\)/);
+    assert.match(serverSource, /createSessionMiddleware\(sessionSettings\)/);
     assert.doesNotMatch(authSource, /user:\s*['"][^'"]+['"]/);
     assert.doesNotMatch(authSource, /pass:\s*['"][^'"]+['"]/);
     assert.doesNotMatch(authSource, /@gmail\.com/);

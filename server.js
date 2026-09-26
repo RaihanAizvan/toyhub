@@ -3,7 +3,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import nocache from "nocache";
-import session from "express-session";
 import passport from './utils/passport.js'; // Import your passport configuration
 import expressLayouts from "express-ejs-layouts";
 import morgan from 'morgan'
@@ -18,7 +17,8 @@ import cartRoutes from "./routes/cartRoute.js"
 import checkoutRoutes from "./routes/checkoutRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
-import { assertRequiredEnv, requireEnv } from "./utils/config.js";
+import { assertRequiredEnv } from "./utils/config.js";
+import { createSessionMiddleware, resolveSessionSettings } from "./utils/session.js";
 
 
 
@@ -28,19 +28,19 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 assertRequiredEnv();
 
+const sessionSettings = resolveSessionSettings();
+
 const app = express();
 
 // Connect to the database 
 connectDB();
 
-// Set up session middleware
-app.use(
-  session({
-    secret: requireEnv("SESSION_SECRET"),
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+// Trust the first reverse proxy hop so Secure cookies work behind a load balancer
+if (sessionSettings.trustProxy !== false) {
+  app.set("trust proxy", sessionSettings.trustProxy);
+}
+
+app.use(createSessionMiddleware(sessionSettings));
 
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' http://localhost:8001 https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://checkout.razorpay.com 'unsafe-inline';");
