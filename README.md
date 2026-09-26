@@ -6,7 +6,8 @@ ToyHub is a fully functional e-commerce platform designed to sell toys online. T
 
 - [Features](#features)
 - [Project Structure](#project-structure)
-- [Installation](#installation)
+- [Running locally](#running-locally)
+- [Environment configuration](#environment-configuration)
 - [Usage](#usage)
 - [Technologies Used](#technologies-used)
 - [API Documentation](#api-documentation)
@@ -97,6 +98,56 @@ TOYHUB<br>
   5. Start the development server:
   6. Access the application:
    Open your web browser and go to http://localhost:3000 to view the ToyHub platform.
+
+## Running locally
+
+### Requirements
+
+- Node.js `>= 18.18` (`.nvmrc` pins `22`, the version used for the clean-install check) and npm `>= 9`
+- A reachable MongoDB instance (local `mongod`, Docker, or MongoDB Atlas)
+
+### Steps
+
+```bash
+nvm use                 # optional, switches to the pinned Node version
+npm ci                  # clean, reproducible install
+cp .env.example .env    # then fill in the values, see below
+npm run smoke           # optional: verify install + env without opening a port
+npm start
+```
+
+`npm start` runs a preflight check first, so a broken native dependency is reported with fix instructions instead of a `MODULE_NOT_FOUND` stack trace. Open http://localhost:3000 once the log prints `Server started on port 3000` and `MongoDB connected...`.
+
+A local MongoDB can be started with Docker:
+
+```bash
+docker run -d --name toyhub-mongo -p 27017:27017 mongo:7
+# then use MONGO_URI=mongodb://127.0.0.1:27017/toyhub
+```
+
+### Scripts
+
+| Script | Purpose |
+| --- | --- |
+| `npm start` | Preflight dependency check, then start the server. |
+| `npm run smoke` | Load every application module and validate the environment without opening a port. |
+| `npm test` | Run the `node:test` suite, including the native-binding and startup smoke checks. |
+
+### Troubleshooting `bcrypt`
+
+`bcrypt` is a native module, so its binding is compiled during install. npm 12 and newer block dependency install scripts unless they are approved, which produces:
+
+```
+Error: Cannot find module '.../node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node'
+```
+
+This repository allows that install script through the `allowScripts` field in `package.json`, so `npm ci` is enough. If the binding is still missing (after installing with `--ignore-scripts`, or on a machine without a matching prebuilt binary):
+
+```bash
+rm -rf node_modules && npm ci
+npm rebuild bcrypt --build-from-source   # needs python3, make and a C/C++ compiler
+npm run smoke
+```
 
 ## Environment configuration
 
