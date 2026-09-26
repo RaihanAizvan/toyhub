@@ -1,24 +1,28 @@
 import Order from "../../models/orders.models.js";
-import Product from "../../models/product.models.js";
 import Cart from "../../models/cart.models.js";
 import User from "../../models/users.models.js";
 import Address from "../../models/address.models.js";
 import Coupon from "../../models/couponSchema.models.js";
 import Offer from "../../models/offers.models.js";
-import Wallet from "../../models/wallets.models.js";
-import crypto from "crypto";
-import Razorpay from "razorpay";
-import { readEnv } from "../../utils/config.js";
+import {
+    CheckoutError,
+    applyCouponToCart,
+    buildOrder,
+    clearPurchasedCart,
+    debitWallet,
+    findOrderByCheckoutKey,
+    loadPricedCart,
+    receiptForCheckoutKey,
+    recordPurchaseOnUser,
+    releaseStock,
+    reserveStock,
+} from "../../utils/checkout.js";
+import {
+    createGatewayOrder,
+    isValidSignature,
+    toPaise,
+} from "../../utils/razorpay.js";
 import { isObjectId } from "../../utils/ownership.js";
-
-// The address a checkout uses has to belong to the session user, otherwise a
-// request could ship to, and store, somebody else's address.
-const findOwnAddress = (userId, addressId) => {
-    if (!userId || !isObjectId(addressId)) {
-        return null;
-    }
-    return Address.findOne({ _id: addressId, user: userId });
-};
 
 // Retry and success pages are order reads like any other, so they only ever
 // resolve orders of the session user.
@@ -29,10 +33,43 @@ const findOwnOrder = (userId, orderId) => {
     return Order.findOne({ _id: orderId, user: userId });
 };
 
-const razorpayKeyId = readEnv("RAZOR_KEY_ID");
-const razorpaySecretId = readEnv("RAZOR_SECRET_ID");
+const requireUserId = (req, res) => {
+    const userId = req.session?.user?.id;
+    if (!userId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return null;
+    }
+    return String(userId);
+};
 
+// A problem the shopper can act on keeps its own status and message. Anything
+// else is a bug, and a bug is never dressed up as a stock message.
+const sendCheckoutError = (res, error) => {
+    if (error instanceof CheckoutError) {
+        return res.status(error.status).json({
+            success: false,
+            message: error.message,
+            ...error.details,
+        });
+    }
 
+    console.error('Checkout failed:', error);
+    return res.status(500).json({
+        success: false,
+        message: 'The checkout could not be completed. Please try again.',
+    });
+};
+
+const requireOwnAddress = async (userId, addressId) => {
+    const address = isObjectId(addressId)
+        ? await Address.findOne({ _id: addressId, user: userId })
+        : null;
+
+    if (!address) {
+        throw new CheckoutError(400, 'Invalid address');
+    }
+    return address;
+};
 
 // this is the function for showing the checkout page
 const getCheckoutPage = async function (req, res) {
@@ -63,401 +100,423 @@ const getCheckoutPage = async function (req, res) {
 }
 
 // this is a handler function for sending post request to /checkout
-
+//
+// Everything that decides the order comes from the database: the cart of the
+// account, the prices of the products, the promotions that apply and the
+// address that belongs to the account. The request only says which attempt
+// this is.
 const postPlaceOrderInCheckout = async (req, res) => {
-    try {
-        const userId = req.session.user.id;
-        const { selectedAddress, paymentMethod, couponCode, paid } = req.body;
-        
-        const cart = await Cart.findOne({ user: userId }).populate('items.product');
-        if (!cart || cart.items.length === 0) {
-            return res.status(400).json({ message: 'Cart is empty' });
-        }
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
 
-        const address = await findOwnAddress(userId, selectedAddress);
-        if (!address) {
-            console.log('Invalid address');
-            return res.status(400).json({ message: 'Invalid address' });
-        }
+    const { selectedAddress, paymentMethod, checkoutKey, paymentFailed, totalAmount } = req.body;
 
-        const user = await User.findById(userId);
-        const productsInTheCart = cart.items.map(item => item.product._id);
-        const products = await Product.find({ _id: { $in: productsInTheCart } });
-        
-        // Increase the sold count of the products
-        for (const product of products) {
-            const quantity = cart.items.find(item => item.product._id.equals(product._id)).quantity;
-            product.sold += quantity;
-            await product.save();
-        }
-
-        // Ensure the totalAmount reflects the updated cart total after applying the coupon
-        const updatedTotalAmount = cart.total;
-
-        // Create new order
-        const newOrder = new Order({
-            user: userId,
-            items: cart.items.map(item => ({
-                product: item.product._id,
-                quantity: item.quantity,
-                price: item.product.price,
-                paymentMethod: paymentMethod
-            })),
-            discount: cart.discount,
-            subtotal: cart.subtotal,
-            totalAmount: updatedTotalAmount, // Use the updated total amount
-            offerDiscount: cart.offerDiscount,
-            cutoffAmount: Math.round(cart.cutoffAmount),
-            couponDiscount: cart.couponDiscount,
-            address: {
-                user: {
-                    name: user.name,
-                    email: user.email,
-                    joined_date: user.joined_date,
-                    phone_number: user.phone_number
-                },
-                name: address.name,
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                zip: address.zip,
-                phone: address.phone,
-                
-            },
-            paymentMethod,
-            couponCode,
-            paid,
-            status: 'pending'
+    // A wallet order is only written by the wallet handler, which spends the
+    // money in the same breath. Answering here would write an order that is
+    // never charged.
+    if (paymentMethod === 'wallet') {
+        return res.status(400).json({
+            success: false,
+            message: 'A wallet order has to be paid from the wallet.',
         });
+    }
 
-        await newOrder.save();
+    // Anything that is not a card is cash on delivery, which costs nothing up
+    // front and so cannot be turned into a payment by naming another method.
+    const method = paymentMethod === 'razorpay' ? 'razorpay' : 'cod';
 
-        //update salesonthiaddress
-        address.salesOnThisAddress+=1
-        await address.save()
+    let reserved = null;
 
-        //update user sales
-        user.totalProductsBuyed += cart.items.reduce((acc, item) => acc + item.quantity, 0);
-        await user.save()        
-
-
-        await Cart.findOneAndDelete({ user: userId });
-
-        for (const item of cart.items) {
-            const product = await Product.findById(item.product._id);
-            product.stock -= item.quantity;
-            await product.save();
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new CheckoutError(401, 'Unauthorized');
         }
-        
-        res.clearCookie('cart');
-        res.clearCookie('couponApplied');
-        console.log('Cookies cleared');
-        
-        res.status(200).json({
-            orderId: newOrder._id,
-            paymentMethod,
-            totalAmount: updatedTotalAmount,
-            success: true
+
+        // A retry of the same attempt answers with the order it already made.
+        const existing = await findOrderByCheckoutKey(userId, checkoutKey);
+        if (existing) {
+            // The card was declined, so nothing was charged and nothing ships.
+            // The stock that was held for that attempt goes back on the shelf
+            // and the cart is left exactly as it was.
+            if (paymentFailed) {
+                if (!existing.paid && existing.paymentMethod === 'razorpay') {
+                    await releaseStock(existing.items);
+                    await Order.deleteOne({ _id: existing._id });
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: 'The payment was not completed. Nothing was charged.',
+                });
+            }
+
+            return res.status(200).json({
+                orderId: existing._id,
+                paymentMethod: existing.paymentMethod,
+                totalAmount: Number(existing.totalAmount),
+                repeated: true,
+            });
+        }
+
+        const address = await requireOwnAddress(userId, selectedAddress);
+        const { cart, lines } = await loadPricedCart(userId, { expectedTotal: totalAmount });
+
+        reserved = await reserveStock(lines);
+
+        const order = new Order(buildOrder({
+            user,
+            cart,
+            lines,
+            address,
+            paymentMethod: method,
+            // Cash on delivery and an abandoned card are not paid.
+            paid: false,
+            checkoutKey,
+        }));
+
+        try {
+            await order.save();
+        } catch (error) {
+            // A duplicate key means a parallel request won the race with the
+            // same attempt, so the order exists after all.
+            if (error?.code === 11000) {
+                await releaseStock(reserved);
+                reserved = null;
+                const winner = await findOrderByCheckoutKey(userId, checkoutKey);
+                if (winner) {
+                    return res.status(200).json({
+                        orderId: winner._id,
+                        paymentMethod: winner.paymentMethod,
+                        totalAmount: Number(winner.totalAmount),
+                        repeated: true,
+                    });
+                }
+            }
+            throw error;
+        }
+
+        // The cart only goes once the order is on disk.
+        await clearPurchasedCart(userId);
+        await recordPurchaseOnUser(user, lines);
+
+        return res.status(200).json({
+            orderId: order._id,
+            paymentMethod: order.paymentMethod,
+            totalAmount: Number(order.totalAmount),
         });
     } catch (error) {
-        console.error("Error in postPlaceOrderInCheckout:", error);
-        res.status(500).render('user/order-failed', { message: 'Internal Server Error' });
+        if (reserved) {
+            await releaseStock(reserved);
+        }
+        return sendCheckoutError(res, error);
     }
-}
+};
 
-
+// A coupon is matched against the shop and applied to the cart that was priced
+// from the products. The amount the request carried is not read, so a coupon
+// cannot be turned into a discount on an invented total.
 const applyCoupon = async (req, res) => {
-    const { couponCode, totalAmount } = req.body;
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
 
     try {
-        // Find the coupon in the database
-        const coupon = await Coupon.findOne({ couponCode });
-        if (!coupon) {
-            return res.status(404).json({ success: false, message: 'Coupon code not found.' });
+        const { coupon, discountAmount, totalAmount } = await applyCouponToCart(userId, req.body?.couponCode);
+
+        return res.status(200).json({
+            success: true,
+            coupon,
+            discountAmount,
+            totalAmount,
+        });
+    } catch (error) {
+        return sendCheckoutError(res, error);
+    }
+};
+
+// The amount is never taken from the request: the cart is priced again, an
+// unpaid order is written for that exact amount, and only then is a gateway
+// order created for it. The gateway id is stored on the order, which is what
+// ties a later payment signature to this order and to no other.
+const createRazorPayOrder = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const { selectedAddress, checkoutKey, totalAmount } = req.body;
+    let reserved = null;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new CheckoutError(401, 'Unauthorized');
         }
 
-        // Check if the coupon is active and has not been used before
-        if (coupon.isBlocked || coupon.usageLimit <= 0) {
-            return res.status(400).json({ success: false, message: 'Coupon is not active or has been used too many times.' });
+        const existing = await findOrderByCheckoutKey(userId, checkoutKey);
+        if (existing?.razorpayOrderId) {
+            return res.status(200).json({
+                success: true,
+                orderId: existing.razorpayOrderId,
+                amount: toPaise(existing.totalAmount),
+                currency: 'INR',
+                repeated: true,
+            });
         }
 
-        // Check minimum purchase requirement
-        if (totalAmount < coupon.minPurchase) {
+        const address = await requireOwnAddress(userId, selectedAddress);
+        const { cart, lines, totalAmount: serverTotal } = await loadPricedCart(userId, { expectedTotal: totalAmount });
+
+        reserved = await reserveStock(lines);
+
+        const order = new Order(buildOrder({
+            user,
+            cart,
+            lines,
+            address,
+            paymentMethod: 'razorpay',
+            paid: false,
+            checkoutKey,
+        }));
+
+        try {
+            await order.save();
+        } catch (error) {
+            if (error?.code === 11000) {
+                await releaseStock(reserved);
+                reserved = null;
+                const winner = await findOrderByCheckoutKey(userId, checkoutKey);
+                if (winner?.razorpayOrderId) {
+                    return res.status(200).json({
+                        success: true,
+                        orderId: winner.razorpayOrderId,
+                        amount: toPaise(winner.totalAmount),
+                        currency: 'INR',
+                        repeated: true,
+                    });
+                }
+            }
+            throw error;
+        }
+
+        try {
+            const gatewayOrder = await createGatewayOrder({
+                amount: toPaise(serverTotal),
+                receipt: receiptForCheckoutKey(checkoutKey || order._id),
+            });
+
+            order.razorpayOrderId = gatewayOrder.id;
+            order.razorpayAmount = gatewayOrder.amount;
+            await order.save();
+        } catch (error) {
+            // The stock was only held for a payment that will never happen.
+            await releaseStock(reserved);
+            reserved = null;
+            await Order.deleteOne({ _id: order._id });
+            throw new CheckoutError(502, 'The payment gateway could not be reached. Please try again.');
+        }
+
+        // The cart stays where it is until the payment lands, so a card that is
+        // declined, or a checkout that is simply abandoned, costs the shopper
+        // nothing.
+        return res.status(200).json({
+            success: true,
+            orderId: order.razorpayOrderId,
+            amount: toPaise(order.totalAmount),
+            currency: 'INR',
+        });
+    } catch (error) {
+        if (reserved) {
+            await releaseStock(reserved);
+        }
+        return sendCheckoutError(res, error);
+    }
+};
+
+// The signature is only trusted once it is shown to belong to a gateway order
+// this account created, for the amount this order was written for. The stock
+// for the attempt was already taken when the gateway order was made, so nothing
+// is taken again here.
+const verifyPayment = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!isValidSignature({
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+    })) {
+        return res.status(400).json({
+            success: false,
+            message: 'Payment verification failed. Please contact support.',
+        });
+    }
+
+    try {
+        const order = await Order.findOne({
+            user: userId,
+            razorpayOrderId: String(razorpay_order_id),
+        });
+
+        // A signature for a gateway order this account never created is not a
+        // payment for one of its orders.
+        if (!order) {
             return res.status(400).json({
                 success: false,
-                message: `Coupon requires a minimum purchase of $${coupon.minPurchase.toFixed(2)}.`,
+                message: 'Payment verification failed. Please contact support.',
             });
         }
 
-        // Calculate the discount
-        let discountAmount = 0;
-        if (coupon.discountType === 'percentage') {
-            discountAmount = (totalAmount * coupon.discount) / 100;
-            discountAmount = Math.min(discountAmount, coupon.maxDiscount || discountAmount); // Apply max discount if set
-        } else if (coupon.discountType === 'fixed') {
-            discountAmount = coupon.discount;
-        }
-
-        // Update the cart with the coupon discount
-        const cart = await Cart.findOne({ user: req.session.user.id });
-        if (cart) {
-            cart.couponDiscount = discountAmount;
-            cart.total = cart.subtotal - cart.discount - cart.offerDiscount - cart.couponDiscount + cart.cutoffAmount;
-
-            // Update cutoffAmount based on the new total
-            const cutoffAmount = cart.subtotal * 0.20;
-            if (cart.total < cutoffAmount) {
-                cart.cutoffAmount = cutoffAmount - cart.total;
-                cart.total = cutoffAmount.toFixed(2);
-            } else {
-                cart.cutoffAmount = 0;
-            }
-
-            await cart.save();
-        }
-
-        // Calculate the new total after discount
-        const discountedTotal = cart ? cart.total : totalAmount - discountAmount;
-
-        // Return success response with the discount details
-        res.status(200).json({
-            success: true,
-            discountAmount,
-            discountedTotal,
-            coupon,
-        });
-    } catch (error) {
-        console.error('Error applying coupon:', error);
-        res.status(500).json({ success: false, message: 'An error occurred while applying the coupon.' });
-    }
-}
-
-
-const createRazorPayOrder = async (req, res) => {
-    try {
-        let { totalAmount } = req.body;
-        totalAmount = parseInt(totalAmount);
-
-        if (!Number.isInteger(totalAmount)) {
-            return res.status(400).json({ success: false, message: 'The amount must be an integer.' });
-        }
-
-        // Create order on Razorpay
-        const razorpay = new Razorpay({
-            key_id: razorpayKeyId,
-            key_secret: razorpaySecretId,
-        });
-
-        const options = {
-            amount: totalAmount * 100, // Amount in smallest currency unit (e.g., paise)
-            currency: "INR",
-            receipt: `receipt_order_${Date.now()}`,
-        };
-
-        const order = await razorpay.orders.create(options);
-        if (!order) {
-            return res.status(500).json({ success: false, message: 'Error creating Razorpay order. Please try again later.' });
-        }
-
-        res.status(200).json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'The amount must be an integer.' });
-    }
-}
-
- // Start of Selection
-const verifyPayment = async (req, res) => {
-    try {
-        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, selectedAddress } = req.body;
-        
-        const hmac = crypto.createHmac('sha256', razorpaySecretId);
-
-        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-        const generatedSignature = hmac.digest('hex');
-        
-
-        if (generatedSignature === razorpay_signature) {
-          
-
-            // Create new order logic here
-            const userId = req.session.user.id;
-          
-            const cart = await Cart.findOne({ user: userId }).populate('items.product');
-          
-            if (!cart || cart.items.length === 0) {
-               
-                return res.status(400).json({ message: 'Cart is empty' });
-            }
-
-            const user = await User.findById(userId);
-        
-
-            const address = await findOwnAddress(userId, selectedAddress);
-
-            if (!address) {
-                return res.status(400).json({ success: false, message: 'Invalid address' });
-            }
-           
-
-            const newOrder = new Order({
-                user: userId,
-                items: cart.items.map(item => ({
-                    product: item.product._id,
-                    quantity: item.quantity,
-                    price: item.product.price,
-                    paymentMethod: 'razorpay'
-                })),
-                discount: cart.discount,
-                subtotal: cart.subtotal,
-                totalAmount: cart.total, // Use the cart's total amount
-                offerDiscount: cart.offerDiscount,
-                cutoffAmount: Math.round(cart.cutoffAmount),
-                couponDiscount: cart.couponDiscount,
-                address: {
-                    user: {
-                        name: user.name,
-                        email: user.email,
-                        joined_date: user.joined_date,
-                        phone_number: user.phone_number
-                    },
-                    name: address.name,
-                    street: address.street,
-                    city: address.city,
-                    state: address.state,
-                    zip: address.zip,
-                    phone: address.phone
-                },
-                paymentMethod: 'razorpay',
-                paid: true,
-                couponCode: cart.couponCode, // Assuming couponCode is stored in cart
-                status: 'pending'
+        if (order.paid) {
+            return res.status(200).json({
+                success: true,
+                orderId: order._id,
+                repeated: true,
             });
-
-            await newOrder.save();
-          
-
-            // Update stock for each product
-            for (const item of cart.items) {
-                const product = await Product.findById(item.product._id);
-                
-                product.stock -= item.quantity;
-                await product.save();
-             
-            }
-
-            // Delete the cart
-            await Cart.findOneAndDelete({ user: userId });
-           
-
-            res.status(200).json({ success: true, message: 'Payment verified and order created successfully.', orderId: newOrder._id });
-            
-        } else {
-           
-            res.status(400).json({ success: false, message: 'Payment verification failed. Please contact support.' });
-        }
-    } catch (error) {
-        console.error('Error verifying payment:', error);
-        res.status(500).json({ success: false, message: 'An error occurred while verifying the payment.' });
-    }
-    
-}
-
-
-const postWalletPayment = async (req, res) => {
-    try {
-        const { selectedAddress, couponCode, totalAmount } = req.body;
- 
-
-        const userId = req.session.user.id;
-
-        // Fetch the user's cart
-        const cart = await Cart.findOne({ user: userId });
-        if (!cart || cart.items.length === 0) {
-            return res.status(400).json({ message: 'Cart is empty' , paymentStatus: "failed"  });
         }
 
-        // Fetch the selected address
-        const address = await findOwnAddress(userId, selectedAddress);
-        if (!address) {
-            return res.status(400).json({ message: 'Invalid address' , paymentStatus: "failed"  });
+        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+            return res.status(409).json({
+                success: false,
+                message: 'This order can no longer be paid. Please contact support for a refund.',
+            });
         }
 
-        // Fetch the user
+        // The gateway order was created for the amount on the order, so a total
+        // that no longer matches means this payment is not for this order.
+        if (order.razorpayAmount !== toPaise(order.totalAmount)) {
+            return res.status(409).json({
+                success: false,
+                message: 'The order total changed. Please start the payment again.',
+            });
+        }
+
+        order.razorpayPaymentId = String(razorpay_payment_id);
+        order.paid = true;
+        await order.save();
+
         const user = await User.findById(userId);
-    
-        
-        
-        // Create new order
-        const newOrder = new Order({
-            user: userId,
-            items: cart.items.map(item => ({
-                product: item.product._id,
-                quantity: item.quantity,
-                price: item.price,
-                paymentMethod: 'wallet'
-            })),
-            discount: cart.discount,
-            subtotal: cart.subtotal,
-            totalAmount: totalAmount,
-            offerDiscount: cart.offerDiscount,
-            cutoffAmount: Math.round(cart.cutoffAmount),
-            couponDiscount: cart.couponDiscount,
-            address: {
-                user: {
-                    name: user.name,
-                    email: user.email,
-                    joined_date: user.joined_date,
-                    phone_number: user.phone_number
-                },
-                name: address.name,
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                zip: address.zip,
-                phone: address.phone
-            },
-            paymentMethod: 'wallet',
-            couponCode: couponCode || null,
-            status: 'pending'
+        await clearPurchasedCart(userId);
+        await recordPurchaseOnUser(user, order.items);
+
+        return res.status(200).json({
+            success: true,
+            orderId: order._id,
         });
-
-        await newOrder.save();
-        
-        
-        // Check if user has enough balance in wallet
-        if (user.walletBalance < totalAmount) {
-            return res.status(400).json({ message: 'Insufficient wallet balance' });
-        }
-
-        // Deduct the total amount from user's wallet balance
-        user.walletBalance -= totalAmount;
-        await user.save();
-
-        // Update wallet transaction
-        const wallet = await Wallet.findById(user.wallet);
-        wallet.transactions.push({
-            amount: -totalAmount,
-            description: `Order payment for order ID: ${newOrder._id}`
-        });
-        await wallet.save();
-
-        // Update stock for each product
-        for (const item of cart.items) {
-            const product = await Product.findById(item.product._id);
-            product.stock -= item.quantity;
-            await product.save();
-        }
-
-        // Delete the cart
-        await Cart.findOneAndDelete({ user: userId });
-
-        res.status(200).json({ orderId: newOrder._id, paymentMethod: 'wallet', totalAmount: newOrder.totalAmount });
     } catch (error) {
-        console.error('Error processing wallet payment:', error);
-        res.status(500).json({ success: false, message: 'An error occurred while processing the wallet payment.' });
+        return sendCheckoutError(res, error);
     }
-}
+};
 
+// A wallet is only spent when the balance is still there, and the stock for the
+// order is given back if anything after that does not work out.
+const postWalletPayment = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const { selectedAddress, checkoutKey, totalAmount } = req.body;
+    let reserved = null;
+    let debited = 0;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new CheckoutError(401, 'Unauthorized');
+        }
+
+        const existing = await findOrderByCheckoutKey(userId, checkoutKey);
+        if (existing) {
+            return res.status(200).json({
+                orderId: existing._id,
+                paymentMethod: existing.paymentMethod,
+                totalAmount: Number(existing.totalAmount),
+                repeated: true,
+            });
+        }
+
+        const address = await requireOwnAddress(userId, selectedAddress);
+        const { cart, lines, totalAmount: serverTotal } = await loadPricedCart(userId, { expectedTotal: totalAmount });
+
+        reserved = await reserveStock(lines);
+
+        try {
+            await debitWallet({
+                user,
+                amount: serverTotal,
+                description: 'Order payment',
+            });
+            debited = serverTotal;
+        } catch (error) {
+            await releaseStock(reserved);
+            reserved = null;
+            throw error;
+        }
+
+        const order = new Order(buildOrder({
+            user,
+            cart,
+            lines,
+            address,
+            paymentMethod: 'wallet',
+            // A wallet order is paid by the debit that just went through.
+            paid: true,
+            checkoutKey,
+        }));
+
+        try {
+            await order.save();
+        } catch (error) {
+            if (error?.code === 11000) {
+                const winner = await findOrderByCheckoutKey(userId, checkoutKey);
+                if (winner) {
+                    // Another request with the same key already paid for this
+                    // order, so the money and the stock go back.
+                    await Wallet.updateOne(
+                        { user: userId },
+                        { $inc: { balance: debited } },
+                    );
+                    await releaseStock(reserved);
+                    reserved = null;
+                    return res.status(200).json({
+                        orderId: winner._id,
+                        paymentMethod: winner.paymentMethod,
+                        totalAmount: Number(winner.totalAmount),
+                        repeated: true,
+                    });
+                }
+            }
+            throw error;
+        }
+
+        await clearPurchasedCart(userId);
+        await recordPurchaseOnUser(user, lines);
+
+        return res.status(200).json({
+            orderId: order._id,
+            paymentMethod: 'wallet',
+            totalAmount: Number(order.totalAmount),
+        });
+    } catch (error) {
+        if (reserved) {
+            await releaseStock(reserved);
+        }
+        if (debited) {
+            // Nothing shipped, so the money goes back to the wallet.
+            await Wallet.updateOne({ user: userId }, { $inc: { balance: debited } });
+            await User.updateOne({ _id: userId }, { $inc: { walletBalance: debited } });
+        }
+        return sendCheckoutError(res, error);
+    }
+};
 
 const orderSuccess = async (req, res) => {
     try {
@@ -475,82 +534,132 @@ const orderSuccess = async (req, res) => {
     }
 }
 
+// A retry asks the gateway for a new order on the amount this order was
+// written for, and stores the new gateway id on the order. Storing it is what
+// makes a later signature payable to this order: a signature for the id that
+// was replaced no longer matches anything.
 const retryPayment = async (req, res) => {
-    try {
-        const { orderId } = req.body;
-
-        const razorpayInstance = new Razorpay({
-            key_id: razorpayKeyId,
-            key_secret: razorpaySecretId,
-        });
-
-
-        const order = await findOwnOrder(req.session?.user?.id, orderId);
-
-        if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
-        }
-    
-     
-        
-        const options = {
-            amount: Math.round(parseInt(order.totalAmount)) * 100, // amount in the smallest currency unit
-            currency: "INR",
-            receipt: `receipt_order_${orderId}_${Date.now()}`.substring(0, 40), // Ensure receipt length is no more than 40 characters
-            payment_capture: 1,
-        };
-        
-        try {
-            const razorpayOrder = await razorpayInstance.orders.create(options);
-            res.status(200).json({
-                success: true,
-                message: 'New Razorpay order created successfully',
-                razorpay_order_id: razorpayOrder.id,
-                amount: razorpayOrder.amount,
-                currency: razorpayOrder.currency,
-            });
-        } catch (razorpayError) {
-            console.error('Error creating Razorpay order:',razorpayError);
-            res.status(500).json({ success: false, message: 'An error occurred while creating the Razorpay order.' });
-        }
-        
-    } catch (error) {
-        console.error('Error updating payment status:', error);
-        res.status(500).json({ success: false, message: 'An error occurred while updating the payment status.' });
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
     }
-}
 
-const verifyRetryPayment = async (req, res) => {
+    const { orderId } = req.body;
+
     try {
-    
-        const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-        
-
-        const hmac = crypto.createHmac('sha256', razorpaySecretId);
-        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-        const generatedSignature = hmac.digest('hex');
-        
-
-        if (generatedSignature !== razorpay_signature) {
-            return res.status(400).json({ success: false, message: 'Invalid payment signature' });
-        }
-
-        // Find the order by ID
-        const order = await findOwnOrder(req.session?.user?.id, orderId);
+        const order = await findOwnOrder(userId, orderId);
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // Update the payment status to true
-        order.paid = true;
-        
+        if (order.paid) {
+            return res.status(409).json({
+                success: false,
+                message: 'This order is already paid.',
+            });
+        }
+
+        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+            return res.status(409).json({
+                success: false,
+                message: 'This order can no longer be paid. Please contact support.',
+            });
+        }
+
+        const amount = toPaise(order.totalAmount);
+        let gatewayOrder;
+
+        try {
+            gatewayOrder = await createGatewayOrder({
+                amount,
+                receipt: receiptForCheckoutKey(`rtry_${order._id}_${Date.now()}`),
+            });
+        } catch (error) {
+            console.error('Error creating Razorpay order:', error);
+            return res.status(502).json({
+                success: false,
+                message: 'The payment gateway could not be reached. Please try again.',
+            });
+        }
+
+        order.razorpayOrderId = gatewayOrder.id;
+        order.razorpayAmount = gatewayOrder.amount;
         await order.save();
 
-        res.status(200).json({ success: true, message: 'Payment verified and updated successfully' });
+        return res.status(200).json({
+            success: true,
+            message: 'New Razorpay order created successfully',
+            razorpay_order_id: gatewayOrder.id,
+            amount: gatewayOrder.amount,
+            currency: gatewayOrder.currency,
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'An error occurred while verifying the payment.' });
+        return sendCheckoutError(res, error);
     }
-}
+};
+
+// The payment is only accepted for the gateway order this order is currently
+// waiting on, so a signature taken from another payment cannot pay this order.
+const verifyRetryPayment = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!isValidSignature({
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+    })) {
+        return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+    }
+
+    try {
+        const order = await findOwnOrder(userId, orderId);
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        if (order.razorpayOrderId !== String(razorpay_order_id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'This payment is not for this order. Please start the payment again.',
+            });
+        }
+
+        if (order.paid) {
+            return res.status(200).json({ success: true, repeated: true });
+        }
+
+        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+            return res.status(409).json({
+                success: false,
+                message: 'This order can no longer be paid. Please contact support for a refund.',
+            });
+        }
+
+        if (order.razorpayAmount !== toPaise(order.totalAmount)) {
+            return res.status(409).json({
+                success: false,
+                message: 'The order total changed. Please start the payment again.',
+            });
+        }
+
+        order.razorpayPaymentId = String(razorpay_payment_id);
+        order.paid = true;
+        await order.save();
+
+        const user = await User.findById(userId);
+        await clearPurchasedCart(userId);
+        await recordPurchaseOnUser(user, order.items);
+
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        return sendCheckoutError(res, error);
+    }
+};
 
 //here we are exporting all the function related to checkout page
 export default {
