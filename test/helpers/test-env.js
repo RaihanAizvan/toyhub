@@ -21,8 +21,9 @@ const baseTestEnv = {
   RAZOR_SECRET_ID: "test-razor-secret-id",
 };
 
-export const buildTestEnv = (overrides = {}) => ({
+export const buildTestEnv = (overrides = {}, env = process.env) => ({
   ...baseTestEnv,
+  MONGO_URI: env[TEST_MONGO_URI_KEY] || defaultTestMongoUri,
   ...overrides,
 });
 
@@ -38,7 +39,7 @@ export const applyTestEnv = (overrides = {}) => {
 
 export const spawnEnv = (overrides = {}, base = process.env) => ({
   ...base,
-  ...buildTestEnv(overrides),
+  ...buildTestEnv(overrides, base),
 });
 
 export const resolveTestMongoUri = (env = process.env) =>
