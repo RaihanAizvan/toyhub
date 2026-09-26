@@ -31,10 +31,51 @@ const UserSchema = new Schema({
   googleId: {
     type: String
   },
-  otp: {
-    type: Number
+  otpHash: {
+    type: String,
+    default: null
   },
   otpExpires: {
+    type: Date
+  },
+  otpAttempts: {
+    type: Number,
+    default: 0
+  },
+  otpIssuedAt: {
+    type: Date
+  },
+  otpResendAvailableAt: {
+    type: Date
+  },
+  otpResendCount: {
+    type: Number,
+    default: 0
+  },
+  otpResendWindowStart: {
+    type: Date
+  },
+  resetPasswordTokenHash: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date
+  },
+  resetPasswordUsedAt: {
+    type: Date
+  },
+  resetPasswordRequestedAt: {
+    type: Date
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+  loginLockedUntil: {
+    type: Date
+  },
+  lastLoginAt: {
     type: Date
   },
   totalProductsBuyed:{
