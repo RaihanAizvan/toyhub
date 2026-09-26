@@ -3,29 +3,12 @@ import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import bcrypt from "bcrypt";
-
-const smokeEnv = {
-  ...process.env,
-  NODE_ENV: "test",
-  MONGO_URI: "mongodb://127.0.0.1:27017/toyhub-smoke",
-  SESSION_SECRET: "s".repeat(32),
-  CLIENT_ID: "smoke-client-id",
-  CLIENT_SECRET: "smoke-client-secret",
-  CALLBACK_URL: "http://localhost:3000/auth/google/callback",
-  MAIL_USER: "smoke@example.com",
-  MAIL_PASSWORD: "smoke-password",
-  MAIL_FROM: "smoke@example.com",
-  CLOUDINARY_CLOUD_NAME: "smoke-cloud",
-  CLOUDINARY_API_KEY: "smoke-key",
-  CLOUDINARY_API_SECRET: "smoke-secret",
-  RAZOR_KEY_ID: "smoke-key-id",
-  RAZOR_SECRET_ID: "smoke-secret-id",
-};
+import { spawnEnv } from "./helpers/test-env.js";
 
 const runScript = (script) =>
   new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [script], {
-      env: smokeEnv,
+      env: spawnEnv(),
       stdio: ["ignore", "pipe", "pipe"],
     });
     let output = "";

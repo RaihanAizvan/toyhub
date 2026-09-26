@@ -4,10 +4,12 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "node --test",
+    "lint": "node scripts/lint.js",
+    "test": "node --test \"test/**/*.test.js\"",
     "prestart": "node scripts/check-native-deps.js",
     "start": "node server.js",
-    "smoke": "node scripts/smoke-startup.js"
+    "smoke": "node scripts/smoke-startup.js",
+    "check": "npm run lint && npm test && npm run smoke"
   },
   "engines": {
     "node": ">=18.18.0",
