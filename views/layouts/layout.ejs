@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= locals.csrfToken %>">
     <title>
         <%= locals.title%>
     </title>
@@ -49,7 +50,7 @@
 
  
     <!-- ---------------------------------body-------------------------------------->
-    <%- body %>
+    <%- locals.injectCsrfFields(body, locals.csrfToken) %>
 
     
     
@@ -58,6 +59,9 @@
 
     <!-- ---------------------------------axios-------------------------------------->
     <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script> <!-- Include Axios -->
+
+    <!-- ---------------------------------csrf-------------------------------------->
+    <script src="/js/csrf.js"></script>
     
     <!-- ---------------------------------croper-------------------------------------->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>

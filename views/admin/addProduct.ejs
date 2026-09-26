@@ -432,6 +432,7 @@
       // Send FormData to server using fetch or XMLHttpRequest
       fetch('/admin/addProduct', {
         method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken() },
         body: formData
       })
         .then(response => response.json())
