@@ -1,6 +1,10 @@
 import Users from "../../models/users.models.js"
 import Address from "../../models/address.models.js";
 import bcrypt from "bcrypt"
+import {
+    clearSessionCookie,
+    invalidateUserSessions,
+} from "../../utils/session.js"
 
 const getAddress = async (req, res) => {
     try {
@@ -197,7 +201,11 @@ const postChangePassword = async (req, res) => {
         user.password = hashedPassword;
         await user.save();
 
-        res.redirect('/account/change-password'); // Redirect to profile after successful change
+        // A password change invalidates every existing session for this account
+        await invalidateUserSessions(user._id);
+        clearSessionCookie(res);
+
+        res.redirect('/user/login');
     } catch (error) {
         console.error(error);
         res.render('user/profile-changePasssword', { 

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const requiredEnvironmentVariables = [
+  "NODE_ENV",
   "MONGO_URI",
   "SESSION_SECRET",
   "CLIENT_ID",
