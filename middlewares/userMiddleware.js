@@ -2,6 +2,7 @@ import Cart from '../models/cart.models.js';
 import Offer from '../models/offers.models.js';
 import User from '../models/users.models.js';
 import Coupon from '../models/couponSchema.models.js';
+import { clearSessionCookie } from '../utils/session.js';
 function isUser(req, res, next) {
   if (req.session.user) {
     next()
@@ -12,17 +13,18 @@ function isUser(req, res, next) {
 const checkBlockStatus = async (req, res, next) => {
   try {
     if (req.session.user) {
-      const userId = req.session.user._id;
+      const userId = req.session.user.id;
       const user = await User.findById(userId);
 
       if (user && user.isBlocked) {
         // Destroy the session
         req.session.destroy((err) => {
           if (err) {
-            console.error('Error destroying session:', err);
+            console.error('Error destroying session:', err.message);
           }
+          clearSessionCookie(res);
           // Redirect to login with a message
-          return res.redirect('/login?message=Your account has been blocked. Please contact support.');
+          return res.redirect('/user/login?blocked=1');
         });
       } else {
         next();

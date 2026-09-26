@@ -3,6 +3,11 @@ import nodemailer from "nodemailer"
 import bcrypt from 'bcrypt';
 import validator from "validator"
 import { readEnv } from "../../utils/config.js"
+import {
+    clearSessionCookie,
+    invalidateUserSessions,
+    regenerateSession,
+} from "../../utils/session.js"
 
 // function for a timer for try again to sent otp
 function tryAgain(){
@@ -217,6 +222,9 @@ async function postLogin(req, res) {
             return res.status(400).render("user/login", { title: 'Login', message: "Invalid email or password" });
         }
 
+        // Regenerate the session id to prevent session fixation
+        await regenerateSession(req);
+
         // Setting user session
         req.session.user = {
             id: user._id,
@@ -236,13 +244,12 @@ async function getLogout(req,res){
     try {
         req.session.destroy((err) => {
             if (err) {
-                console.error('Error destroying session:', err);
+                console.error('Error destroying session:', err.message);
                 return res.redirect('/'); // Redirect to the homepage or show an error page
             }
-    
-            // Clear the cookie
-            res.clearCookie('connect.sid'); // 'connect.sid' is the default cookie name used by express-session
-            
+
+            clearSessionCookie(res);
+
             //clear cache
             res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
 
@@ -348,6 +355,9 @@ async function postResetPassword(req,res){
         user.password = await bcrypt.hash(newPassword, 10);
         
         await user.save();
+
+        // Invalidate every existing session for this account
+        await invalidateUserSessions(user._id);
 
         res.redirect("/user/login");
 

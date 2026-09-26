@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import AdminUser from "../../models/admin.models.js";
 import { readEnv } from "../../utils/config.js";
+import { clearSessionCookie, regenerateSession } from "../../utils/session.js";
 
 const isBcryptHash = (value) =>
   typeof value === "string" && /^\$2[aby]\$\d{2}\$/.test(value);
@@ -74,6 +75,7 @@ export async function postLogin(req, res) {
       return renderLoginError(res);
     }
 
+    await regenerateSession(req);
     req.session.sAdminEmail = admin.email;
     return res.redirect("/admin");
   } catch (error) {
@@ -84,6 +86,7 @@ export async function postLogin(req, res) {
 
 export function postLogout(req, res) {
   req.session.destroy((err) => {
+    clearSessionCookie(res);
     if (err) {
       return res.redirect("/admin");
     }
