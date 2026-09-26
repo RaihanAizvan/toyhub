@@ -5,7 +5,13 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "start": "node server.js"
+    "prestart": "node scripts/check-native-deps.js",
+    "start": "node server.js",
+    "smoke": "node scripts/smoke-startup.js"
+  },
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=9"
   },
   "allowScripts": {
     "bcrypt": true,
