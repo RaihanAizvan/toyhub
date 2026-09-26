@@ -7,6 +7,10 @@
     "test": "node --test",
     "start": "node server.js"
   },
+  "allowScripts": {
+    "bcrypt": true,
+    "core-js": false
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RaihanAizvan/toyhub.git"
