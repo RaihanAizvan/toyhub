@@ -25,11 +25,16 @@ export const canReachTestDatabase = async (uri = resolveTestMongoUri()) => {
   }
 };
 
+// `node --test` runs test files in parallel, so every process gets its own
+// database inside the configured test database name.
+export const databaseNameForProcess = (uri = resolveTestMongoUri()) =>
+  `${assertIsolatedTestUri(uri)}-p${process.pid}`;
+
 export const connectTestDatabase = async ({
   uri = resolveTestMongoUri(),
-  dbName,
+  dbName = databaseNameForProcess(uri),
 } = {}) => {
-  const target = dbName ? uri.replace(/\/[^/?]*(\?|$)/, `/${dbName}$1`) : uri;
+  const target = uri.replace(/\/[^/?]*(\?|$)/, `/${dbName}$1`);
   const name = assertIsolatedTestUri(target);
 
   await mongoose.connect(target, {

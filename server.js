@@ -18,6 +18,7 @@ import checkoutRoutes from "./routes/checkoutRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
 import { assertRequiredEnv } from "./utils/config.js";
+import { ensureBootstrapAdmin } from "./controllers/adminModules/login.js";
 import { createSessionMiddleware, resolveSessionSettings } from "./utils/session.js";
 
 
@@ -33,7 +34,11 @@ const sessionSettings = resolveSessionSettings();
 const app = express();
 
 // Connect to the database 
-connectDB();
+connectDB()
+  .then(ensureBootstrapAdmin)
+  .catch((error) => {
+    console.error("Admin bootstrap failed:", error.message);
+  });
 
 // Trust the first reverse proxy hop so Secure cookies work behind a load balancer
 if (sessionSettings.trustProxy !== false) {

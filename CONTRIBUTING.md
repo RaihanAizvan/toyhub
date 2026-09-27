@@ -20,9 +20,9 @@ npm ci
 npm run check   # lint + tests + startup smoke check
 ```
 
-`npm run check` runs the same three stages as CI, so a green local run means a green pipeline. The `CI / Lint, test and startup checks` job is a required status check; keep it passing on the latest push.
+`npm run check` runs the same three stages as CI, so a green local run means a green pipeline. The `Lint, test and startup checks` job is a required status check; keep it passing on the latest push.
 
-CI needs no repository secrets: it uses placeholder environment values and a MongoDB service container. Tests that need a database use `TEST_MONGO_URI`, which must point at a database whose name contains `test`; the suite refuses to connect to anything else.
+CI needs no repository secrets: it uses placeholder environment values and a MongoDB service container. Tests that need a database use `TEST_MONGO_URI`, which must point at a database whose name contains `test`; the suite refuses to connect to anything else. Every test process works in its own disposable database derived from that name, so parallel test files stay isolated.
 
 ## Testing
 
