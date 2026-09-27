@@ -15,9 +15,6 @@ router.post('/addProduct',cart.postAddProductToCart)
 
 router.post('/remove-item', cart.postRemoveItemFromCartHandler)
 
-router.post('/update-total', cart.postUpdateTotal)
-
-
 
 
 export default router

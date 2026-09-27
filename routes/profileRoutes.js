@@ -13,6 +13,7 @@ router.post('/add-address', profile.postAddAddress)
 router.get('/edit-address/:id', profile.getEditAddress);
 router.post('/edit-address/:id', profile.postEditAddress);
 router.post('/delete-address/:id', profile.postDeleteAddress);
+router.post('/set-default-address/:id', profile.postSetDefaultAddress);
 router.get('/change-password', profile.getChangePassword);
 router.post('/change-password', profile.postChangePassword);
 

@@ -1,8 +1,8 @@
 import Cart from '../models/cart.models.js';
-import Offer from '../models/offers.models.js';
 import User from '../models/users.models.js';
 import Coupon from '../models/couponSchema.models.js';
 import { clearSessionCookie } from '../utils/session.js';
+import { refreshCartTotals } from '../utils/cart-totals.js';
 function isUser(req, res, next) {
   if (req.session.user) {
     next()
@@ -73,64 +73,23 @@ const checkForProductStockBeforeCheckout = async (req, res, next) => {
 
 const updateOfferDiscountInCart = async (req, res, next) => {
   try {
-    let user = req.session.user;
-    if(!user){
+    const userId = req.session?.user?.id;
+    if (!userId) {
       return res.status(400).redirect('/user/login');
     }
-    let cart = await Cart.findOne({ user: user.id }).populate('items.product');
+    let cart = await Cart.findOne({ user: userId }).populate('items.product');
     if (!cart) {
-      cart = new Cart({ items: [], user: req.session.user?.id });
+      cart = new Cart({ items: [], user: userId });
     }
 
-    cart.offerDiscount = 0;
-    cart.subtotal = 0;
-    cart.discount = 0;
-
-    if (cart.items.length > 0) {
-      for (const item of cart.items) {
-        const product = item.product;
-        const offers = await Offer.find({
-          $or: [
-            { applicableProducts: product._id },
-            { applicableCategories: product.category }
-          ]
-        });
-
-        const offerDiscountPerUnit = offers.reduce((acc, curr) => {
-          return acc + (curr.offerPercentage ? (product.price * curr.offerPercentage) / 100 : 0);
-        }, 0);
-
-        const totalItemOfferDiscount = offerDiscountPerUnit * item.quantity;
-        item.offerDiscount = totalItemOfferDiscount;
-        cart.offerDiscount += totalItemOfferDiscount;
-
-        const itemSubtotal = product.price * item.quantity;
-        cart.subtotal += itemSubtotal;
-
-        // Update discount based on product's discount
-        const productDiscount = (product.price * item.quantity * product.discount) / 100;
-        cart.discount += productDiscount;
-      }
-    }
-    
-    cart.total = (cart.subtotal - cart.discount - cart.offerDiscount - cart.couponDiscount).toFixed(2);
-
-    // Apply cutoff logic
-    const cutoffAmount = cart.subtotal * 0.20;
-    if (cart.total < cutoffAmount) {
-      cart.cutoffAmount = cutoffAmount - cart.total;
-      cart.total = cutoffAmount.toFixed(2);
-    } else {
-      cart.cutoffAmount = 0;
-    }
-    await cart.save();
+    // The totals of a cart are only ever derived here, so reads and mutations
+    // cannot drift apart.
+    await refreshCartTotals(cart);
     next();
   } catch (error) {
     console.error('Error updating offer discount in cart:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-  
-
 };
 
 const updateCouponDiscountInCheckout = async (req, res, next) => {
