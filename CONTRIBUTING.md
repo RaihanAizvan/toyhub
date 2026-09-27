@@ -13,6 +13,21 @@ We welcome pull requests! Here are some guidelines for submitting PRs:
 3. Include relevant tests for new functionality or bug fixes.
 4. Follow our code style guidelines (see below).
 
+### Before you open a pull request
+
+```bash
+npm ci
+npm run check   # lint + tests + startup smoke check
+```
+
+`npm run check` runs the same three stages as CI, so a green local run means a green pipeline. The `CI / Lint, test and startup checks` job is a required status check; keep it passing on the latest push.
+
+CI needs no repository secrets: it uses placeholder environment values and a MongoDB service container. Tests that need a database use `TEST_MONGO_URI`, which must point at a database whose name contains `test`; the suite refuses to connect to anything else.
+
+## Testing
+
+Tests use the built-in `node:test` runner and live in `test/*.test.js`. Put reusable data in `test/helpers/fixtures.js` instead of duplicating setup, and reuse `test/helpers/test-env.js` when a test needs the application environment. Add a test for every bug fix and every security change.
+
 ## Improving Documentation
 
 If you notice any errors, typos, or areas that could be better explained in our documentation, feel free to submit a pull request with your improvements. Documentation contributions are highly valued!

@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, test and startup checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      MONGO_URI: mongodb://127.0.0.1:27017/toyhub-test
+      TEST_MONGO_URI: mongodb://127.0.0.1:27017/toyhub-test
+      SESSION_SECRET: ci-session-secret-not-used-in-production-0123456789
+      CLIENT_ID: ci-google-client-id
+      CLIENT_SECRET: ci-google-client-secret
+      CALLBACK_URL: http://localhost:3000/auth/google/callback
+      MAIL_USER: ci-mail-user@example.invalid
+      MAIL_PASSWORD: ci-mail-password
+      MAIL_FROM: ci-mail-user@example.invalid
+      CLOUDINARY_CLOUD_NAME: ci-cloud
+      CLOUDINARY_API_KEY: ci-cloudinary-key
+      CLOUDINARY_API_SECRET: ci-cloudinary-secret
+      RAZOR_KEY_ID: ci-razor-key-id
+      RAZOR_SECRET_ID: ci-razor-secret-id
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Show the declared runtime
+        run: node -p "JSON.stringify(require('./package.json').engines)"
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Confirm the bcrypt native binding was built
+        run: |
+          node scripts/check-native-deps.js
+          node -e "require('bcrypt').hash('ci',4).then(h=>console.log('bcrypt ok', h.slice(0,7)))"
+
+      - name: Static checks
+        run: npm run lint
+
+      - name: Automated tests
+        run: npm test
+
+      - name: Startup smoke check
+        run: npm run smoke
+
+      - name: Confirm no unreviewed install scripts were approved
+        run: |
+          node -e "const p=require('./package.json'); const approved=Object.entries(p.allowScripts||{}).filter(([,v])=>v===true).map(([k])=>k); console.log('approved install scripts:', approved.join(', ')||'none')"
+
+      - name: Upload CI logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: |
+            npm-debug.log*
+          retention-days: 7
+          if-no-files-found: ignore
