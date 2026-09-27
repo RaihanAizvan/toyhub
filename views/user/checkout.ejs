@@ -146,6 +146,12 @@
                         <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                             <% if (cart && cart.items && cart.items.length > 0) { %>
                                 <% cart.items.forEach(item => { %>
+                                    <% if (!item.product) { %>
+                                        <%# A product that was taken off the shelf is named, not read %>
+                                        <div class="flex justify-between items-center p-3 rounded-lg bg-red-50 border border-red-100">
+                                            <p class="text-red-700 text-sm">This product is no longer available. Please remove it from your cart.</p>
+                                        </div>
+                                    <% } else { %>
                                     <div class="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                                         <div class="flex items-center space-x-4">
                                             <div class="relative w-16 h-16">
@@ -163,6 +169,7 @@
                                         </div>
                                         <p class="font-semibold text-gray-800">₹<%= (item.quantity * item.price).toFixed(2) %></p>
                                     </div>
+                                    <% } %>
                                 <% }) %>
                             <% } else { %>
                                 <div class="text-center py-8">
@@ -236,6 +243,39 @@
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         
         <script>
+            // Every attempt to check out on this page carries the same key, so
+            // a double click, a retry or a repeat of the response cannot become
+            // a second order. It changes with the page, because it stands for
+            // the cart the shopper agreed to.
+            const checkoutKey = (window.crypto && window.crypto.randomUUID)
+                ? window.crypto.randomUUID()
+                : `key-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+            // The server prices the cart again on every attempt. When the price
+            // it arrived at is not the price that was on screen, nothing is
+            // ordered: the page is loaded again so the new total is the one the
+            // shopper confirms.
+            function reportCheckoutError(error) {
+                const data = error?.response?.data;
+
+                if (data?.totalChanged) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'The total changed',
+                        text: `The cart now comes to \u20b9${Number(data.totalAmount).toFixed(2)}. Please check it and pay again.`,
+                        showConfirmButton: true,
+                    }).then(() => window.location.reload());
+                    return;
+                }
+
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'The order was not placed',
+                    text: data?.message || 'The checkout could not be completed. Please try again.',
+                    showConfirmButton: true,
+                });
+            }
+
             // Apply Coupon Feedback
             async function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value;
@@ -248,13 +288,13 @@
                     return;
                 }
 
-                const totalAmount = document.getElementById('totalAmount').value;
-
                 try {
-                    const response = await axios.post('/checkout/apply-coupon', { couponCode, totalAmount });
+                    // No amount is sent with a coupon: the shop prices the cart
+                    // and answers with the numbers to show.
+                    const response = await axios.post('/checkout/apply-coupon', { couponCode });
                     if (response.data.success) {
-                        const { discountAmount, discountedTotal } = response.data;
-                        updateCouponSuccess(discountAmount, discountedTotal);
+                        const { discountAmount, totalAmount } = response.data;
+                        updateCouponSuccess(discountAmount, totalAmount);
                         disableCouponInputs();
                         sessionStorage.setItem('appliedCoupon', couponCode); // Store coupon in session storage
                     } else {
@@ -404,7 +444,10 @@
                     axios.post("/checkout/create-razorpay-order", {
                         selectedAddress: addressId,
                         paymentMethod: payment,
-                        couponCode: document.getElementById('couponCode').value,
+                        checkoutKey: checkoutKey,
+                        // Only the total that was on screen, so the server can
+                        // tell whether the cart still costs that much. It is
+                        // never the amount that is charged.
                         totalAmount: document.getElementById('totalAmount').value
                     })
                     .then((response) => {
@@ -441,11 +484,7 @@
                                     })
                                     .catch((error) => {
                                         console.error("Error verifying payment:", error);
-                                        Swal.fire({
-                                            icon: "error",
-                                            text: "Payment verification failed. Please contact support.",
-                                            showConfirmButton: true,
-                                        });
+                                        reportCheckoutError(error);
                                     });
                                 },
                                 prefill: {
@@ -469,12 +508,13 @@
                                     showConfirmButton: true,
                                 });
 
-                                // Notify backend of payment failure
+                                // Tell the shop the attempt is over, so the
+                                // stock that was held for it goes back
                                 axios.post("/checkout", {
                                     selectedAddress: addressId,
                                     paymentMethod: payment,
-                                    couponCode: document.getElementById('couponCode').value,
-                                    paid: false,
+                                    checkoutKey: checkoutKey,
+                                    paymentFailed: true,
                                 })
                                 .then((response) => {
                                     if (response.status === 200) {
@@ -524,11 +564,7 @@
                                 })
                                 .catch((error) => {
                                     console.error("Error during order processing:", error);
-                                    Swal.fire({
-                                        text: error.response?.data?.message || "Error while processing order. Please try again.",
-                                        title: "Error",
-                                        icon: "error",
-                                    });
+                                    reportCheckoutError(error);
                                 });
                             });
 
@@ -537,11 +573,7 @@
                     })
                     .catch((error) => {
                         console.error("Error creating Razorpay order:", error);
-                        Swal.fire({
-                            icon: "error",
-                            text: "An error occurred while processing the payment. Please try again later.",
-                            showConfirmButton: true,
-                        });
+                        reportCheckoutError(error);
                     });
                 }
                  else if (payment === "cod") {
@@ -557,8 +589,8 @@
                     axios.post("/checkout", {
                         selectedAddress: addressId,
                         paymentMethod: payment,
-                        couponCode: document.getElementById('couponCode').value,
-                        paid:false  
+                        checkoutKey: checkoutKey,
+                        totalAmount: document.getElementById('totalAmount').value
                     })
                         .then((response) => {
                             console.log("checkout response", response);
@@ -591,8 +623,8 @@
                     axios.post("/checkout/wallet", {
                         selectedAddress: addressId,
                         paymentMethod: payment,
-                        couponCode: document.getElementById('couponCode').value || null,
-                        totalAmount: document.getElementById('totalAmount').value || 0
+                        checkoutKey: checkoutKey,
+                        totalAmount: document.getElementById('totalAmount').value
                     })
                         .then((response) => {
                             if (response.status === 200) {
@@ -614,11 +646,7 @@
                         })
                         .catch((error) => {
                             console.error("Error during wallet checkout:", error);
-                            Swal.fire({
-                                text: error.response.data.message || "Error while placing order. Please try again",
-                                title: "Error",
-                                icon: "error",
-                            });
+                            reportCheckoutError(error);
                         });
                 }
             });

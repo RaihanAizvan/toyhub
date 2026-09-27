@@ -59,16 +59,38 @@ const redirectToLoginIfNotAUser = (req, res, next) => {
 
 
 
+// Only the checkout page is turned away, and only when a line really cannot be
+// bought. A line whose product is gone is not a reason to read a property of
+// nothing, which used to answer every checkout with a server error, and the
+// order handlers do not need this at all: they price the cart themselves and
+// say what is wrong with it in the response.
 const checkForProductStockBeforeCheckout = async (req, res, next) => {
-  let user = req.session.user;
-  if(!user){
-    return res.status(400).redirect('/user/login');
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return next();
   }
-  const cart = await Cart.findOne({ user: user.id }).populate('items.product');
-  if (cart && cart.items.some(item => item.product.stock <= 0)) {
-    return res.status(400).redirect('/cart');
+
+  const userId = req.session?.user?.id;
+  if (!userId) {
+    return res.status(403).redirect('/user/login');
   }
-  next();
+
+  try {
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    const unbuyable = cart?.items.some(
+      (item) => !item.product || item.product.stock < 1,
+    );
+
+    if (unbuyable) {
+      return res.status(400).redirect('/cart');
+    }
+
+    next();
+  } catch (error) {
+    // A cart that cannot be read must not keep the shopper off the page: the
+    // page and the handlers both report what is actually wrong.
+    console.error('Error checking cart before checkout:', error);
+    next();
+  }
 }
 
 const updateOfferDiscountInCart = async (req, res, next) => {
@@ -92,34 +114,30 @@ const updateOfferDiscountInCart = async (req, res, next) => {
   }
 };
 
+// The coupon that applies is the one on the cart, put there by the shopper
+// asking for it. A code arriving with this request is not applied here, and the
+// total is left to refreshCartTotals, which is the only place that derives one.
 const updateCouponDiscountInCheckout = async (req, res, next) => {
   try {
-    let cart = await Cart.findOne({ user: req.session.user.id });
-    if (!cart) {
-      return res.status(400).json({ message: 'Cart not found' });
+    const userId = req.session?.user?.id;
+    if (!userId) {
+      return res.status(403).redirect('/user/login');
     }
 
-    // Store the original total before applying any coupon
-    const originalTotal = cart.subtotal - cart.discount - cart.offerDiscount - cart.couponDiscount;
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    if (!cart) {
+      return next();
+    }
 
-    // Apply coupon discount if available
-    let couponDiscount = 0;
-    if (req.body.couponCode) {
-      const coupon = await Coupon.findOne({ couponCode: req.body.couponCode });
-      if (coupon && !coupon.isBlocked && coupon.usageLimit > 0) {
-        if (coupon.discountType === 'percentage') {
-          couponDiscount = (originalTotal * coupon.discount) / 100;
-        } else if (coupon.discountType === 'fixed') {
-          couponDiscount = coupon.discount;
-        }
+    if (cart.appliedCoupon) {
+      const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon });
+      if (!coupon || coupon.isBlocked || coupon.usageLimit <= 0) {
+        cart.appliedCoupon = null;
+        cart.couponDiscount = 0;
       }
     }
 
-    // Calculate the total after applying the coupon discount and cutoff amount
-    const totalAfterDiscount = originalTotal - couponDiscount;
-    cart.total = (totalAfterDiscount + cart.cutoffAmount).toFixed(2);
-
-    await cart.save();
+    await refreshCartTotals(cart);
     next();
   } catch (error) {
     console.error('Error updating coupon discount in checkout:', error);
