@@ -1,51 +1,57 @@
-import bcrypt from "bcrypt";
-import AdminUser from "../../models/admin.models.js";
+import AdminUser, { ADMIN_ROLES } from "../../models/admin.models.js";
 import { readEnv } from "../../utils/config.js";
+import {
+  burnPasswordCompare,
+  hashPassword,
+  isBcryptHash,
+  verifyPassword,
+} from "../../utils/auth-tokens.js";
 import { clearSessionCookie, regenerateSession } from "../../utils/session.js";
 
-const isBcryptHash = (value) =>
-  typeof value === "string" && /^\$2[aby]\$\d{2}\$/.test(value);
+const GENERIC_LOGIN_ERROR = "Invalid email or password";
 
-const getBootstrapAdmin = async (email) => {
-  const bootstrapEmail = readEnv("ADMIN_EMAIL").toLowerCase();
-  const bootstrapPassword = readEnv("ADMIN_PASSWORD");
+const normalizeEmail = (value) =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
 
-  if (!bootstrapEmail || !bootstrapPassword || bootstrapEmail !== email) {
+export const isAdminAccount = (admin) =>
+  Boolean(admin && admin.isActive && ADMIN_ROLES.includes(admin.role));
+
+export const ensureBootstrapAdmin = async () => {
+  const email = normalizeEmail(readEnv("ADMIN_EMAIL"));
+  const password = readEnv("ADMIN_PASSWORD");
+
+  if (!email || !password) {
     return null;
   }
 
-  const existingAdmin = await AdminUser.findOne({ email: bootstrapEmail });
+  const existingAdmin = await AdminUser.findOne({ email });
   if (existingAdmin) {
     if (!isBcryptHash(existingAdmin.password)) {
-      existingAdmin.password = await bcrypt.hash(bootstrapPassword, 12);
+      existingAdmin.password = await hashPassword(password);
       await existingAdmin.save();
     }
     return existingAdmin;
   }
 
   const admin = new AdminUser({
-    email: bootstrapEmail,
-    password: await bcrypt.hash(bootstrapPassword, 12),
+    email,
+    password: await hashPassword(password),
     role: "superadmin",
+    isActive: true,
   });
   await admin.save();
   return admin;
-};
-
-const findAdmin = async (email) => {
-  const admin = await AdminUser.findOne({ email });
-  return admin || getBootstrapAdmin(email);
 };
 
 const renderLoginError = (res) => {
   res.set("Cache-Control", "no-store");
   return res
     .status(401)
-    .render("admin/adminLogin", { error: "Invalid email or password" });
+    .render("admin/adminLogin", { error: GENERIC_LOGIN_ERROR });
 };
 
 export function getLogin(req, res) {
-  if (req.session.sAdminEmail) {
+  if (req.session?.sAdminEmail) {
     return res.redirect("/admin");
   }
   res.set("Cache-Control", "no-store");
@@ -53,27 +59,30 @@ export function getLogin(req, res) {
 }
 
 export async function postLogin(req, res) {
-  const email =
-    typeof req.body.email === "string"
-      ? req.body.email.trim().toLowerCase()
-      : "";
-  const password =
-    typeof req.body.password === "string" ? req.body.password : "";
+  const email = normalizeEmail(req.body?.email);
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
 
   if (!email || !password) {
+    await burnPasswordCompare(password);
     return renderLoginError(res);
   }
 
   try {
-    const admin = await findAdmin(email);
-    if (!admin || !isBcryptHash(admin.password)) {
+    const admin = await AdminUser.findOne({ email });
+    const storedHash = isBcryptHash(admin?.password) ? admin.password : null;
+
+    // Always run a comparison so a missing account, a non-admin role and a
+    // wrong password take the same amount of time and return the same message.
+    const isValid = storedHash
+      ? await verifyPassword(password, storedHash)
+      : await burnPasswordCompare(password);
+
+    if (!isValid || !isAdminAccount(admin)) {
       return renderLoginError(res);
     }
 
-    const isValid = await bcrypt.compare(password, admin.password);
-    if (!isValid) {
-      return renderLoginError(res);
-    }
+    admin.lastLogin = new Date();
+    await admin.save();
 
     await regenerateSession(req);
     req.session.sAdminEmail = admin.email;
@@ -95,6 +104,7 @@ export function postLogout(req, res) {
 }
 
 export default {
+  ensureBootstrapAdmin,
   getLogin,
   postLogin,
   postLogout,

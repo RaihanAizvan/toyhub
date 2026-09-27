@@ -6,6 +6,12 @@
 
         <!-- Profile Content -->
         <div class="flex-1 p-4 mt-48 md:mt-0">
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-6" role="alert">
+                <%= error %>
+            </div>
+            <% } %>
+
             <!-- Personal Information Header -->
             <div class="bg-white rounded-xl p-6 shadow-lg mb-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-6">
@@ -55,6 +61,13 @@
                                 <input type="text" name="phone" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="9876543210" oninput="validatePhone()">
                                 <p class="error text-red-500 text-sm" id="phoneError"></p>
                             </div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-700 font-medium">Use as default</label>
+                                <label class="flex items-center gap-2 text-gray-600">
+                                    <input type="checkbox" name="isDefault" value="true" class="rounded border-gray-300 text-primary focus:ring-primary/20">
+                                    <span class="text-sm">Deliver here first at checkout</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="flex justify-end mt-6">
                             <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200">Save Address</button>
@@ -64,13 +77,18 @@
 
                 <!-- Existing Address List -->
                 <div class="mt-8">
-                    <% if (user.addresses && user.addresses.length > 0) { %> 
+                    <% if (addresses && addresses.length > 0) { %>
                         <div class="grid md:grid-cols-2 gap-6">
-                        <% user.addresses.forEach(address => { %> 
+                        <% addresses.forEach(address => { %>
                             <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all duration-200">
                                 <div class="flex justify-between">
                                     <div class="space-y-2">
-                                        <h3 class="font-semibold text-gray-800 text-lg"><%= address.name %></h3>
+                                        <h3 class="font-semibold text-gray-800 text-lg">
+                                            <%= address.name %>
+                                            <% if (address.isDefault) { %>
+                                                <span class="align-middle text-xs font-medium text-green-700 bg-green-100 rounded-full px-2 py-0.5">Default</span>
+                                            <% } %>
+                                        </h3>
                                         <p class="text-gray-600"><%= address.street %></p>
                                         <p class="text-gray-600"><%= address.city %>, <%= address.state %> <%= address.zip %></p>
                                         <p class="text-gray-600 flex items-center gap-2">
@@ -80,7 +98,16 @@
                                             <%= address.phone %>
                                         </p>
                                     </div>
-                                    <div class="flex gap-4">
+                                    <div class="flex items-start gap-4">
+                                        <% if (!address.isDefault) { %>
+                                        <form action="/account/set-default-address/<%= address._id %>" method="POST">
+                                            <button type="submit" title="Set as default address" class="text-gray-400 hover:text-green-600 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M16.7 3.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 8.7a1 1 0 111.4-1.4l3.8 3.8 6.8-6.8a1 1 0 010-1.4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <% } %>
                                         <a href="/account/edit-address/<%= address._id %>" class="text-primary hover:text-primary/80 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />

@@ -18,7 +18,9 @@ import checkoutRoutes from "./routes/checkoutRoute.js"
 import connectDB from "./models/main.models.js";
 import * as landingRoute from "./controllers/userController.js";
 import { assertRequiredEnv } from "./utils/config.js";
+import { ensureBootstrapAdmin } from "./controllers/adminModules/login.js";
 import { createSessionMiddleware, resolveSessionSettings } from "./utils/session.js";
+import { exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "./utils/csrf.js";
 
 
 
@@ -33,7 +35,11 @@ const sessionSettings = resolveSessionSettings();
 const app = express();
 
 // Connect to the database 
-connectDB();
+connectDB()
+  .then(ensureBootstrapAdmin)
+  .catch((error) => {
+    console.error("Admin bootstrap failed:", error.message);
+  });
 
 // Trust the first reverse proxy hop so Secure cookies work behind a load balancer
 if (sessionSettings.trustProxy !== false) {
@@ -60,6 +66,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
 
+// The layout injects the session token into every server rendered form
+app.locals.injectCsrfFields = injectCsrfFields;
+
 app.use(morgan('dev'))
 
 //middlware to Send the Toast Information to the Client: Use a middleware to pass the session data to the EJS template.
@@ -82,6 +91,11 @@ app.use((req, res, next) => {
 //layouts
 app.use(expressLayouts);
 app.set('layout', './layouts/layout')
+
+// CSRF: publish the session token, then require it for every state changing request.
+// Registered after the layout so a blocked request can still render the 403 page.
+app.use(exposeCsrfToken);
+app.use(verifyCsrfRequest);
 
 // Set the 'views' directory and view engine
 app.set("views", path.join(__dirname, "views"));
