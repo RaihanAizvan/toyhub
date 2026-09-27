@@ -164,7 +164,7 @@ async function postSignup(req, res) {
             email: normalizedEmail,
             phone_number,
             password: await hashPassword(password, PASSWORD_SALT_ROUNDS),
-            walletBalance: 0
+
         });
         const otp = issueOtp(newUser);
         await newUser.save();

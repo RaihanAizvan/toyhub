@@ -2,8 +2,7 @@ import Cart from "../models/cart.models.js";
 import Coupon from "../models/couponSchema.models.js";
 import Order from "../models/orders.models.js";
 import Product from "../models/product.models.js";
-import User from "../models/users.models.js";
-import Wallet from "../models/wallets.models.js";
+import { debitWallet as debitWalletLedger } from "./wallet.js";
 import { refreshCartTotals } from "./cart-totals.js";
 
 // A checkout problem the shopper can act on. Anything that is not one of these
@@ -285,24 +284,28 @@ export const recordPurchaseOnUser = async (user, lines) => {
 };
 
 // A wallet is only debited when the balance is still there, so two checkouts at
-// the same time cannot spend the same money twice.
-export const debitWallet = async ({ user, amount, description }) => {
-  const wallet = await Wallet.findOneAndUpdate(
-    { user: user._id, balance: { $gte: amount } },
-    { $inc: { balance: -amount } },
-    { new: true },
-  );
-
-  if (!wallet) {
-    throw new CheckoutError(400, "Your wallet balance is too low for this order");
+// the same time cannot spend the same money twice, and the debit is a ledger
+// entry keyed by the order, so paying for one order twice is one debit.
+export const debitWallet = async ({ user, amount, description, orderId }) => {
+  if (!orderId) {
+    throw new CheckoutError(500, "The order could not be written before payment");
   }
 
-  wallet.transactions.push({ amount: -amount, description });
-  await wallet.save();
+  try {
+    const { wallet } = await debitWalletLedger({
+      userId: user._id,
+      amount,
+      reason: "order",
+      idempotencyKey: `order:${orderId}`,
+      reference: { order: orderId },
+      description,
+    });
 
-  const owner = await User.findById(user._id);
-  owner.walletBalance = Math.max((Number(owner.walletBalance) || 0) - amount, 0);
-  await owner.save();
-
-  return wallet;
+    return wallet;
+  } catch (error) {
+    if (error?.name === "WalletError") {
+      throw new CheckoutError(error.status, error.message);
+    }
+    throw error;
+  }
 };

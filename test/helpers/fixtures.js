@@ -59,7 +59,6 @@ export const buildUser = (overrides = {}) => ({
   isBlocked: false,
   totalProductsBuyed: 0,
   totalAmoutSpended: 0,
-  walletBalance: 0,
   ...overrides,
 });
 
@@ -255,17 +254,11 @@ export const buildPayment = (overrides = {}) => ({
   ...overrides,
 });
 
-export const buildWalletTransaction = (overrides = {}) => ({
-  amount: 100,
-  description: "Test wallet transaction",
-  date: new Date(),
-  ...overrides,
-});
-
+// A wallet holds the balance and nothing else, so a fixture cannot claim a
+// history that the ledger does not have.
 export const buildWallet = (overrides = {}) => ({
   user: objectId(),
   balance: 0,
-  transactions: [],
   ...overrides,
 });
 
@@ -326,7 +319,6 @@ export const fixtures = {
   buildOrder,
   createOrder,
   buildPayment,
-  buildWalletTransaction,
   buildWallet,
   createWallet,
   buildRating,

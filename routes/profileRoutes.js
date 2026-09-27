@@ -29,7 +29,10 @@ router.post('/wishlist/:id', profile.postWishlist);
 router.delete('/wishlist', profile.deleteWishlist);
 
 router.get('/wallet', profile.getWallet);
-router.post('/wallet/add-money', profile.postAddMoney);
+// Money is added by paying for a top up, never by asking for a balance.
+router.post('/wallet/top-up', profile.postCreateTopUp);
+router.post('/wallet/top-up/verify', profile.postVerifyTopUp);
+router.get('/wallet/reconciliation', profile.getWalletReconciliation);
 
 router.get('/reviews', profile.getReviews);
 

@@ -148,7 +148,9 @@ export const deleteWishlist = profile.deleteWishlist
 
 export const getWallet = profile.getWallet
 
-export const postAddMoney = profile.postAddMoney
+export const postCreateTopUp = profile.postCreateTopUp
+export const postVerifyTopUp = profile.postVerifyTopUp
+export const getWalletReconciliation = profile.getWalletReconciliation
 
 export const getReviews = profile.getReviews
 
