@@ -114,9 +114,9 @@ describe("shared fixtures", () => {
     assert.ok(payment.razorpayPaymentId.startsWith("pay_"));
     assert.equal(payment.paid, true);
 
-    const wallet = buildWallet({ balance: 250, transactions: [{ amount: 250 }] });
+    const wallet = buildWallet({ balance: 250 });
     assert.equal(wallet.balance, 250);
-    assert.equal(wallet.transactions.length, 1);
+    assert.equal("transactions" in wallet, false);
   });
 
   it("hashes fixture passwords instead of storing plaintext", async () => {

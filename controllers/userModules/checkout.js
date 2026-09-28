@@ -19,9 +19,12 @@ import {
 } from "../../utils/checkout.js";
 import {
     createGatewayOrder,
+    fetchGatewayPayment,
     isValidSignature,
+    paymentMatches,
     toPaise,
 } from "../../utils/razorpay.js";
+import { creditWallet } from "../../utils/wallet.js";
 import { isObjectId } from "../../utils/ownership.js";
 
 // Retry and success pages are order reads like any other, so they only ever
@@ -336,6 +339,42 @@ const createRazorPayOrder = async (req, res) => {
     }
 };
 
+// A signature says the request was not altered on the way here. It does not say
+// the payment happened, so the gateway is asked what happened to it, and the
+// answer has to be that it settled, for this order, for this amount, in this
+// currency. A payment the gateway does not know is not a payment.
+const confirmPaymentWithGateway = async ({ order, paymentId }) => {
+    let payment;
+
+    try {
+        payment = await fetchGatewayPayment(paymentId);
+    } catch (error) {
+        console.error('Could not read the payment from the gateway:', error);
+        return {
+            ok: false,
+            status: 502,
+            message: 'The payment could not be confirmed. Please try again.',
+        };
+    }
+
+    const matches = paymentMatches(payment, {
+        orderId: order.razorpayOrderId,
+        amount: order.razorpayAmount,
+        currency: 'INR',
+    });
+
+    if (!matches.ok) {
+        console.warn('The gateway payment did not match the order:', matches);
+        return {
+            ok: false,
+            status: 400,
+            message: 'Payment verification failed. Please contact support.',
+        };
+    }
+
+    return { ok: true, payment };
+};
+
 // The signature is only trusted once it is shown to belong to a gateway order
 // this account created, for the amount this order was written for. The stock
 // for the attempt was already taken when the gateway order was made, so nothing
@@ -398,6 +437,18 @@ const verifyPayment = async (req, res) => {
             });
         }
 
+        const confirmed = await confirmPaymentWithGateway({
+            order,
+            paymentId: razorpay_payment_id,
+        });
+
+        if (!confirmed.ok) {
+            return res.status(confirmed.status).json({
+                success: false,
+                message: confirmed.message,
+            });
+        }
+
         order.razorpayPaymentId = String(razorpay_payment_id);
         order.paid = true;
         await order.save();
@@ -426,6 +477,7 @@ const postWalletPayment = async (req, res) => {
     const { selectedAddress, checkoutKey, totalAmount } = req.body;
     let reserved = null;
     let debited = 0;
+    let order = null;
 
     try {
         const user = await User.findById(userId);
@@ -448,27 +500,16 @@ const postWalletPayment = async (req, res) => {
 
         reserved = await reserveStock(lines);
 
-        try {
-            await debitWallet({
-                user,
-                amount: serverTotal,
-                description: 'Order payment',
-            });
-            debited = serverTotal;
-        } catch (error) {
-            await releaseStock(reserved);
-            reserved = null;
-            throw error;
-        }
-
-        const order = new Order(buildOrder({
+        // The order is written first, because the debit is keyed by the order
+        // and a request that repeats this one finds the order it already made
+        // and spends nothing.
+        order = new Order(buildOrder({
             user,
             cart,
             lines,
             address,
             paymentMethod: 'wallet',
-            // A wallet order is paid by the debit that just went through.
-            paid: true,
+            paid: false,
             checkoutKey,
         }));
 
@@ -479,11 +520,7 @@ const postWalletPayment = async (req, res) => {
                 const winner = await findOrderByCheckoutKey(userId, checkoutKey);
                 if (winner) {
                     // Another request with the same key already paid for this
-                    // order, so the money and the stock go back.
-                    await Wallet.updateOne(
-                        { user: userId },
-                        { $inc: { balance: debited } },
-                    );
+                    // order, so this one only gives the stock back.
                     await releaseStock(reserved);
                     reserved = null;
                     return res.status(200).json({
@@ -496,6 +533,26 @@ const postWalletPayment = async (req, res) => {
             }
             throw error;
         }
+
+        try {
+            await debitWallet({
+                user,
+                amount: serverTotal,
+                orderId: order._id,
+                description: 'Order payment',
+            });
+            debited = serverTotal;
+        } catch (error) {
+            // Nothing shipped and nothing was charged, so the order written for
+            // this attempt is taken back along with the stock.
+            await Order.deleteOne({ _id: order._id });
+            await releaseStock(reserved);
+            reserved = null;
+            throw error;
+        }
+
+        order.paid = true;
+        await order.save();
 
         await clearPurchasedCart(userId);
         await recordPurchaseOnUser(user, lines);
@@ -510,9 +567,16 @@ const postWalletPayment = async (req, res) => {
             await releaseStock(reserved);
         }
         if (debited) {
-            // Nothing shipped, so the money goes back to the wallet.
-            await Wallet.updateOne({ user: userId }, { $inc: { balance: debited } });
-            await User.updateOne({ _id: userId }, { $inc: { walletBalance: debited } });
+            // Nothing shipped, so the money goes back to the wallet. The key is
+            // the order, so this gives the money back once and never twice.
+            await creditWallet({
+                userId,
+                amount: debited,
+                reason: 'refund',
+                idempotencyKey: `refund:order:${order?._id}`,
+                reference: { order: order?._id },
+                description: 'Refund for an order that could not be placed',
+            });
         }
         return sendCheckoutError(res, error);
     }
@@ -644,6 +708,18 @@ const verifyRetryPayment = async (req, res) => {
             return res.status(409).json({
                 success: false,
                 message: 'The order total changed. Please start the payment again.',
+            });
+        }
+
+        const confirmed = await confirmPaymentWithGateway({
+            order,
+            paymentId: razorpay_payment_id,
+        });
+
+        if (!confirmed.ok) {
+            return res.status(confirmed.status).json({
+                success: false,
+                message: confirmed.message,
             });
         }
 

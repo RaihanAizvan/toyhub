@@ -52,6 +52,58 @@ export const createGatewayOrder = async ({ amount, receipt }) => {
   };
 };
 
+// A payment the gateway has actually taken, which is not the same thing as one
+// the browser says it made.
+const SETTLED = new Set(["captured", "authorized"]);
+
+// The payment is read back from the gateway rather than believed: its status,
+// its currency, what it was for and how much it was are all the gateway's own
+// answers to questions asked after the fact.
+export const fetchGatewayPayment = async (paymentId) => {
+  if (!paymentId) {
+    return null;
+  }
+
+  const client = clientFactory();
+  if (!client?.payments?.fetch) {
+    throw new Error("The payment gateway is not configured");
+  }
+
+  try {
+    const payment = await client.payments.fetch(paymentId);
+    return payment ?? null;
+  } catch (error) {
+    // A payment the gateway does not know about is not a payment.
+    if (error?.statusCode === 400 || error?.code === "BAD_REQUEST_ERROR") {
+      return null;
+    }
+    throw error;
+  }
+};
+
+export const isSettledPayment = (payment) => SETTLED.has(payment?.status);
+
+// Everything about a payment that has to line up with what the shop expected.
+export const paymentMatches = (payment, { orderId, amount, currency = "INR" }) => {
+  if (!isSettledPayment(payment)) {
+    return { ok: false, reason: "not_settled", status: payment?.status ?? null };
+  }
+
+  if (String(payment.order_id) !== String(orderId)) {
+    return { ok: false, reason: "wrong_order" };
+  }
+
+  if (Number(payment.amount) !== Number(amount)) {
+    return { ok: false, reason: "wrong_amount" };
+  }
+
+  if (String(payment.currency) !== String(currency)) {
+    return { ok: false, reason: "wrong_currency", currency: payment.currency };
+  }
+
+  return { ok: true };
+};
+
 // A signature is compared in constant time, and a missing part is a failure
 // rather than something to compare against.
 export const isValidSignature = ({ razorpayOrderId, razorpayPaymentId, signature }) => {

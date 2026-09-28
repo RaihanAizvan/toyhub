@@ -13,6 +13,7 @@ import Order from "../models/orders.models.js";
 import Product from "../models/product.models.js";
 import User from "../models/users.models.js";
 import Wallet from "../models/wallets.models.js";
+import WalletLedger from "../models/walletLedger.models.js";
 import { CSRF_HEADER_NAME, exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "../utils/csrf.js";
 import { resetRazorpayFactory, setRazorpayFactory } from "../utils/razorpay.js";
 import { applyTestEnv } from "./helpers/test-env.js";
@@ -183,8 +184,11 @@ const signatureFor = (razorpayOrderId, razorpayPaymentId) =>
     .digest("hex");
 
 // A gateway that answers without a network, and remembers what it was asked for.
-const useFakeGateway = ({ fails = false } = {}) => {
+// `payment` decides what it says about a payment that was made, so a test can
+// describe a payment that settled and a payment that did not.
+const useFakeGateway = ({ fails = false, payment } = {}) => {
   const calls = [];
+  const created = [];
   let sequence = 0;
 
   setRazorpayFactory(() => ({
@@ -195,11 +199,44 @@ const useFakeGateway = ({ fails = false } = {}) => {
           throw new Error("the gateway is not answering");
         }
         sequence += 1;
-        return { id: `order_fake_${sequence}`, amount: params.amount, currency: params.currency };
+        const order = { id: `order_fake_${sequence}`, amount: params.amount, currency: params.currency };
+        created.push(order);
+        return order;
+      },
+    },
+    payments: {
+      fetch: async (paymentId) => {
+        calls.fetches.push(paymentId);
+        if (fails) {
+          throw new Error("the gateway is not answering");
+        }
+
+        const last = created[created.length - 1];
+        const settled = {
+          id: paymentId,
+          order_id: last?.id,
+          amount: last?.amount,
+          currency: last?.currency ?? "INR",
+          status: "captured",
+        };
+
+        // A test can hand back a whole payment, a change to one, or nothing at
+        // all for a payment the gateway has never heard of.
+        if (typeof payment === "function") {
+          return payment({ paymentId, settled, last });
+        }
+        if (payment === null) {
+          return null;
+        }
+        if (payment) {
+          return { ...settled, ...payment };
+        }
+        return settled;
       },
     },
   }));
 
+  calls.fetches = [];
   return calls;
 };
 
@@ -477,7 +514,7 @@ describe("checkout", () => {
 
   itWhenReachable("a wallet is only spent when the balance is there, and the stock comes back", async () => {
     await withTestDatabase(async () => {
-      const user = await createUser({ walletBalance: 10 });
+      const user = await createUser();
       const product = await createProduct({ price: 500, discount: 0, stock: 10 });
       const address = await createAddress({ user: user._id, ...addressFields() });
       await cartFor(user, product, 2);
@@ -492,13 +529,13 @@ describe("checkout", () => {
       assert.equal(await Order.countDocuments({}), 0);
       assert.equal((await Product.findById(product._id)).stock, 10, "the stock is back");
       assert.equal((await Wallet.findById(wallet._id)).balance, 10, "no money left the wallet");
-      assert.equal((await User.findById(user._id)).walletBalance, 10);
+      assert.equal(await WalletLedger.countDocuments({ wallet: wallet._id }), 0, "nothing was recorded");
     });
   });
 
   itWhenReachable("a wallet checkout spends the money once", async () => {
     await withTestDatabase(async () => {
-      const user = await createUser({ walletBalance: 1000 });
+      const user = await createUser();
       const product = await createProduct({ price: 500, discount: 0, stock: 10 });
       const address = await createAddress({ user: user._id, ...addressFields() });
       await cartFor(user, product, 2);
@@ -517,7 +554,13 @@ describe("checkout", () => {
       const order = await Order.findById(first.data.orderId);
       assert.equal(order.paid, true, "the wallet paid for it");
       assert.equal((await Wallet.findById(wallet._id)).balance, 0, "the money left once");
-      assert.equal((await User.findById(user._id)).walletBalance, 0);
+      const debits = await WalletLedger.find({ wallet: wallet._id }).lean();
+      assert.equal(debits.length, 1, "the debit is in the ledger once");
+      assert.equal(debits[0].type, "debit");
+      assert.equal(debits[0].amount, 1000);
+      assert.equal(debits[0].status, "applied");
+      assert.equal(debits[0].balanceAfter, 0);
+      assert.equal(String(debits[0].reference.order), String(order._id));
       const after = await Product.findById(product._id);
       assert.equal(after.stock, 8);
       assert.equal(await Order.countDocuments({}), 1);
@@ -709,6 +752,205 @@ describe("checkout", () => {
     });
   });
 
+  itWhenReachable("a payment the gateway does not know about pays for nothing", async () => {
+    useFakeGateway({ payment: null });
+
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 2);
+
+      const started = await send(server, "/checkout/create-razorpay-order", {
+        as: user._id,
+        body: {
+          selectedAddress: String(address._id),
+          checkoutKey: "razor-unknown-payment",
+          totalAmount: "1000",
+        },
+      });
+      assert.equal(started.status, 200);
+
+      const payment = "pay_unknown";
+      const response = await send(server, "/checkout/verify-payment", {
+        as: user._id,
+        body: {
+          selectedAddress: String(address._id),
+          razorpay_order_id: started.data.orderId,
+          razorpay_payment_id: payment,
+          razorpay_signature: signatureFor(started.data.orderId, payment),
+        },
+      });
+
+      assert.equal(response.status, 400);
+      const order = await Order.findOne({ user: user._id });
+      assert.equal(order.paid, false, "a payment the gateway has never seen is not a payment");
+      assert.equal(order.razorpayPaymentId ?? null, null, "no payment was recorded");
+      assert.ok(await Cart.findOne({ user: user._id }), "the cart waits for a real payment");
+    });
+  });
+
+  itWhenReachable("a payment that did not settle pays for nothing", async () => {
+    for (const status of ["created", "attempted", "failed"]) {
+      useFakeGateway({ payment: { status } });
+
+      await withTestDatabase(async () => {
+        const user = await createUser();
+        const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+        const address = await createAddress({ user: user._id, ...addressFields() });
+        await cartFor(user, product, 2);
+
+        const started = await send(server, "/checkout/create-razorpay-order", {
+          as: user._id,
+          body: {
+            selectedAddress: String(address._id),
+            checkoutKey: `razor-${status}`,
+            totalAmount: "1000",
+          },
+        });
+        assert.equal(started.status, 200);
+
+        const payment = `pay_${status}`;
+        const response = await send(server, "/checkout/verify-payment", {
+          as: user._id,
+          body: {
+            selectedAddress: String(address._id),
+            razorpay_order_id: started.data.orderId,
+            razorpay_payment_id: payment,
+            razorpay_signature: signatureFor(started.data.orderId, payment),
+          },
+        });
+
+        assert.equal(response.status, 400, `${status} is not a payment that settled`);
+        assert.equal((await Order.findOne({ user: user._id })).paid, false);
+      });
+    }
+  });
+
+  itWhenReachable("a payment for a different amount, order or currency pays for nothing", async () => {
+    const cases = [
+      { name: "amount", payment: { amount: 1 } },
+      { name: "order", payment: { order_id: "order_somebody_elses" } },
+      { name: "currency", payment: { currency: "USD" } },
+    ];
+
+    for (const { name, payment } of cases) {
+      useFakeGateway({ payment });
+
+      await withTestDatabase(async () => {
+        const user = await createUser();
+        const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+        const address = await createAddress({ user: user._id, ...addressFields() });
+        await cartFor(user, product, 2);
+
+        const started = await send(server, "/checkout/create-razorpay-order", {
+          as: user._id,
+          body: {
+            selectedAddress: String(address._id),
+            checkoutKey: `razor-wrong-${name}`,
+            totalAmount: "1000",
+          },
+        });
+        assert.equal(started.status, 200);
+
+        const paymentId = `pay_wrong_${name}`;
+        const response = await send(server, "/checkout/verify-payment", {
+          as: user._id,
+          body: {
+            selectedAddress: String(address._id),
+            razorpay_order_id: started.data.orderId,
+            razorpay_payment_id: paymentId,
+            razorpay_signature: signatureFor(started.data.orderId, paymentId),
+          },
+        });
+
+        assert.equal(response.status, 400, `a payment with the wrong ${name} is not accepted`);
+        assert.equal((await Order.findOne({ user: user._id })).paid, false);
+      });
+    }
+  });
+
+  itWhenReachable("a gateway that cannot be asked leaves the order unpaid", async () => {
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 2);
+
+      const gateway = useFakeGateway();
+      const started = await send(server, "/checkout/create-razorpay-order", {
+        as: user._id,
+        body: {
+          selectedAddress: String(address._id),
+          checkoutKey: "razor-gateway-down",
+          totalAmount: "1000",
+        },
+      });
+      assert.equal(started.status, 200);
+
+      // The payment is made, and then the gateway stops answering.
+      setRazorpayFactory(() => ({
+        payments: {
+          fetch: async () => {
+            throw new Error("the gateway is not answering");
+          },
+        },
+      }));
+
+      const payment = "pay_gateway_down";
+      const response = await send(server, "/checkout/verify-payment", {
+        as: user._id,
+        body: {
+          selectedAddress: String(address._id),
+          razorpay_order_id: started.data.orderId,
+          razorpay_payment_id: payment,
+          razorpay_signature: signatureFor(started.data.orderId, payment),
+        },
+      });
+
+      assert.equal(response.status, 502, "the shop says it could not confirm the payment");
+      assert.equal((await Order.findOne({ user: user._id })).paid, false, "nothing was shipped");
+      assert.ok(await Cart.findOne({ user: user._id }), "the cart is kept");
+      assert.ok(gateway.fetches.length === 0, "the fake was never asked");
+    });
+  });
+
+  itWhenReachable("a retry payment is also checked against the gateway", async () => {
+    useFakeGateway({ payment: { status: "failed" } });
+
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 1);
+
+      const started = await send(server, "/checkout/create-razorpay-order", {
+        as: user._id,
+        body: {
+          selectedAddress: String(address._id),
+          checkoutKey: "razor-retry-failed",
+          totalAmount: "500",
+        },
+      });
+      assert.equal(started.status, 200);
+
+      const order = await Order.findOne({ user: user._id });
+      const payment = "pay_retry_failed";
+      const response = await send(server, "/checkout/verify-retry-payment", {
+        as: user._id,
+        body: {
+          orderId: String(order._id),
+          razorpay_order_id: started.data.orderId,
+          razorpay_payment_id: payment,
+          razorpay_signature: signatureFor(started.data.orderId, payment),
+        },
+      });
+
+      assert.equal(response.status, 400);
+      assert.equal((await Order.findById(order._id)).paid, false, "a failed payment is not a payment");
+    });
+  });
+
   itWhenReachable("a gateway that will not answer leaves no order and no stock taken", async () => {
     useFakeGateway({ fails: true });
 
@@ -869,7 +1111,7 @@ describe("checkout", () => {
 
   itWhenReachable("a wallet order cannot be written through the ordinary checkout", async () => {
     await withTestDatabase(async () => {
-      const user = await createUser({ walletBalance: 5000 });
+      const user = await createUser();
       const product = await createProduct({ price: 500, discount: 0, stock: 10 });
       const address = await createAddress({ user: user._id, ...addressFields() });
       await cartFor(user, product, 1);

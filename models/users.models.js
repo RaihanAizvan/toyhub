@@ -98,10 +98,6 @@ const UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Wallet'  // Reference to Wallet
   },
-  walletBalance: {
-    type: Number,
-    default: 0
-  },
   coupons: [{
     type: Schema.Types.ObjectId,
     ref: 'Coupon'

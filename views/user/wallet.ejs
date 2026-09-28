@@ -73,7 +73,7 @@
           <!-- Card Number -->
           <div class="absolute top-20 left-6 right-6">
             <p class="text-gray-400 text-xs mb-1">Card Balance</p>
-            <h2 class="text-3xl font-bold font-mono tracking-wider">₹<%= user?.walletBalance?.toFixed(2) || '0.00' %></h2>
+            <h2 class="text-3xl font-bold font-mono tracking-wider" id="wallet-balance">₹<%= Number(balance || 0).toFixed(2) %></h2>
           </div>
 
           <!-- Card Holder -->
@@ -102,14 +102,15 @@
         <div id="add-money-form" style="display: none;" class="bg-gray-50 rounded-xl p-6 mb-8 transition-all duration-300">
           <div class="flex flex-col items-center">
             <label for="amount" class="text-lg font-medium text-gray-700 mb-3">Enter Amount to Add</label>
+            <p class="text-sm text-gray-500 mb-3">You pay this amount with a card. Nothing is added until the payment is confirmed.</p>
             <div class="relative w-full max-w-xs">
               <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
               <input type="number" id="amount" name="amount" 
                      class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
-                     placeholder="Enter amount" min="1" max="10000" required>
-              <p class="text-sm text-gray-500 mt-2">Min: ₹1 | Max: ₹10,000</p>
+                     placeholder="Enter amount" min="10" max="100000" step="1" required>
+              <p class="text-sm text-gray-500 mt-2">Min: ₹10 | Max: ₹100,000</p>
             </div>
-            <button onclick="addMoney()" 
+            <button onclick="addMoney()" id="top-up-button"
                     class="mt-4 bg-primary hover:bg-primary-dark text-white py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
               <i class="fas fa-check-circle mr-2"></i>Confirm
             </button>
@@ -133,10 +134,10 @@
                     <div class="flex items-center justify-between mb-2">
                       <div class="flex items-center space-x-2 text-sm text-gray-600">
                         <i class="far fa-calendar-alt text-primary"></i>
-                        <span><%= new Date(transaction.date).toDateString() %></span>
+                        <span><%= new Date(transaction.createdAt).toDateString() %></span>
                       </div>
-                      <span class="<%= parseFloat(transaction.amount) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
-                        <%= parseFloat(transaction.amount) > 0 ? '+' : '' %>₹<%= transaction.amount %>
+                      <span class="<%= transaction.type === 'credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
+                        <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= Number(transaction.amount).toFixed(2) %>
                       </span>
                     </div>
                     <div class="flex items-center space-x-2 text-sm text-gray-600">
@@ -171,7 +172,7 @@
                       <td class="px-2 py-4 text-sm text-gray-600">
                         <div class="flex items-center space-x-2">
                           <i class="far fa-calendar-alt text-primary"></i>
-                          <span><%= new Date(transaction.date).toDateString() %></span>
+                          <span><%= new Date(transaction.createdAt).toDateString() %></span>
                         </div>
                       </td>
                       <td class="px-3 py-4 text-sm text-gray-600">
@@ -181,8 +182,8 @@
                         </div>
                       </td>
                       <td class="px-3 py-4">
-                        <span class="<%= parseFloat(transaction.amount) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
-                          <%= parseFloat(transaction.amount) > 0 ? '+' : '' %>₹<%= transaction.amount %>
+                        <span class="<%= transaction.type === 'credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> py-1 px-3 rounded-full text-sm font-medium">
+                          <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= Number(transaction.amount).toFixed(2) %>
                         </span>
                       </td>
                     </tr>
@@ -227,26 +228,66 @@
     }
     
     function addMoney() {
-        const amountInput = document.getElementById('amount');
-        const amount = parseFloat(amountInput.value);
-        
-        if (amount < 1 || amount > 10000) {
-            toastr.error('Please enter an amount between ₹1 and ₹10,000');
+        const button = document.getElementById('top-up-button');
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        if (!Number.isFinite(amount) || amount < 10 || amount > 100000) {
+            toastr.error('Please enter an amount between ₹10 and ₹100,000');
             return;
         }
-        
-        axios.post('/account/wallet/add-money', { amount })
+
+        button.disabled = true;
+
+        // The shop records the top up and asks the gateway for an order for that
+        // amount. The amount on the card is the gateway's number, so it is the
+        // amount the shop asked for and not a number this page can change.
+        axios.post('/account/wallet/top-up', { amount })
             .then(response => {
-                toastr.success('Money added successfully!');
-                document.getElementById('add-money-form').style.display = 'none';
-                document.querySelector('h2.text-3xl.font-bold').innerText = `₹${response.data.balance}`;
-                
-                // Refresh page to show updated transaction history
-                window.location.reload();
+                const { orderId, topUpId, amount: payable, currency } = response.data;
+
+                const razorpay = new Razorpay({
+                    key: '<%= process.env.RAZOR_KEY_ID %>',
+                    amount: payable,
+                    currency,
+                    order_id: orderId,
+                    name: 'TOYHUB',
+                    description: 'Wallet top up',
+                    theme: { color: '#FF8C00' },
+                });
+
+                razorpay.on('payment.failed', function (response) {
+                    console.error('Top up payment failed:', response);
+                    toastr.error(response?.error?.description || 'The payment was not completed.');
+                });
+
+                razorpay.on('payment.success', function (response) {
+                    axios.post('/account/wallet/top-up/verify', {
+                        topUpId,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                    })
+                        .then(verified => {
+                            document.getElementById('add-money-form').style.display = 'none';
+                            document.getElementById('wallet-balance').innerText =
+                                `₹${Number(verified.data.balance).toFixed(2)}`;
+                            // The ledger has a new line, so the page is read again.
+                            window.location.reload();
+                        })
+                        .catch(error => {
+                            console.error('Top up confirmation failed:', error);
+                            toastr.error(error.response?.data?.message || 'The payment could not be confirmed.');
+                        });
+                });
+
+                razorpay.open();
             })
             .catch(error => {
-                console.error('Error adding money:', error);
-                toastr.error('Failed to add money. Please try again.');
+                console.error('Top up could not be started:', error);
+                toastr.error(error.response?.data?.message || 'The top up could not be started.');
+            })
+            .finally(() => {
+                button.disabled = false;
             });
     }
 </script>

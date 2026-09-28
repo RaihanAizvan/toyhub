@@ -2,11 +2,37 @@ import Order from "../../models/orders.models.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
-import Wallet from "../../models/wallets.models.js"
 import Rating from "../../models/ratings.models.js"
+import WalletTopup, {
+    isTopUpAmountAllowed,
+    normaliseTopUpAmount,
+    topUpExpiry,
+} from "../../models/walletTopups.models.js";
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { isObjectId } from "../../utils/ownership.js";
+import { createGatewayOrder, fetchGatewayPayment, isValidSignature, paymentMatches, toPaise } from "../../utils/razorpay.js";
+import { WalletError, creditWallet, getOrCreateWallet, listLedger, reconcileWallet } from "../../utils/wallet.js";
+
+const requireUserId = (req, res) => {
+    const userId = req.session?.user?.id;
+    if (!userId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return null;
+    }
+    return String(userId);
+};
+
+// A wallet problem the shopper can act on keeps its own message. Anything else
+// is a bug, and a bug never answers as a balance.
+const sendWalletError = (res, error) => {
+    if (error instanceof WalletError) {
+        return res.status(error.status).json({ success: false, message: error.message });
+    }
+
+    console.error('Wallet operation failed:', error);
+    return res.status(500).json({ success: false, message: 'The wallet could not be updated. Please try again.' });
+};
 
 // Every order endpoint answers from this one lookup, so an order id that
 // belongs to somebody else answers exactly like an id that does not exist.
@@ -202,20 +228,21 @@ export const postOrderCancel = async (req, res) => {
             );
         }
 
-        // If the order type is Razorpay or Wallet, return the amount to the user's wallet
+        // If the order type is Razorpay or Wallet, return the amount to the
+        // user's wallet. The key is the order, so asking for this refund twice
+        // credits the shopper once.
         if (order.paymentMethod === 'razorpay' || order.paymentMethod === 'wallet') {
             const refund = Number(order.totalAmount) || 0;
-            const user = order.user;
-            user.walletBalance = (Number(user.walletBalance) || 0) + refund;
-            user.wallet.balance = (Number(user.wallet.balance) || 0) + refund;
-            await user.save();
-
-            const wallet = await Wallet.findById(user.wallet);
-            wallet.transactions.push({
-                amount: refund,
-                description: `Refund for cancelled order ID: ${orderId}`
-            });
-            await wallet.save();
+            if (refund > 0) {
+                await creditWallet({
+                    userId: order.user,
+                    amount: refund,
+                    reason: 'refund',
+                    idempotencyKey: `refund:order:${order._id}`,
+                    reference: { order: order._id },
+                    description: `Refund for cancelled order ID: ${orderId}`,
+                });
+            }
         }
 
         // Redirect to my orders page after cancelling
@@ -361,82 +388,210 @@ export const deleteWishlist = async (req, res) => {
     }
 }
 
+// The page and the money come from the same place: the balance is the wallet
+// document, and the history is the ledger the balance moved through.
 export const getWallet = async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).redirect('/login'); // Redirect to login if user is not authenticated
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
     }
 
     try {
-        const user = await Users.findById(req.session.user.id).populate('wallet');
-        if (!user || !user.wallet) {
-            console.log("no wallet")
-            const newWallet = new Wallet({ user:user.id, balance: 0, transactions: [] });
-            await newWallet.save();
-            user.wallet = newWallet._id;
-            await user.save();
-            return res.status(200).render('user/wallet', { title: 'Wallet', user, transactions: [], currentPage: 1, totalPages: 1, req });
-        }
+        const [wallet, history] = await Promise.all([
+            getOrCreateWallet(userId),
+            listLedger({ userId, page: req.query.page }),
+        ]);
 
-        // Sort transactions by date in descending order (most recent first)
-        user.wallet.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        const transactionsPerPage = 10;
-        const currentPage = parseInt(req.query.page) || 1;
-        const startIndex = (currentPage - 1) * transactionsPerPage;
-        const endIndex = startIndex + transactionsPerPage;
-        const paginatedTransactions = user.wallet.transactions.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(user.wallet.transactions.length / transactionsPerPage);
-
-        res.render('user/wallet', { 
-            title: 'Wallet', 
-            user, 
-            transactions: paginatedTransactions,
-            currentPage, 
-            totalPages,
-            req
+        return res.status(200).render('user/wallet', {
+            title: 'Wallet',
+            user: { _id: userId, name: req.session.user?.name },
+            wallet,
+            balance: Number(wallet.balance),
+            transactions: history.entries,
+            currentPage: history.currentPage,
+            totalPages: history.totalPages,
+            req,
         });
     } catch (error) {
         console.error('Error fetching wallet:', error);
-        res.status(500).send('Internal server error');
+        return res.status(500).send('Internal server error');
     }
 };
 
-export const postAddMoney = async (req, res) => {
-    let { amount } = req.body;
-    amount = Number(amount);
-    if (!amount || amount <= 0) {
-        return res.status(400).json({ message: 'Invalid amount' });
+// A top up is written down by the shop before a payment is started, and the
+// amount the browser asked for is the amount that is recorded and paid. A
+// request cannot credit a balance, it can only ask for a payment.
+export const postCreateTopUp = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const amount = normaliseTopUpAmount(req.body?.amount);
+    if (!isTopUpAmountAllowed(amount)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Choose an amount between 10 and 100000.',
+        });
     }
 
     try {
-        const user = await Users.findById(req.session.user.id).populate('wallet');
-
-        if (!user || !user.wallet) {
-            return res.status(404).json({ message: 'Wallet not found' });
-        }
-
-        const currentDateTime = new Date();
-        user.wallet.balance += amount;
-        user.walletBalance += amount;
-        user.wallet.transactions.push({
-            date: currentDateTime,
-            description: 'Added money to wallet',
-            amount: amount
+        const topup = await WalletTopup.create({
+            user: userId,
+            amount,
+            currency: 'INR',
+            status: 'pending',
+            expiresAt: topUpExpiry(),
         });
 
-        // Sort transactions by date and time in descending order
-        user.wallet.transactions.sort((a, b) => b.date - a.date);
+        let gatewayOrder;
+        try {
+            gatewayOrder = await createGatewayOrder({
+                amount: toPaise(amount),
+                receipt: `topup_${topup._id}`.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 40),
+            });
+        } catch (error) {
+            // The top up never became payable, so it is not left behind as one.
+            await WalletTopup.deleteOne({ _id: topup._id });
+            throw new WalletError(502, 'The payment gateway could not be reached. Please try again.');
+        }
 
-        await user.wallet.save();
-        await user.save();
+        topup.razorpayOrderId = gatewayOrder.id;
+        await topup.save();
 
-        res.status(200).json({ message: 'Money added successfully', balance: user.wallet.balance });
+        return res.status(200).json({
+            success: true,
+            topUpId: String(topup._id),
+            orderId: gatewayOrder.id,
+            amount: gatewayOrder.amount,
+            currency: gatewayOrder.currency,
+        });
     } catch (error) {
-        console.error('Error adding money to wallet:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        return sendWalletError(res, error);
     }
-}
+};
 
+// The money only reaches the wallet when the gateway itself says this payment
+// settled, for this top up, for this amount, in this currency. The ledger key
+// means a callback that arrives twice credits once.
+export const postVerifyTopUp = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const { topUpId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+
+    if (!isValidSignature({
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+    })) {
+        return res.status(400).json({ success: false, message: 'Payment verification failed.' });
+    }
+
+    try {
+        const topup = await WalletTopup.findOne({
+            _id: isObjectId(topUpId) ? topUpId : null,
+            user: userId,
+        });
+
+        // A payment for somebody else's top up, or for one that does not exist,
+        // credits nothing.
+        if (!topup) {
+            return res.status(404).json({ success: false, message: 'Top up not found.' });
+        }
+
+        if (topup.status === 'credited') {
+            const wallet = await getOrCreateWallet(userId);
+            return res.status(200).json({
+                success: true,
+                balance: Number(wallet.balance),
+                repeated: true,
+            });
+        }
+
+        if (topup.status === 'failed' || topup.expiresAt < new Date()) {
+            return res.status(410).json({
+                success: false,
+                message: 'This top up is no longer payable. Please start again.',
+            });
+        }
+
+        if (topup.razorpayOrderId !== String(razorpay_order_id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'This payment is not for this top up.',
+            });
+        }
+
+        let payment;
+        try {
+            payment = await fetchGatewayPayment(razorpay_payment_id);
+        } catch (error) {
+            console.error('Error reading the payment from the gateway:', error);
+            return res.status(502).json({
+                success: false,
+                message: 'The payment could not be confirmed. Nothing was added.',
+            });
+        }
+
+        const matches = paymentMatches(payment, {
+            orderId: topup.razorpayOrderId,
+            amount: toPaise(topup.amount),
+            currency: topup.currency,
+        });
+
+        if (!matches.ok) {
+            console.warn('Top up payment did not match:', matches);
+            topup.status = 'failed';
+            await topup.save();
+            return res.status(400).json({
+                success: false,
+                message: 'That payment was not accepted. Nothing was added.',
+            });
+        }
+
+        const { wallet, applied } = await creditWallet({
+            userId,
+            amount: Number(topup.amount),
+            reason: 'topup',
+            idempotencyKey: `topup:${topup._id}`,
+            reference: {
+                topup: topup._id,
+                razorpayOrderId: topup.razorpayOrderId,
+                razorpayPaymentId: String(razorpay_payment_id),
+            },
+            description: 'Added money to wallet',
+        });
+
+        topup.razorpayPaymentId = String(razorpay_payment_id);
+        topup.status = 'credited';
+        await topup.save();
+
+        return res.status(200).json({
+            success: true,
+            balance: Number(wallet.balance),
+            applied,
+        });
+    } catch (error) {
+        return sendWalletError(res, error);
+    }
+};
+
+// What the ledger says the balance should be, next to what is stored.
+export const getWalletReconciliation = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    try {
+        return res.status(200).json({ success: true, ...(await reconcileWallet(userId)) });
+    } catch (error) {
+        return sendWalletError(res, error);
+    }
+};
 
 export const postDownloadInvoice = async (req, res) => {
     const { orderId } = req.params;
@@ -572,7 +727,9 @@ export default {
     postWishlist,
     deleteWishlist,
     getWallet,
-    postAddMoney,
+    postCreateTopUp,
+    postVerifyTopUp,
+    getWalletReconciliation,
     postDownloadInvoice,
     getReviews
 }
