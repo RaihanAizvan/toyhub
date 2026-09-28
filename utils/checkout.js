@@ -1,39 +1,28 @@
 import Cart from "../models/cart.models.js";
 import Coupon from "../models/couponSchema.models.js";
+import {
+  applyCoupon as applyCouponByRules,
+  releaseCoupon,
+  redeemCoupon,
+  settleAppliedCoupon as settleCouponByRules,
+} from "./coupon-rules.js";
 import Order from "../models/orders.models.js";
 import Product from "../models/product.models.js";
 import { debitWallet as debitWalletLedger } from "./wallet.js";
 import { refreshCartTotals } from "./cart-totals.js";
+import { CheckoutError } from "./checkout-error.js";
 
-// A checkout problem the shopper can act on. Anything that is not one of these
-// is a bug, and a bug must never be reported as a stock problem.
-export class CheckoutError extends Error {
-  constructor(status, message, details = {}) {
-    super(message);
-    this.name = "CheckoutError";
-    this.status = status;
-    this.details = details;
-  }
-}
+export { CheckoutError };
 
 const MAX_RECEIPT_LENGTH = 40;
 
 const money = (value) => Number(value || 0).toFixed(2);
 
 // A coupon the shopper applied is checked against the shop before it is allowed
-// to lower the price, so a blocked or used up coupon stops working on its own.
-const settleAppliedCoupon = async (cart) => {
-  if (!cart.appliedCoupon) {
-    cart.couponDiscount = 0;
-    return;
-  }
-
-  const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon });
-  if (!coupon || coupon.isBlocked || coupon.usageLimit <= 0) {
-    cart.appliedCoupon = null;
-    cart.couponDiscount = 0;
-  }
-};
+// to lower the price, so a blocked, expired, used up or already spent coupon
+// stops working on its own. The rules are in utils/coupon-rules.js, so applying
+// a coupon and settling one cannot disagree.
+const settleAppliedCoupon = (cart, options) => settleCouponByRules(cart, options);
 
 // The cart of the account, priced again from the products themselves, right
 // before anything is created. Nothing the request said about prices, discounts
@@ -44,7 +33,7 @@ const settleAppliedCoupon = async (cart) => {
 // the cart they are buying. A cart that priced differently in the meantime is
 // refused with the new total, so the shopper confirms it on the next page load
 // instead of being charged a price nobody agreed to.
-export const loadPricedCart = async (userId, { expectedTotal } = {}) => {
+export const loadPricedCart = async (userId, { expectedTotal, orderId = null } = {}) => {
   const cart = await Cart.findOne({ user: userId }).populate("items.product");
   if (!cart || cart.items.length === 0) {
     throw new CheckoutError(400, "Your cart is empty");
@@ -80,7 +69,7 @@ export const loadPricedCart = async (userId, { expectedTotal } = {}) => {
     lines.push({ product, quantity });
   }
 
-  await settleAppliedCoupon(cart);
+  await settleAppliedCoupon(cart, { userId, orderId });
   await refreshCartTotals(cart);
 
   const totalAmount = Number(cart.total);
@@ -105,51 +94,15 @@ export const loadPricedCart = async (userId, { expectedTotal } = {}) => {
 // cart that was priced from the products. The amount the request carried is
 // never used, not for the discount and not for the minimum.
 export const applyCouponToCart = async (userId, couponCode) => {
-  const code = String(couponCode || "").trim();
-  if (!code) {
-    throw new CheckoutError(400, "Enter a coupon code");
+  if (!String(couponCode || "").trim()) {
+    throw new CheckoutError(400, "Enter a coupon code.");
   }
 
   const { cart } = await loadPricedCart(userId);
 
-  const coupon = await Coupon.findOne({ couponCode: code });
-  if (!coupon) {
-    throw new CheckoutError(404, "Coupon code not found.");
-  }
-  if (coupon.isBlocked || coupon.usageLimit <= 0) {
-    throw new CheckoutError(400, "That coupon is not available any more");
-  }
-
-  // A cart that carries a cutoff cannot carry a coupon as well, otherwise the
-  // discount would land below the floor the shop needs to keep.
-  if (Number(cart.cutoffAmount) > 0) {
-    throw new CheckoutError(400, "Coupons cannot be applied when a cutoff amount is present.");
-  }
-
-  // A coupon carries its minimum under two names, and the shop fills in the one
-  // the summary shows, so whichever was filled in is the one that is honoured.
-  const minimum = Math.max(Number(coupon.minPurchase) || 0, Number(coupon.minSpend) || 0);
-
-  // The minimum is measured against the price of the cart, not against a number
-  // the request sent.
-  const beforeCoupon = Number(cart.subtotal) - Number(cart.discount) - Number(cart.offerDiscount);
-  if (beforeCoupon < minimum) {
-    throw new CheckoutError(
-      400,
-      `That coupon needs a purchase of at least ${minimum.toFixed(2)}.`,
-    );
-  }
-
-  let discount = 0;
-  if (coupon.discountType === "percentage") {
-    discount = (beforeCoupon * coupon.discount) / 100;
-    discount = coupon.maxDiscount ? Math.min(discount, coupon.maxDiscount) : discount;
-  } else if (coupon.discountType === "fixed") {
-    discount = coupon.discount;
-  }
-
-  cart.appliedCoupon = code;
-  cart.couponDiscount = discount;
+  // The code comes from the shopper. The discount is worked out here, from the
+  // coupon and the cart that was priced from the products.
+  const { coupon, discount } = await applyCouponByRules({ userId, couponCode, cart });
   await refreshCartTotals(cart);
 
   return {
@@ -157,9 +110,60 @@ export const applyCouponToCart = async (userId, couponCode) => {
     coupon,
     discountAmount: discount,
     totalAmount: Number(cart.total),
-    totalBeforeCoupon: beforeCoupon,
+    totalBeforeCoupon: Number(cart.subtotal) - Number(cart.discount) - Number(cart.offerDiscount),
   };
 };
+
+// Taking a coupon off is a change like applying one: the discount goes, the
+// total is priced again, and asking for the same code afterwards gives the
+// same answer it gave the first time.
+export const removeCouponFromCart = async (userId) => {
+  // The products have to be there, because the total is priced again from them
+  // and an id in place of a product prices to nothing.
+  const cart = await Cart.findOne({ user: userId }).populate("items.product");
+  if (!cart) {
+    throw new CheckoutError(404, "Your cart is empty");
+  }
+
+  cart.appliedCoupon = null;
+  cart.couponDiscount = 0;
+  await refreshCartTotals(cart);
+
+  return { cart, discountAmount: 0, totalAmount: Number(cart.total) };
+};
+
+// A coupon is spent for an order, keyed by that order, so a request that
+// repeats the one that placed it finds the redemption already written and
+// nothing is taken off the usage count twice. An order that never went through
+// gives the coupon back the same way it took it.
+export const spendCouponForOrder = async ({ cart, order, userId }) => {
+  if (!cart?.appliedCoupon) {
+    return null;
+  }
+
+  const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon });
+  if (!coupon) {
+    return null;
+  }
+
+  try {
+    return await redeemCoupon({
+      coupon,
+      userId,
+      orderId: order._id,
+      amount: Number(cart.couponDiscount) || 0,
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      // This order already spent this coupon, which is what a repeat of the
+      // request that placed it looks like.
+      return null;
+    }
+    throw error;
+  }
+};
+
+export { redeemCoupon, releaseCoupon };
 
 // Stock is taken with a single conditional update per line, so two checkouts at
 // the same time cannot both take the last unit. A line that cannot be taken

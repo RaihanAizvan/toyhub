@@ -202,6 +202,8 @@ export const postPlaceOrderInCheckout = checkout.postPlaceOrderInCheckout
 
 export const applyCoupon = checkout.applyCoupon
 
+export const removeCoupon = checkout.removeCoupon
+
 export const createRazorPayOrder = checkout.createRazorPayOrder
 
 export const verifyPayment = checkout.verifyPayment

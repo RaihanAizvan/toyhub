@@ -14,8 +14,11 @@ import {
     loadPricedCart,
     receiptForCheckoutKey,
     recordPurchaseOnUser,
+    releaseCoupon,
     releaseStock,
+    removeCouponFromCart,
     reserveStock,
+    spendCouponForOrder,
 } from "../../utils/checkout.js";
 import {
     createGatewayOrder,
@@ -147,6 +150,7 @@ const postPlaceOrderInCheckout = async (req, res) => {
             if (paymentFailed) {
                 if (!existing.paid && existing.paymentMethod === 'razorpay') {
                     await releaseStock(existing.items);
+                    await releaseCoupon({ orderId: existing._id });
                     await Order.deleteOne({ _id: existing._id });
                 }
                 return res.status(200).json({
@@ -200,6 +204,8 @@ const postPlaceOrderInCheckout = async (req, res) => {
             throw error;
         }
 
+        await spendCouponForOrder({ cart, order, userId });
+
         // The cart only goes once the order is on disk.
         await clearPurchasedCart(userId);
         await recordPurchaseOnUser(user, lines);
@@ -232,6 +238,28 @@ const applyCoupon = async (req, res) => {
         return res.status(200).json({
             success: true,
             coupon,
+            discountAmount,
+            totalAmount,
+        });
+    } catch (error) {
+        return sendCheckoutError(res, error);
+    }
+};
+
+// Taking a coupon off is the same operation as putting one on, run backwards,
+// so the page is left with a total that can be paid rather than one the
+// browser worked out for itself.
+const removeCoupon = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    try {
+        const { discountAmount, totalAmount } = await removeCouponFromCart(userId);
+
+        return res.status(200).json({
+            success: true,
             discountAmount,
             totalAmount,
         });
@@ -305,6 +333,8 @@ const createRazorPayOrder = async (req, res) => {
             throw error;
         }
 
+        await spendCouponForOrder({ cart, order, userId });
+
         try {
             const gatewayOrder = await createGatewayOrder({
                 amount: toPaise(serverTotal),
@@ -315,9 +345,11 @@ const createRazorPayOrder = async (req, res) => {
             order.razorpayAmount = gatewayOrder.amount;
             await order.save();
         } catch (error) {
-            // The stock was only held for a payment that will never happen.
+            // The stock was only held for a payment that will never happen, and
+            // the coupon with it, so both go back.
             await releaseStock(reserved);
             reserved = null;
+            await releaseCoupon({ orderId: order._id });
             await Order.deleteOne({ _id: order._id });
             throw new CheckoutError(502, 'The payment gateway could not be reached. Please try again.');
         }
@@ -513,6 +545,8 @@ const postWalletPayment = async (req, res) => {
             checkoutKey,
         }));
 
+        await spendCouponForOrder({ cart, order, userId });
+
         try {
             await order.save();
         } catch (error) {
@@ -544,7 +578,8 @@ const postWalletPayment = async (req, res) => {
             debited = serverTotal;
         } catch (error) {
             // Nothing shipped and nothing was charged, so the order written for
-            // this attempt is taken back along with the stock.
+            // this attempt is taken back along with the stock and the coupon.
+            await releaseCoupon({ orderId: order._id });
             await Order.deleteOne({ _id: order._id });
             await releaseStock(reserved);
             reserved = null;
@@ -742,6 +777,7 @@ export default {
         getCheckoutPage,
         postPlaceOrderInCheckout,
         applyCoupon,
+        removeCoupon,
         createRazorPayOrder,
         verifyPayment,
         retryPayment,
