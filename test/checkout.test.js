@@ -613,7 +613,9 @@ describe("checkout", () => {
       });
 
       assert.equal(response.status, 400);
-      assert.match(response.data.message, /at least 5000/);
+      // The message now names the amount in rupees to two places, because the
+      // rule that produced it is in one place for every coupon.
+      assert.match(response.data.message, /at least ₹5000\.00/);
 
       const cart = await Cart.findOne({ user: user._id });
       assert.equal(cart.appliedCoupon, null, "the coupon was not applied");

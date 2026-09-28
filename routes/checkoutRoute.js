@@ -13,6 +13,7 @@ router.use(middleware.checkForProductStockBeforeCheckout)
 router.get('/' , checkout.getCheckoutPage)
 router.post('/' , checkout.postPlaceOrderInCheckout)
 router.post('/apply-coupon' , checkout.applyCoupon)
+router.post('/remove-coupon' , checkout.removeCoupon)
 router.post('/order-success' , checkout.orderSuccess)
 
 router.post('/create-razorpay-order' , checkout.createRazorPayOrder)

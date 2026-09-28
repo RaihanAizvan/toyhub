@@ -1,8 +1,8 @@
 import Cart from '../models/cart.models.js';
 import User from '../models/users.models.js';
-import Coupon from '../models/couponSchema.models.js';
 import { clearSessionCookie } from '../utils/session.js';
 import { refreshCartTotals } from '../utils/cart-totals.js';
+import { settleAppliedCoupon } from '../utils/coupon-rules.js';
 function isUser(req, res, next) {
   if (req.session.user) {
     next()
@@ -132,13 +132,10 @@ const updateCouponDiscountInCheckout = async (req, res, next) => {
       return next();
     }
 
-    if (cart.appliedCoupon) {
-      const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon });
-      if (!coupon || coupon.isBlocked || coupon.usageLimit <= 0) {
-        cart.appliedCoupon = null;
-        cart.couponDiscount = 0;
-      }
-    }
+    // The coupon is judged by the same rules that apply one, so a code cannot
+    // be valid on one page and invalid on another, and an applied coupon whose
+    // discount no longer matches the cart is worked out again.
+    await settleAppliedCoupon(cart, { userId });
 
     await refreshCartTotals(cart);
     next();
