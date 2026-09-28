@@ -99,9 +99,12 @@ const updateOfferDiscountInCart = async (req, res, next) => {
     if (!userId) {
       return res.status(400).redirect('/user/login');
     }
-    let cart = await Cart.findOne({ user: userId }).populate('items.product');
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
+    // An account that has never had a cart has nothing to price, and simply
+    // looking at the page must not leave an empty document behind for it.
     if (!cart) {
-      cart = new Cart({ items: [], user: userId });
+      return next();
     }
 
     // The totals of a cart are only ever derived here, so reads and mutations
