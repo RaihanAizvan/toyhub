@@ -39,7 +39,11 @@
     router.post("/addProduct", isAdmin.handleUpload('/admin/addProduct'), adminController.postAddProduct)
     router.get("/products", adminController.getProductList)
     router.get('/editProduct/:id', adminController.getEditProduct);
-    router.post('/editProduct/:id', adminController.postEditProduct);
+    // An edit that adds a picture is a multipart request like a create, and
+    // without the upload its pictures never arrive and the form silently keeps
+    // the ones it had. The upload answers for a file it refuses, the same way
+    // the add form's does.
+    router.post('/editProduct/:id', isAdmin.handleUpload((req) => `/admin/editProduct/${req.params.id}`), adminController.postEditProduct);
     router.post('/blockProduct/:id', adminController.postBlockProduct);
       
 

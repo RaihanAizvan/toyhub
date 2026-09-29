@@ -245,6 +245,41 @@ gives back the files no product points at: everything when the product was not
 created, and the uncropped originals when it was. A refused upload is answered
 by the upload itself, in the words of the field it belongs to.
 
+**Editing a product.** The edit form is the same form, and it is read by the
+same `utils/product-form.js`, so a field cannot mean one thing when a product is
+added and another when it is changed. Two things the edit form used to do are
+now written down rather than implied.
+
+*What the shopper knows about a product is not the edit form's to set.* How much
+has sold, how it is rated and which offers are on it belong to the shop's own
+pages. An edit writes only the fields the form owns, so editing a price cannot
+quietly reset a product's ratings.
+
+**Which pictures an edit keeps.** The page shows the pictures the product holds,
+each with a box ticked. The ticked ones are sent as `keepImages`, the whole list
+it was showing as `knownImages`, and new pictures as `files` and `croppedImage_n`
+exactly as the add form sends them. A picture nobody kept is removed, so removal
+is something an administrator does on purpose rather than something that happens
+when a field is missing. A request that names no pictures at all keeps all of
+them, because it was a request about something else.
+
+Only paths the product already holds can be kept: a path that arrives in a
+request and is not one of this product's pictures is ignored and said so, so an
+edit cannot point a product at somebody else's picture, nor take a picture off a
+product that is not this one.
+
+The two lists are both sent because one is not enough. An unticked checkbox is
+posted as nothing at all, so without `knownImages`, unticking the only picture of
+a product would be indistinguishable from a request that said nothing about
+pictures, and the removal would be silently ignored.
+
+**When a picture is removed from the image host.** Only after the product has been
+saved. An image host cannot un-delete a picture, so removing one before the write
+would leave a product pointing at a picture that is gone if the write then failed.
+A stored picture is a delivery address; the name the host can remove is read back
+out of it, and an address this shop did not put there is left alone rather than
+asked about.
+
 ## Order records
 
 An order is the record of what was bought, so it keeps the values as they were

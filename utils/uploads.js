@@ -48,6 +48,55 @@ export const unusedImageIds = (files = {}, keep = []) => {
 
 export const uploadedImageIds = unusedImageIds;
 
+// A stored image is a delivery address, not a name on this machine: it is
+// `https://res.cloudinary.com/<cloud>/image/upload/v<version>/<public_id>`. The
+// address is what a page can show, and the name is what the image host can
+// remove, so the name is read back out of the address.
+//
+// An address this cannot read a name out of is one this shop did not put there,
+// and is returned as null so nothing is asked of the image host on its behalf.
+const CLOUDINARY_UPLOAD = /\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z0-9]+)?$/i;
+
+export const publicIdFor = (image) => {
+  const value = String(image ?? "").trim();
+  if (!value) {
+    return null;
+  }
+
+  const match = CLOUDINARY_UPLOAD.exec(value);
+  return match ? match[1] : null;
+};
+
+// Gives back images a product no longer shows.
+//
+// Called with the pictures an edit removed, and only after the product has been
+// saved, because an image host cannot be un-deleted: removing these before the
+// write would leave a product pointing at pictures that are gone if the write
+// then failed. A failure here is reported and does not undo the edit, because
+// the product is correct and only the storage is untidy.
+export const destroyStoredImages = async (images = []) => {
+  const list = Array.isArray(images) ? images : [images];
+  const failed = [];
+  let destroyed = 0;
+
+  for (const image of list) {
+    const publicId = publicIdFor(image);
+    if (!publicId) {
+      continue;
+    }
+
+    try {
+      await uploader.destroy(publicId, { invalidate: true });
+      destroyed += 1;
+    } catch (error) {
+      console.error("Could not remove the stored image:", error?.message ?? error);
+      failed.push(publicId);
+    }
+  }
+
+  return { destroyed, failed };
+};
+
 // Gives back the files a request uploaded that nothing is keeping.
 //
 // Called with nothing kept when the product was not created, and with the stored
