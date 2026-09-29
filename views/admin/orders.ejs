@@ -116,7 +116,7 @@
                     <% const formattedDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Invalid Date'; %>
                     <td class="py-3 px-6 text-left"><%= formattedDate %></td>
                     <td class="py-3 px-6 text-left">$<%= order.totalAmount %></td>
-                    <td class="py-3 px-6 text-left <%= order.status === 'Cancelled' ? 'text-red-500' : '' %>"><%= order.status %></td>
+                    <td class="py-3 px-6 text-left <%= order.status === 'cancelled' ? 'text-red-500' : '' %>"><%= order.status %></td>
                     <td class="py-3 px-6 text-left">
                       <a href="/admin/orders/view/<%= order._id %>" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-lg text-xs">View</a>
                     </td>

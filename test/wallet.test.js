@@ -919,7 +919,7 @@ describe("wallet", () => {
           paymentMethod: "razorpay",
           paid: true,
           totalAmount: 300,
-          status: "Pending",
+          status: "pending",
           items: [
             {
               product: product._id,

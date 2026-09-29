@@ -267,10 +267,10 @@
                         <%= new Date(order.orderDate).toLocaleDateString() %>
                       </td>
                       <td>
-                        <%= order.address.user.name %>
+                        <%= order.user?.name ?? 'A deleted account' %>
                       </td>
                       <td>
-                        <span class="<%= order.status === 'completed' ? 'text-green-500' : order.status === 'Shipped' ? 'text-blue-500' : order.status === 'Delivered' ? 'text-purple-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500' %>">
+                        <span class="<%= order.status === 'delivered' ? 'text-green-500' : order.status === 'shipped' ? 'text-blue-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-yellow-500' %>">
                           <%= order.status %>
                         </span>
                       </td>

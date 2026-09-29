@@ -1,4 +1,4 @@
-import Order from "../../models/orders.models.js";
+import Order, { normaliseOrderStatus } from "../../models/orders.models.js";
 import Cart from "../../models/cart.models.js";
 import User from "../../models/users.models.js";
 import Address from "../../models/address.models.js";
@@ -13,7 +13,6 @@ import {
     findOrderByCheckoutKey,
     loadPricedCart,
     receiptForCheckoutKey,
-    recordPurchaseOnUser,
     releaseCoupon,
     releaseStock,
     removeCouponFromCart,
@@ -208,7 +207,6 @@ const postPlaceOrderInCheckout = async (req, res) => {
 
         // The cart only goes once the order is on disk.
         await clearPurchasedCart(userId);
-        await recordPurchaseOnUser(user, lines);
 
         return res.status(200).json({
             orderId: order._id,
@@ -453,7 +451,9 @@ const verifyPayment = async (req, res) => {
             });
         }
 
-        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+        // A closed order cannot be paid or retried, and an order written under
+        // the old spellings says so in a way this recognises.
+        if (['cancelled', 'delivered'].includes(normaliseOrderStatus(order.status))) {
             return res.status(409).json({
                 success: false,
                 message: 'This order can no longer be paid. Please contact support for a refund.',
@@ -487,7 +487,6 @@ const verifyPayment = async (req, res) => {
 
         const user = await User.findById(userId);
         await clearPurchasedCart(userId);
-        await recordPurchaseOnUser(user, order.items);
 
         return res.status(200).json({
             success: true,
@@ -590,7 +589,6 @@ const postWalletPayment = async (req, res) => {
         await order.save();
 
         await clearPurchasedCart(userId);
-        await recordPurchaseOnUser(user, lines);
 
         return res.status(200).json({
             orderId: order._id,
@@ -658,7 +656,9 @@ const retryPayment = async (req, res) => {
             });
         }
 
-        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+        // A closed order cannot be paid or retried, and an order written under
+        // the old spellings says so in a way this recognises.
+        if (['cancelled', 'delivered'].includes(normaliseOrderStatus(order.status))) {
             return res.status(409).json({
                 success: false,
                 message: 'This order can no longer be paid. Please contact support.',
@@ -732,7 +732,9 @@ const verifyRetryPayment = async (req, res) => {
             return res.status(200).json({ success: true, repeated: true });
         }
 
-        if (order.status === 'Cancelled' || order.status === 'stock-unavailable') {
+        // A closed order cannot be paid or retried, and an order written under
+        // the old spellings says so in a way this recognises.
+        if (['cancelled', 'delivered'].includes(normaliseOrderStatus(order.status))) {
             return res.status(409).json({
                 success: false,
                 message: 'This order can no longer be paid. Please contact support for a refund.',
@@ -764,7 +766,6 @@ const verifyRetryPayment = async (req, res) => {
 
         const user = await User.findById(userId);
         await clearPurchasedCart(userId);
-        await recordPurchaseOnUser(user, order.items);
 
         return res.status(200).json({ success: true });
     } catch (error) {

@@ -145,7 +145,7 @@
                       </div>
                     </td>
                     <% const formattedDate = order.orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
-                    <td class="py-3 px-6 text-center"><%= order.address.user.name %></td>
+                    <td class="py-3 px-6 text-center"><%= order.user?.name ?? 'A deleted account' %></td>
                     <td class="py-3 px-6 text-center"><%= formattedDate %></td>
                     <td class="py-3 px-6 text-center"><%= order.totalAmount %></td>
                     <td class="py-3 px-6 text-center"><%= order.discount %></td>
@@ -155,7 +155,7 @@
                     <td class="py-3 px-6 text-center"><%= order.subtotal %></td>
                     <td class="py-3 px-6 text-center"><%= order.paymentMethod %></td>
                     <td class="py-3 px-6 text-center">
-                      <span class="<%= order.status === 'pending' ? 'text-yellow-500' : order.status === 'completed' ? 'text-green-500' : 'text-red-500' %>">
+                      <span class="<%= order.status === 'pending' ? 'text-yellow-500' : order.status === 'delivered' ? 'text-green-500' : 'text-red-500' %>">
                         <%= order.status %>
                       </span>
                     </td>
@@ -270,7 +270,7 @@
               <td class="py-3 px-6 text-center">${order.subtotal || 0}</td>
               <td class="py-3 px-6 text-center">${order.paymentMethod || 'N/A'}</td>
               <td class="py-3 px-6 text-center">
-                <span class="${order.status === 'pending' ? 'text-yellow-500' : order.status === 'completed' ? 'text-green-500' : 'text-red-500'}">
+                <span class="${order.status === 'pending' ? 'text-yellow-500' : order.status === 'delivered' ? 'text-green-500' : 'text-red-500'}">
                   ${order.status || 'N/A'}
                 </span>
               </td>

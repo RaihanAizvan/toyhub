@@ -1,4 +1,4 @@
-import Order from "../../models/orders.models.js"
+import Order, { normaliseOrderStatus } from "../../models/orders.models.js"
 import Product from "../../models/product.models.js"
 import Category from "../../models/categories.model.js"
 import Offer from "../../models/offers.models.js"
@@ -13,8 +13,16 @@ export async function getHome(req, res) {
     return res.redirect("/admin/login") // Redirect to login if not authenticated
   }
   console.log('Admin authenticated');
-  const orders = await Order.find({}).limit(10).sort({orderDate:-1}).populate('items.product')
-  const todaysOrder = await Order.find({orderDate:{$gte:new Date(new Date().setHours(0,0,0,0))}}).sort({orderDate:-1}).populate('items.product')
+  // Every table on this page asks "which state is this order in", so the rows
+  // are given the one word for that state before they are drawn.
+  const withStatus = (rows) =>
+    rows.map((order) => ({
+      ...order.toObject(),
+      status: normaliseOrderStatus(order.status),
+    }))
+
+  const orders = withStatus(await Order.find({}).limit(10).sort({orderDate:-1}).populate('items.product').populate('user'))
+  const todaysOrder = withStatus(await Order.find({orderDate:{$gte:new Date(new Date().setHours(0,0,0,0))}}).sort({orderDate:-1}).populate('items.product').populate('user'))
   const products = await Product.find({isBlocked:false}).limit(5)
   const addresses = await Address.find({}).limit(5)
   const fullOrders = await Order.find({})
