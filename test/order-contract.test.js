@@ -7,6 +7,7 @@ import session from "express-session";
 import { fileURLToPath } from "node:url";
 
 import Order, { ORDER_STATUSES, PAYMENT_METHODS, normaliseOrderStatus } from "../models/orders.models.js";
+import Cart from "../models/cart.models.js";
 import Product from "../models/product.models.js";
 import User from "../models/users.models.js";
 import { buildOrder } from "../utils/checkout.js";
@@ -179,9 +180,18 @@ describeWhenReachable("order contract", () => {
   const get = (path, account) => as(account)(path);
   const post = (path, account, options) => as(account)(path, { method: "POST", ...options });
 
+  // A key per attempt, because the key is what makes a repeated attempt one
+  // order rather than two.
+  let orderCount = 0;
+
   // One order, placed the way checkout places it, with everything the pages read
   // already on the cart.
   const placeOrder = async ({ user, product, quantity = 2, address, coupon = null } = {}) => {
+    // An account has one cart, so placing a second order starts from an empty
+    // one the way a shopper who checked out would.
+    await Cart.deleteMany({ user: user._id });
+    orderCount += 1;
+
     const cart = await createCart({
       user: user._id,
       items: [{ product: product._id, quantity, price: product.price, discountPrice: 0 }],
@@ -201,7 +211,7 @@ describeWhenReachable("order contract", () => {
         address,
         paymentMethod: "cod",
         paid: true,
-        checkoutKey: "key-1",
+        checkoutKey: `key-${orderCount}`,
       }),
     );
   };
@@ -335,11 +345,18 @@ describeWhenReachable("order contract", () => {
     const { user, product, address } = await scenario();
     const order = await placeOrder({ user, product, address });
 
-    for (const status of ORDER_STATUSES) {
-      const response = await post(`/admin/orders/${order._id}/status`, null, {
+    // Every word on the list is a state the application can write. Which of
+    // them an order can be moved to is the next test; this one is about the
+    // form refusing anything that is not a state at all.
+    assert.deepEqual(ORDER_STATUSES, ["pending", "cancelled", "shipped", "delivered"]);
+
+    for (const status of ["shipped", "cancelled"]) {
+      const fresh = await placeOrder({ user, product, address });
+      const response = await post(`/admin/orders/${fresh._id}/status`, null, {
         json: { status },
       });
-      assert.equal(response.status, 200, status);
+      assert.equal(response.status, 200, `${status}: ${await response.clone().text()}`);
+      assert.equal((await Order.findById(fresh._id)).status, status);
     }
 
     // Any string at all used to be written onto an order.
@@ -347,7 +364,34 @@ describeWhenReachable("order contract", () => {
       json: { status: "Delivered; DROP TABLE orders" },
     });
     assert.equal(refused.status, 400);
-    assert.equal((await Order.findById(order._id)).status, "delivered", "the last good value stands");
+    assert.equal((await Order.findById(order._id)).status, "pending", "the last good value stands");
+  });
+
+  it("the shop can only move an order to a state that follows from where it is", async () => {
+    const { user, product, address } = await scenario();
+
+    const forward = await placeOrder({ user, product, address });
+    assert.equal((await post(`/admin/orders/${forward._id}/status`, null, { json: { status: "shipped" } })).status, 200);
+    assert.equal((await post(`/admin/orders/${forward._id}/status`, null, { json: { status: "delivered" } })).status, 200);
+
+    // A closed order stays closed: it is not re-opened, and it is not walked
+    // backwards. Both of these used to be a plain write.
+    for (const wanted of ["pending", "shipped", "cancelled"]) {
+      const response = await post(`/admin/orders/${forward._id}/status`, null, {
+        json: { status: wanted },
+      });
+      assert.equal(response.status, 409, `a delivered order does not become ${wanted}`);
+    }
+    assert.equal((await Order.findById(forward._id)).status, "delivered");
+
+    // The same answer, every time it is asked.
+    const again = await post(`/admin/orders/${forward._id}/status`, null, {
+      json: { status: "pending" },
+    });
+    assert.equal(again.status, 409);
+    assert.equal((await again.json()).message, (await post(`/admin/orders/${forward._id}/status`, null, {
+      json: { status: "pending" },
+    }).then((r) => r.json())).message, "a refusal is the same refusal");
   });
 
   it("an order is dated by the database, not only by the field checkout wrote", async () => {
@@ -410,6 +454,8 @@ describeWhenReachable("order contract", () => {
     const { user, product, address } = await scenario();
     const order = await placeOrder({ user, product, address });
     await Order.updateOne({ _id: order._id }, { $set: { status: "Delivered" }, strict: false });
+    const shipping = await placeOrder({ user, product, address });
+    await Order.updateOne({ _id: shipping._id }, { $set: { status: "Shipped" }, strict: false });
 
     // The admin list and the admin detail page both ask what state this is.
     const list = await (await get("/admin/orders", null)).text();
@@ -419,9 +465,13 @@ describeWhenReachable("order contract", () => {
     assert.doesNotMatch(list, /Delivered/, "the old spelling is not what is drawn");
 
     // The form posts the state back, so what it offers is the same word. The
-    // label stays capitalised; the value it sends does not.
-    assert.match(detail, /value="delivered"/, "the form offers the word this application uses");
-    assert.doesNotMatch(detail, /value="Delivered"/, "the form does not post the old spelling");
+    // label stays capitalised; the value it sends does not. A shipped order
+    // offers exactly the one move that follows from being shipped.
+    const shippedPage = await (await get(`/admin/orders/${shipping._id}`, null)).text();
+    assert.match(shippedPage, /value="delivered"/, "the form offers the word this application uses");
+    assert.doesNotMatch(shippedPage, /value="Delivered"/, "the form does not post the old spelling");
+    assert.doesNotMatch(shippedPage, /value="pending"/, "a shipped order is not walked backwards");
+    assert.doesNotMatch(detail, /orderStatusSelect/, "a delivered order is not given a form to change");
   });
 
   it("a legacy order that still carries the old address.user block reads fine", async () => {

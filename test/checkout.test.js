@@ -1023,21 +1023,15 @@ describe("checkout", () => {
       const product = await createProduct({ price: 500, discount: 0, stock: 10 });
       const address = await createAddress({ user: user._id, ...addressFields() });
       await cartFor(user, product, 2);
+      // An order that is meant to be paid by card, which is the only kind that
+      // can be retried: a delivery order has nothing to retry.
       const order = await createOrder({
         user: user._id,
         totalAmount: 1000,
         subtotal: 1000,
-        items: [{ product: product._id, quantity: 2, price: 500, paymentMethod: "cod" }],
-        address: {
-          ...addressFields(),
-          user: {
-            name: user.name,
-            email: user.email,
-            phone_number: user.phone_number,
-            joined_date: user.joined_date,
-          },
-        },
-        paymentMethod: "cod",
+        items: [{ product: product._id, quantity: 2, price: 500 }],
+        address: addressFields(),
+        paymentMethod: "razorpay",
         paid: false,
       });
 
@@ -1077,6 +1071,73 @@ describe("checkout", () => {
 
       assert.equal(good.status, 200);
       assert.equal((await Order.findById(order._id)).paid, true);
+    });
+  });
+
+  itWhenReachable("asking to retry twice gives back the same payment page", async () => {
+    const calls = useFakeGateway();
+
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const order = await createOrder({
+        user: user._id,
+        totalAmount: 1000,
+        subtotal: 1000,
+        items: [{ product: (await createProduct({ price: 500, stock: 10 }))._id, quantity: 2, price: 500 }],
+        address: addressFields(),
+        paymentMethod: "razorpay",
+        paid: false,
+        razorpayOrderId: "order_already_there",
+        razorpayAmount: 100000,
+      });
+
+      const first = await send(server, "/checkout/retry-payment", {
+        as: user._id,
+        body: { orderId: String(order._id) },
+      });
+      const second = await send(server, "/checkout/retry-payment", {
+        as: user._id,
+        body: { orderId: String(order._id) },
+      });
+
+      assert.equal(first.status, 200);
+      assert.equal(second.status, 200);
+      assert.equal(
+        second.data.razorpay_order_id,
+        first.data.razorpay_order_id,
+        "the page the shopper already has still works",
+      );
+      assert.equal(
+        calls.length,
+        0,
+        "and the gateway is not asked for another order, which would have left the open one unpaid",
+      );
+
+      // A different total is a different payment, and needs a page of its own.
+      await Order.updateOne({ _id: order._id }, { $set: { totalAmount: 1200 } });
+      const changed = await send(server, "/checkout/retry-payment", {
+        as: user._id,
+        body: { orderId: String(order._id) },
+      });
+
+      assert.equal(changed.status, 200);
+      assert.equal(calls.length, 1, "one new page, for the new amount");
+      assert.equal(calls.at(-1).amount, 120000);
+
+      // The gateway takes each receipt once, so a third total needs a third.
+      await Order.updateOne({ _id: order._id }, { $set: { totalAmount: 1400 } });
+      const again = await send(server, "/checkout/retry-payment", {
+        as: user._id,
+        body: { orderId: String(order._id) },
+      });
+
+      assert.equal(again.status, 200);
+      assert.equal(calls.length, 2);
+      assert.notEqual(
+        calls.at(-1).receipt,
+        calls.at(-2).receipt,
+        "and it is a receipt of its own",
+      );
     });
   });
 

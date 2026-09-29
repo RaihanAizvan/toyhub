@@ -152,12 +152,18 @@
                         <% } %>
                         <!-- Status Selection Dropdown -->
                         <div class="mt-4">
-                            <select id="orderStatusSelect" class="border border-gray-300 rounded p-2 text-gray-700">
-                                <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                                <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                                <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                                <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                            </select>
+                            <% if (nextStatuses.length) { %>
+                                <select id="orderStatusSelect" class="border border-gray-300 rounded p-2 text-gray-700">
+                                    <option value="" selected>Change to&hellip;</option>
+                                    <% nextStatuses.forEach((next) => { %>
+                                        <option value="<%= next %>"><%= next.charAt(0).toUpperCase() + next.slice(1) %></option>
+                                    <% }); %>
+                                </select>
+                            <% } else { %>
+                                <p class="text-sm text-gray-500">
+                                    This order is <%= order.status %> and stays that way.
+                                </p>
+                            <% } %>
                         </div>
                     </div>
                     <!-- Product Info -->
@@ -230,6 +236,7 @@
         </div>
     </div>
 </div>
+<% if (nextStatuses.length) { %>
 <script>
     document.getElementById('orderStatusSelect').addEventListener('change', function () {
         const selectedStatus = this.value;
@@ -253,9 +260,14 @@
                     if (response.data.success) {
                         Swal.fire(
                             'Updated!',
-                            'Order status has been updated.',
+                            // Cancelling says what happened to the money, because
+                            // that is the part an administrator needs to know.
+                            response.data.message || 'Order status has been updated.',
                             'success'
                         );
+                        if (response.data.status === 'cancelled') {
+                            return;
+                        }
                         // Update the ring color dynamically
                         const statusElements = document.querySelectorAll('.border-2');
                         statusElements.forEach(element => {
@@ -281,8 +293,8 @@
                         });
                     } else {
                         Swal.fire(
-                            'Error!',
-                            'There was a problem updating the status.',
+                            'Not allowed',
+                            response.data.message || 'There was a problem updating the status.',
                             'error'
                         );
                     }
@@ -302,3 +314,4 @@
         });
     });
 </script>
+<% } %>

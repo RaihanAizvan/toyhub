@@ -1,4 +1,5 @@
 import Order, { ORDER_STATUSES, normaliseOrderStatus } from "../../models/orders.models.js";
+import { ADMIN_TRANSITIONS, adminTransition, cancelOrder } from "../../utils/order-transitions.js";
 
 // GET route to render the admin orders page
 const getAdminOrders = async (req, res) => {
@@ -34,11 +35,12 @@ const getAdminOrders = async (req, res) => {
 
 const postUpdateOrderStatus = async (req, res) => {
     const orderId = req.params.id;
+    const next = req.body.status;
 
     // The status of an order is one of a list, checked here rather than trusted
     // from a request. It used to be written straight onto the order, so the
     // shape of the database was whatever string a form happened to post.
-    if (!ORDER_STATUSES.includes(req.body.status)) {
+    if (!ORDER_STATUSES.includes(next)) {
         return res.status(400).json({
             success: false,
             message: `An order can be ${ORDER_STATUSES.join(', ')}.`,
@@ -51,10 +53,44 @@ const postUpdateOrderStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        order.status = req.body.status;
+        const allowed = adminTransition(order, next);
+        if (!allowed.allowed) {
+            return res.status(allowed.reason === 'order_is_closed' ? 409 : 400).json({
+                success: false,
+                status: normaliseOrderStatus(order.status),
+                message: allowed.reason === 'order_is_closed'
+                    ? `This order is already ${allowed.status} and stays that way.`
+                    : `An order that is ${allowed.status} cannot become ${next}.`,
+            });
+        }
+
+        // Cancelling is not a label: it returns the money and puts the stock
+        // back, whichever side of the shop it is asked from. The route is what
+        // makes this an administrator's request.
+        if (next === 'cancelled') {
+            const outcome = await cancelOrder({ orderId, actor: 'admin', reason: req.body.reason ?? null });
+
+            if (!outcome.ok) {
+                return res.status(outcome.code).json({ success: false, message: outcome.message });
+            }
+
+            return res.json({
+                success: true,
+                status: 'cancelled',
+                refund: outcome.refund,
+                // Where the money went is part of the answer: an
+                // administrator has just changed something the shopper is
+                // waiting to hear about.
+                message: outcome.moneyMessage ?? (outcome.refund.refunded
+                    ? 'Order cancelled and the payment returned.'
+                    : 'Order cancelled.'),
+            });
+        }
+
+        order.status = next;
         await order.save();
 
-        res.json({ success: true });
+        res.json({ success: true, status: next });
     } catch (error) {
         console.error("Error updating order status:", error);
         res.status(500).json({ success: false, message: 'Could not update the order' });
@@ -88,7 +124,14 @@ const getAdminOrderDetails = async(req,res) =>{
         };
 
         // Render the order detail page with the fetched order data
-        res.render('admin/order-details', { order: view, ORDER_STATUSES, title: 'Order Details' });
+        res.render('admin/order-details', {
+            order: view,
+            ORDER_STATUSES,
+            // The form offers only the moves this order can actually make, so
+            // a closed order cannot be re-opened by choosing a word from a list.
+            nextStatuses: ADMIN_TRANSITIONS[view.status] ?? [],
+            title: 'Order Details',
+        });
       } catch (err) {
         console.error(err);
         res.status(500).send('Server error');

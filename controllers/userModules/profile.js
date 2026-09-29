@@ -1,4 +1,11 @@
 import Order, { normaliseOrderStatus } from "../../models/orders.models.js"
+import {
+    cancelOrder,
+    cancelOrderLine,
+    cancellationMessage,
+    lineCancellation,
+    wholeOrderCancellation,
+} from "../../utils/order-transitions.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
@@ -203,7 +210,21 @@ export const getOrderDetail = async (req, res) => {
         }
         const name = req.session.user.name
         // Render the order details EJS page with the retrieved order
-        res.render('user/order-detail', { order, name, title: 'Order Detail' });
+        // The detail page asks the same questions as the list: can this order
+        // still be called back, and can this line be called back on its own.
+        const view = {
+            ...order.toObject(),
+            status: normaliseOrderStatus(order.status),
+            canCancel: wholeOrderCancellation(order).allowed,
+            items: order.items.map((item) => ({
+                ...item.toObject(),
+                status: normaliseOrderStatus(item.status),
+                canCancel: lineCancellation(order).allowed
+                    && normaliseOrderStatus(item.status) !== 'cancelled',
+            })),
+        };
+
+        res.render('user/order-detail', { order: view, name, title: 'Order Detail' });
     } catch (error) {
         console.error("Error fetching order details:", error);
         res.status(500).send('Server Error');
@@ -212,54 +233,32 @@ export const getOrderDetail = async (req, res) => {
 
 export const postOrderCancel = async (req, res) => {
     try {
-        const orderId = req.params.id;
+        // Whether this order may be cancelled, what it costs to do so and where
+        // the money goes are all decided in one place. This is only the door.
+        const outcome = await cancelOrder({
+            orderId: req.params.id,
+            userId: req.session?.user?.id,
+            actor: 'user',
+            // "Other" is a choice, not an answer, so anything typed beside it
+            // is kept too. The form has always collected this and the order has
+            // never kept it.
+            reason: [req.body?.cancelReason, req.body?.reasonOther]
+                .map((part) => String(part ?? '').trim())
+                .filter(Boolean)
+                .join(' - ') || null,
+        });
 
-        // Find the order by ID
-        const order = await findOwnOrder(req, orderId).populate('user');
-
-        if (!order) {
+        if (outcome.code === 404) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Ensure the order is still cancellable
-        // Compared through the list, so an order written as "Cancelled" or
-        // "Delivered" or "completed" is still recognised as closed.
-        const status = normaliseOrderStatus(order.status);
-        if (status === 'cancelled' || status === 'delivered') {
-            return res.status(400).json({ message: 'Order cannot be canceled at this stage' });
+        if (!outcome.ok) {
+            return res.status(outcome.code).json({ message: outcome.message });
         }
 
-        order.status = 'cancelled';
-        await order.save();
-
-        // Increase the stock for each product in the order
-        for (let item of order.items) {
-            await Product.findByIdAndUpdate(
-                item.product,
-                { $inc: { stock: item.quantity } }, // Increase the stock by the item quantity
-                { new: true }
-            );
-        }
-
-        // If the order type is Razorpay or Wallet, return the amount to the
-        // user's wallet. The key is the order, so asking for this refund twice
-        // credits the shopper once.
-        if (order.paymentMethod === 'razorpay' || order.paymentMethod === 'wallet') {
-            const refund = Number(order.totalAmount) || 0;
-            if (refund > 0) {
-                await creditWallet({
-                    userId: order.user,
-                    amount: refund,
-                    reason: 'refund',
-                    idempotencyKey: `refund:order:${order._id}`,
-                    reference: { order: order._id },
-                    description: `Refund for cancelled order ID: ${orderId}`,
-                });
-            }
-        }
-
-        // Redirect to my orders page after cancelling
-        req.session.toast = "Order Cancelled"
+        req.session.toast = outcome.moneyMessage
+            ? `Order Cancelled. ${outcome.moneyMessage}`
+            : 'Order Cancelled';
         res.redirect('/account/orders');
     } catch (error) {
         console.error('Error canceling order:', error); // Debugging log
@@ -276,6 +275,14 @@ export const getCancelReason = async (req, res) => {
             return res.status(404).send('Order not found');
         }
 
+        // The form is only offered for an order that can still be called back.
+        // Reaching this page by typing the address is not a way around that: the
+        // POST below decides again, from the same rules.
+        const eligibility = wholeOrderCancellation(order);
+        if (!eligibility.allowed) {
+            return res.redirect(`/account/orders/${orderId}?message=${encodeURIComponent(cancellationMessage(eligibility.reason))}`);
+        }
+
         res.render('user/cancel-reason', { title: 'Cancel reason', order })
     } catch (error) {
         console.log(error);
@@ -288,45 +295,35 @@ export const postItemCancel = async (req, res) => {
     const { itemId } = req.body;
 
     try {
-        // Find the order by ID
-        const order = await findOwnOrder(req, orderId);
+        const outcome = await cancelOrderLine({
+            orderId,
+            userId: req.session?.user?.id,
+            itemId,
+            actor: 'user',
+        });
 
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
-
-        // Find the item to cancel
-        const itemIndex = order.items.findIndex(
-            item => String(item._id) === String(itemId),
-        );
-
-        if (itemIndex === -1) {
+        if (outcome.reason === 'not_found' || outcome.reason === 'item_not_found') {
             return res.status(404).send('Item not found in order');
         }
 
-        order.items[itemIndex].status = 'cancelled';
-
-        // Optionally, update the total amount, if necessary
-        order.totalAmount -= order.items[itemIndex].price * order.items[itemIndex].quantity;
-
-        // Check if all items in the order are cancelled
-        const allCancelled = order.items.every(item => normaliseOrderStatus(item.status) === 'cancelled');
-
-        // If all items are cancelled, mark the order as cancelled
-        if (allCancelled) {
-            order.status = 'cancelled';
+        if (!outcome.ok) {
+            return res.status(outcome.code).json({ message: outcome.message });
         }
 
-        // Save the updated order
-        await order.save();
+        // Asking for the same line twice is the same answer twice.
+        if (outcome.repeated) {
+            return res.redirect(`/account/orders/${orderId}?message=Item was already cancelled`);
+        }
 
-        // Redirect back to the order details page with a success message
+        req.session.toast = outcome.moneyMessage
+            ? `Item cancelled. ${outcome.moneyMessage}`
+            : 'Item cancelled';
         res.redirect(`/account/orders/${orderId}?message=Item cancelled successfully`);
     } catch (error) {
         console.error(error);
         res.status(500).send('server error');
     }
-}
+};
 
 //wishlist
 export const getWishlist = async (req, res) => {

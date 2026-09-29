@@ -83,6 +83,48 @@ export const fetchGatewayPayment = async (paymentId) => {
 
 export const isSettledPayment = (payment) => SETTLED.has(payment?.status);
 
+// Money already taken by the gateway is given back through the gateway, so it
+// reaches the card the shopper paid with rather than sitting in a balance inside
+// this application.
+//
+// The payment is fetched first and only a settled one is refunded: refunding a
+// payment the gateway has not captured either fails at the gateway or, worse,
+// succeeds against something that was never charged.
+export const refundGatewayPayment = async ({ paymentId, amount }) => {
+  if (!paymentId) {
+    return { ok: false, reason: "no_payment" };
+  }
+
+  const client = clientFactory();
+  if (!client?.payments?.refund) {
+    throw new Error("The payment gateway is not configured");
+  }
+
+  const payment = await fetchGatewayPayment(paymentId);
+  if (!payment) {
+    return { ok: false, reason: "unknown_payment" };
+  }
+  if (!isSettledPayment(payment)) {
+    return { ok: false, reason: "not_settled", status: payment.status ?? null };
+  }
+
+  const refund = await client.payments.refund(paymentId, {
+    ...(Number.isInteger(amount) ? { amount } : {}),
+    speed: "normal",
+  });
+
+  if (!refund?.id) {
+    return { ok: false, reason: "no_refund_id" };
+  }
+
+  return {
+    ok: true,
+    id: refund.id,
+    status: refund.status ?? "processed",
+    amount: Number(refund.amount ?? amount ?? 0),
+  };
+};
+
 // Everything about a payment that has to line up with what the shop expected.
 export const paymentMatches = (payment, { orderId, amount, currency = "INR" }) => {
   if (!isSettledPayment(payment)) {
