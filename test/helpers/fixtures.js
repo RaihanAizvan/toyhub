@@ -58,7 +58,6 @@ export const buildUser = (overrides = {}) => ({
   password: "TestPassw0rd!",
   verified: true,
   isBlocked: false,
-  totalProductsBuyed: 0,
   totalAmoutSpended: 0,
   ...overrides,
 });
@@ -216,22 +215,16 @@ export const buildOrderItem = (overrides = {}) => ({
   product: objectId(),
   quantity: 1,
   price: 500,
-  paymentMethod: "cod",
   ...overrides,
 });
 
 export const buildOrderAddress = (overrides = {}) => ({
-  user: {
-    name: "Test User",
-    email: uniqueEmail("buyer"),
-    phone_number: 9000000000,
-  },
   name: "Test Recipient",
   street: "1 Test Street",
   city: "Testville",
   state: "Teststate",
   zip: "400001",
-  phone: 9000000000,
+  phone: "9000000000",
   ...overrides,
 });
 

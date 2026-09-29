@@ -124,16 +124,16 @@
                             <div class="flex-1">
                                 <div class="relative">
                                     <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div class="w-full border-t <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
+                                        <div class="w-full border-t <%= order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>"></div>
                                     </div>
                                     <div class="relative flex justify-between">
-                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'pending' ? 'border-green-500 border-4' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                             <span class="text-xs font-medium text-gray-900">1</span>
                                         </span>
-                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Shipped' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'shipped' ? 'border-green-500 border-4' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                             <span class="text-xs font-medium text-gray-900">2</span>
                                         </span>
-                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'Delivered' ? 'border-green-500 border-4' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                                        <span class="flex items-center justify-center w-8 h-8 bg-white border-2 rounded-full <%= order.status === 'delivered' ? 'border-green-500 border-4' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                             <span class="text-xs font-medium text-gray-900">3</span>
                                         </span>
                                     </div>
@@ -145,7 +145,7 @@
                             <span class="text-sm font-medium text-gray-600">Shipped</span>
                             <span class="text-sm font-medium text-gray-600">Delivered</span>
                         </div>
-                        <% if (order.status === 'Cancelled') { %>
+                        <% if (order.status === 'cancelled') { %>
                             <div class="mt-4">
                                 <span class="text-sm font-medium text-red-600 line-through">Cancelled</span>
                             </div>
@@ -154,9 +154,9 @@
                         <div class="mt-4">
                             <select id="orderStatusSelect" class="border border-gray-300 rounded p-2 text-gray-700">
                                 <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                                <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                                <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                                <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                             </select>
                         </div>
                     </div>
@@ -262,11 +262,11 @@
                             element.classList.remove('border-green-500', 'border-red-500', 'border-gray-300', 'border-4');
                             if (selectedStatus === 'pending') {
                                 element.classList.add('border-green-500', 'border-4');
-                            } else if (selectedStatus === 'Shipped') {
+                            } else if (selectedStatus === 'shipped') {
                                 element.classList.add('border-green-500', 'border-4');
-                            } else if (selectedStatus === 'Delivered') {
+                            } else if (selectedStatus === 'delivered') {
                                 element.classList.add('border-green-500', 'border-4');
-                            } else if (selectedStatus === 'Cancelled') {
+                            } else if (selectedStatus === 'cancelled') {
                                 element.classList.add('border-red-500');
                             } else {
                                 element.classList.add('border-gray-300');

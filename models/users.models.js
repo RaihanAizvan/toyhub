@@ -78,22 +78,14 @@ const UserSchema = new Schema({
   lastLoginAt: {
     type: Date
   },
-  totalProductsBuyed:{
-    type:Number,
-    default:0
-  },
-  totalAmoutSpended:{
-    type:Number,
-    default:0
-  },
+  // totalProductsBuyed, totalAmoutSpended and orders are gone. The first two
+  // were never written by anything, and the third pointed at a model named
+  // "Orders" that does not exist, so populating it was a no-op while being a
+  // second, unwritten record of orders that are found by Order.find({ user }).
   addresses: [{
     type: Schema.Types.ObjectId,
     ref: 'Address'
   }],
-  orders: {
-    type: Schema.Types.ObjectId,
-    ref: 'Orders'
-  },
   wallet: {
     type: Schema.Types.ObjectId,
     ref: 'Wallet'  // Reference to Wallet

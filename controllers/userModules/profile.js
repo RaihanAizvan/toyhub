@@ -1,4 +1,4 @@
-import Order from "../../models/orders.models.js"
+import Order, { normaliseOrderStatus } from "../../models/orders.models.js"
 import Users from "../../models/users.models.js"
 import Product from "../../models/product.models.js"
 import Wishlist from "../../models/wishlist.models.js"
@@ -145,16 +145,22 @@ export async function getOrderHistory(req, res) { //this function is used to sho
                 return {
                     product: item.product,
                     quantity: item.quantity,
+                    // The price the line was bought at, and the name it had then.
+                    price: item.price,
+                    name: item.name ?? item.product?.name ?? null,
+                    status: normaliseOrderStatus(item.status),
                     stockStatus,
                     statusColor,
                     // Use the first image if available
-                    firstImage: productImages.length > 0 ? productImages[0] : null,
-                    // formattedPrice: `$${item.product.price.toFixed(2)}`,
+                    firstImage: productImages.length > 0
+                        ? productImages[0]
+                        : (item.image ?? null),
                 };
             });
 
             return {
                 ...order._doc,
+                status: normaliseOrderStatus(order.status),
                 items: formattedItems,
 
             };
@@ -185,7 +191,12 @@ export async function getOrderHistory(req, res) { //this function is used to sho
 export const getOrderDetail = async (req, res) => {
     try {
         const orderId = req.params.id; // Fetch the order ID from the URL parameters
-        const order = await findOwnOrder(req, orderId).populate('items.product'); // Populate the product details
+        // The buyer and the products are both references, and both pages below
+        // read them by name, so both are populated here rather than from a copy
+        // that was taken when the order was written.
+        const order = await findOwnOrder(req, orderId)
+            .populate('user')
+            .populate('items.product');
 
         if (!order) {
             return res.status(404).send('Order not found');
@@ -211,12 +222,14 @@ export const postOrderCancel = async (req, res) => {
         }
 
         // Ensure the order is still cancellable
-        if (order.status === 'Cancelled' || order.status === 'Delivered') {
+        // Compared through the list, so an order written as "Cancelled" or
+        // "Delivered" or "completed" is still recognised as closed.
+        const status = normaliseOrderStatus(order.status);
+        if (status === 'cancelled' || status === 'delivered') {
             return res.status(400).json({ message: 'Order cannot be canceled at this stage' });
         }
 
-        // Update order status to 'Cancelled'
-        order.status = 'Cancelled';
+        order.status = 'cancelled';
         await order.save();
 
         // Increase the stock for each product in the order
@@ -283,24 +296,25 @@ export const postItemCancel = async (req, res) => {
         }
 
         // Find the item to cancel
-        const itemIndex = order.items.findIndex(item => item._id.toString() === itemId);
+        const itemIndex = order.items.findIndex(
+            item => String(item._id) === String(itemId),
+        );
 
         if (itemIndex === -1) {
             return res.status(404).send('Item not found in order');
         }
 
-        // Update item status to 'Cancelled'
-        order.items[itemIndex].status = 'Cancelled';
+        order.items[itemIndex].status = 'cancelled';
 
         // Optionally, update the total amount, if necessary
         order.totalAmount -= order.items[itemIndex].price * order.items[itemIndex].quantity;
 
         // Check if all items in the order are cancelled
-        const allCancelled = order.items.every(item => item.status === 'Cancelled');
+        const allCancelled = order.items.every(item => normaliseOrderStatus(item.status) === 'cancelled');
 
         // If all items are cancelled, mark the order as cancelled
         if (allCancelled) {
-            order.status = 'Cancelled'; //this is used to mark the order as cancelled in the database
+            order.status = 'cancelled';
         }
 
         // Save the updated order
@@ -622,20 +636,21 @@ export const postDownloadInvoice = async (req, res) => {
         doc.setFontSize(12);
         doc.text('Product Details:', 14, 66); // Section title
 
+        // The line as it was bought: the price stored on the order, not the
+        // product's price today, and the name kept with the line so a deleted
+        // product still prints.
         const products = order.items.map((item, index) => ({
             sno: index + 1,
-            productName: item.product.name,
+            productName: item.name ?? item.product?.name ?? 'This product is no longer listed',
             quantity: item.quantity,
-            discount: (item.product.price - item.product.priceAfterDiscount).toFixed(2) || "-",
-            price: item.product.price.toFixed(2),
-            total: (item.quantity * item.product.priceAfterDiscount).toFixed(2)
+            price: item.price.toFixed(2),
+            total: (item.quantity * item.price).toFixed(2)
         }));
 
         const tableColumn = [
             { header: '#', dataKey: 'sno' },
             { header: 'Product Name', dataKey: 'productName' },
             { header: 'Quantity', dataKey: 'quantity' },
-            { header: 'Discount', dataKey: 'discount' },
             { header: 'Price', dataKey: 'price' },
             { header: 'Total', dataKey: 'total' }
         ];
@@ -664,10 +679,11 @@ export const postDownloadInvoice = async (req, res) => {
         doc.text('Summary:', 14, totalY);
         doc.setFontSize(10);
         doc.text(`Subtotal : ${order.subtotal.toFixed(2)}`, 14, totalY + 8);
-        doc.text(`Offer Discount: - ${order.offerDiscount.toFixed(2)}`, 14, totalY + 14);
-        doc.text(`Coupon Discount: - ${order.discount.toFixed(2)}`, 14, totalY + 20);
+        doc.text(`Product Discount: - ${order.discount.toFixed(2)}`, 14, totalY + 14);
+        doc.text(`Offer Discount: - ${order.offerDiscount.toFixed(2)}`, 14, totalY + 20);
+        doc.text(`Coupon Discount: - ${order.couponDiscount.toFixed(2)}`, 14, totalY + 26);
         doc.setFontSize(14);
-        doc.text(`Total Amount: ${order.totalAmount.toFixed(2)}`, 14, totalY + 26);
+        doc.text(`Total Amount: ${order.totalAmount.toFixed(2)}`, 14, totalY + 32);
 
         // Add footer
         const pageHeight = doc.internal.pageSize.height;

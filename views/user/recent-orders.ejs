@@ -77,13 +77,13 @@
                                     <span class="font-bold text-xl text-primary">₹<%= order.totalAmount %></span>
                                 </p>
                                 <p class="text-gray-700">Status: 
-                                    <span class="status-badge <%= order.status === 'Cancelled' ? 'status-cancelled' : order.status === 'pending' ? 'status-pending' : order.status === 'Delivered' ? 'status-delivered' : 'status-processing' %>">
+                                    <span class="status-badge <%= order.status === 'cancelled' ? 'status-cancelled' : order.status === 'pending' ? 'status-pending' : order.status === 'delivered' ? 'status-delivered' : 'status-processing' %>">
                                         <%= order.status %>
                                     </span>
                                 </p>
                             </div>
                             
-                            <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
+                            <% if (order.status !== 'cancelled' && order.status !== 'delivered') { %>
                                 <a href="/account/orders/<%= order._id %>/cancel-reason" 
                                    class="mt-4 md:mt-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-flex items-center">
                                     <i class="fas fa-times-circle mr-2"></i>

@@ -39,7 +39,7 @@ const getDateRange = (period) => {
 // Utility function to format order data for export
 const formatOrderData = (order) => ({
   _id: order._id,
-  customerName: order.address.user.name,
+  customerName: order.user?.name ?? 'A deleted account',
   orderDate: new Date(order.orderDate).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -71,7 +71,7 @@ export const getSalesReport = async (req, res) => {
           $gte: dateRange.start,
           $lte: dateRange.end
         },
-        status: "Delivered"
+        status: "delivered"
       };
     }
 
@@ -93,7 +93,7 @@ export const getSalesReport = async (req, res) => {
             $gte: dateRange.start,
             $lte: dateRange.end
           },
-          status: "Delivered"
+          status: "delivered"
         }).sort({ orderDate: -1 });
       })
     );
@@ -129,7 +129,7 @@ export const exportSalesReport = async (req, res) => {
           $gte: dateRange.start,
           $lte: dateRange.end
         },
-        status: "Delivered"
+        status: "delivered"
       };
     }
 
@@ -203,7 +203,7 @@ export const exportSalesReportPdf = async (req, res) => {
           $gte: startDate,
           $lte: endDate
         },
-        status: "Delivered" // Add status filter here
+        status: "delivered" // Add status filter here
       };
 
       console.log('Date Filter:', {
@@ -217,12 +217,12 @@ export const exportSalesReportPdf = async (req, res) => {
           $gte: dateRange.start,
           $lte: dateRange.end
         },
-        status: "Delivered"
+        status: "delivered"
       };
     } else {
       // If period is 'all', only filter by status
       dateFilter = {
-        status: "Delivered"
+        status: "delivered"
       };
     }
 
@@ -231,7 +231,7 @@ export const exportSalesReportPdf = async (req, res) => {
     
     const orders = await Order.find(dateFilter)
       .populate({
-        path: 'address.user',
+        path: 'user',
         select: 'name email joined_date phone_number'
       })
       .sort({ orderDate: -1 });

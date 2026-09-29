@@ -237,13 +237,21 @@ export const buildOrder = ({
   paid,
   checkoutKey = null,
 }) => ({
+  // Who bought it is a reference. The order used to carry a second copy of the
+  // buyer inside its address, under the same name, with the User model's field
+  // names inside it, so there were two records of one person and one of them
+  // went stale the moment the person changed their email.
   user: user._id,
   items: lines.map(({ product, quantity }) => ({
     product: product._id,
     quantity,
     // The price of the moment, not the price that was on the page.
     price: product.price,
-    paymentMethod,
+    // The name and the picture as they were, so an order still reads properly
+    // after the product is renamed or deleted.
+    name: product.name ?? null,
+    image: product.images?.[0] ?? null,
+    status: "pending",
   })),
   subtotal: Number(cart.subtotal),
   discount: Number(cart.discount),
@@ -252,12 +260,6 @@ export const buildOrder = ({
   cutoffAmount: Number(cart.cutoffAmount),
   totalAmount: Number(cart.total),
   address: {
-    user: {
-      name: user.name,
-      email: user.email,
-      joined_date: user.joined_date,
-      phone_number: user.phone_number,
-    },
     name: address.name,
     street: address.street,
     city: address.city,
@@ -269,6 +271,9 @@ export const buildOrder = ({
   // Paid is decided by the server, never by the request.
   paid: Boolean(paid),
   status: "pending",
+  // The code that was used, kept on the order so the receipt can name it. This
+  // was read by the success page and never written, so it was always null.
+  couponCode: cart.appliedCoupon || null,
   checkoutKey: checkoutKey ? String(checkoutKey) : null,
 });
 
@@ -278,13 +283,6 @@ export const receiptForCheckoutKey = receiptFor;
 // after the order was written.
 export const clearPurchasedCart = async (userId) => {
   await Cart.deleteOne({ user: userId });
-};
-
-export const recordPurchaseOnUser = async (user, lines) => {
-  const units = lines.reduce((total, { quantity }) => total + quantity, 0);
-
-  user.totalProductsBuyed = (Number(user.totalProductsBuyed) || 0) + units;
-  await user.save();
 };
 
 // A wallet is only debited when the balance is still there, so two checkouts at

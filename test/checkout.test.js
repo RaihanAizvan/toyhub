@@ -740,8 +740,7 @@ describe("checkout", () => {
       assert.equal(order.razorpayPaymentId, payment);
       assert.equal((await Product.findById(product._id)).stock, 8, "the stock was taken once");
       assert.equal((await Cart.findOne({ user: user._id })), null, "the cart is gone");
-      const buyer = await User.findById(user._id);
-      assert.equal(buyer.totalProductsBuyed, 2, "the purchase is counted once");
+      assert.equal(await Order.countDocuments({ user: user._id }), 1, "one order was placed");
 
       const second = await send(server, "/checkout/verify-payment", {
         as: user._id,
@@ -749,7 +748,7 @@ describe("checkout", () => {
       });
       assert.equal(second.status, 200);
       assert.equal(second.data.repeated, true);
-      assert.equal((await User.findById(user._id)).totalProductsBuyed, 2, "still counted once");
+      assert.equal(await Order.countDocuments({ user: user._id }), 1, "still one order");
       assert.equal((await Product.findById(product._id)).stock, 8);
     });
   });
@@ -1089,7 +1088,7 @@ describe("checkout", () => {
       const order = await createOrder({
         user: user._id,
         totalAmount: 500,
-        status: "Cancelled",
+        status: "cancelled",
         paid: false,
         razorpayOrderId: "order_cancelled",
         razorpayAmount: 50000,

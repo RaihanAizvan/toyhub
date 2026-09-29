@@ -204,3 +204,50 @@ Cookies are always `HttpOnly`. In `staging` and `production` they are also `Secu
 Session identifiers are regenerated on login, and sessions are destroyed on logout, on password change or reset, and when an admin blocks an account.
 
 The cookie name changed from the `connect.sid` default to `toyhub.sid`, so everyone is signed out once when this version is deployed.
+
+## Order records
+
+An order is the record of what was bought, so it keeps the values as they were
+at the time rather than reading them back off the product. Each line stores the
+product's name, image and price, and an order stores the delivery address and
+the coupon code that paid. A product can be renamed, discounted or deleted
+afterwards and the order, the receipt and the invoice still read correctly.
+
+`status` is one of `pending`, `cancelled`, `shipped`, `delivered`, and
+`paymentMethod` is one of `razorpay`, `cod`, `wallet` (`ORDER_STATUSES` and
+`PAYMENT_METHODS` in `models/orders.models.js`). The admin status form is
+checked against that list before anything is written.
+
+### Orders written by earlier versions
+
+Earlier versions wrote `Pending`, `Cancelled`, `Shipped`, `Delivered`,
+`completed` and `stock-unavailable`, kept a second copy of the buyer inside
+`address.user`, and left `couponCode` null. Those records stay in the database
+and stay readable:
+
+- **Reading an old status.** `normaliseOrderStatus()` in
+  `models/orders.models.js` maps every old word onto the four current ones, and
+  anything unrecognised reads as `pending`. Every page and every decision that
+  asks whether an order is still open goes through it, so nothing needs to know
+  the history of the field. Nothing needs to be rewritten.
+- **Reading an old buyer.** The buyer is read from the order's `user`
+  reference and populated at the point of use, so the name and email shown are
+  the account's own and current ones. The stale copy under `address.user` is
+  ignored, and is no longer written.
+- **Writing.** `status` and `paymentMethod` are enums, so a new record can only
+  hold the current words. Legacy values already in the database still load
+  (reading is not validated) and are re-saved in the current spelling the next
+  time that order changes.
+
+To rewrite the old words in place, without the read path:
+
+```js
+db.orders.updateMany({ status: "Delivered" }, { $set: { status: "delivered" } });
+db.orders.updateMany({ status: "Cancelled" }, { $set: { status: "cancelled" } });
+db.orders.updateMany({ status: "Pending" }, { $set: { status: "pending" } });
+db.orders.updateMany({ status: "stock-unavailable" }, { $set: { status: "cancelled" } });
+```
+
+The old `address.user` copy and the `totalProductsBuyed`/`totalAmoutSpended`
+counters on the user are left where they are; nothing reads them, so they can
+be removed at any time with `db.orders.updateMany({}, { $unset: { "address.user": "" } })`.

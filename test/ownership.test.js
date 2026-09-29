@@ -694,7 +694,7 @@ describe("order ownership", () => {
 
       assert.equal(response.status, 404);
       const unchanged = await Order.findById(strangerOrder._id);
-      assert.equal(unchanged.items[0].status, undefined);
+      assert.equal(unchanged.items[0].status, "pending");
       assert.equal(unchanged.status, "pending");
     });
   });

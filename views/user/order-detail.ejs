@@ -141,7 +141,7 @@
             <div class="flex justify-between items-center">
                 <h1 class="text-3xl font-bold text-gray-800 fade-in">Order Details</h1>
                 <div class="flex gap-4">
-                    <% if(order.status == 'Delivered'){ %>
+                    <% if(order.status == 'delivered'){ %>
                         <button class="btn bg-primary text-white py-3 px-6 rounded-xl shadow-md hover:bg-green-700 transition duration-300 flex items-center gap-2">
                             <i class="fas fa-download"></i>
                             Invoice
@@ -172,15 +172,15 @@
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-user text-primary"></i>
-                            <p><strong>Name:</strong> <%= order.address.user.name %></p>
+                            <p><strong>Name:</strong> <%= order.user?.name %></p>
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="fas fa-envelope text-primary"></i>
-                            <p><strong>Email:</strong> <%= order.address.user.email %></p>
+                            <p><strong>Email:</strong> <%= order.user?.email %></p>
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="fas fa-calendar-check text-primary"></i>
-                            <p><strong>Joined:</strong> <%= new Date(order.address.user.joined_date).toLocaleDateString() %></p>
+                            <p><strong>Joined:</strong> <%= new Date(order.user?.joined_date).toLocaleDateString() %></p>
                         </div>
                     </div>
                     <div class="space-y-4">
@@ -207,23 +207,23 @@
                 <h2 class="text-xl font-semibold text-gray-800 mb-6">Order Status</h2>
                 <div class="relative">
                     <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t-2 <%= order.status === 'Cancelled' ? 'border-red-500' : 'border-green-500' %>"></div>
+                        <div class="w-full border-t-2 <%= order.status === 'cancelled' ? 'border-red-500' : 'border-green-500' %>"></div>
                     </div>
                     <div class="relative flex justify-between">
                         <div class="flex flex-col items-center">
-                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'pending' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'pending' ? 'border-green-500' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                 <i class="fas fa-box"></i>
                             </span>
                             <span class="mt-2 text-sm font-medium">Pending</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'Shipped' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'shipped' ? 'border-green-500' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                 <i class="fas fa-shipping-fast"></i>
                             </span>
                             <span class="mt-2 text-sm font-medium">Shipped</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'Delivered' ? 'border-green-500' : order.status === 'Cancelled' ? 'border-red-500' : 'border-gray-300' %>">
+                            <span class="flex items-center justify-center w-10 h-10 bg-white border-3 rounded-full <%= order.status === 'delivered' ? 'border-green-500' : order.status === 'cancelled' ? 'border-red-500' : 'border-gray-300' %>">
                                 <i class="fas fa-check"></i>
                             </span>
                             <span class="mt-2 text-sm font-medium">Delivered</span>
@@ -231,7 +231,7 @@
                     </div>
                 </div>
 
-                <% if (order.status === 'Cancelled') { %>
+                <% if (order.status === 'cancelled') { %>
                     <div class="mt-6 text-center">
                         <span class="status-badge status-cancelled">
                             <i class="fas fa-times-circle"></i>
@@ -392,8 +392,8 @@
                             }
                         },
                         prefill: {
-                            name: "<%= order.address.user.name %>",
-                            email: "<%= order.address.user.email %>",
+                            name: "<%= order.user?.name %>",
+                            email: "<%= order.user?.email %>",
                             contact: "<%= order.address.phone %>",
                         },
                         theme: {
