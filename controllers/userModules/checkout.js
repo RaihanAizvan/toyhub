@@ -3,7 +3,7 @@ import Cart from "../../models/cart.models.js";
 import User from "../../models/users.models.js";
 import Address from "../../models/address.models.js";
 import Coupon from "../../models/couponSchema.models.js";
-import Offer from "../../models/offers.models.js";
+import { offersForCart } from "../../utils/offer-rules.js";
 import {
     CheckoutError,
     applyCouponToCart,
@@ -82,7 +82,7 @@ const getCheckoutPage = async function (req, res) {
     try {
         const cart = await Cart.findOne({ user: req.session.user.id }).populate('items.product');
         const user = await User.findById(req.session.user.id).populate('addresses');
-        const offers = await Offer.find({isBlocked:false})
+        const offers = await offersForCart(cart);
 
         
         const coupons = await Coupon.find({

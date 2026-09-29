@@ -1,7 +1,7 @@
 import Product from "../../models/product.models.js"
 import Category from '../../models/categories.model.js'
 import User from '../../models/users.models.js'
-import Offer from '../../models/offers.models.js'
+import { offersForProduct } from "../../utils/offer-rules.js";
 import mongoose from 'mongoose'
 import Rating from '../../models/ratings.models.js'
 
@@ -36,9 +36,13 @@ export const getSingleProduct = async (req, res) => {
         const reviews = await Rating.find({ productId: productId }).populate('userId')
         
 
-        const offers = await Offer.find({isBlocked:false})
+        // Only the live offers that actually name this product, decided by the
+        // same function that prices the cart.
+        const offers = await offersForProduct(product);
 
-        const productFromSameCategory = await Product.find({category:product.category}).limit(8);
+        const productFromSameCategory = await Product.find({category:product.category})
+            .populate('category')
+            .limit(8);
         // First try to find related products based on name/description match
         let relatedProducts = await Product.find({
             $and: [

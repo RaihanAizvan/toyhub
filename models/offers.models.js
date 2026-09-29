@@ -25,17 +25,22 @@ const offerSchema = new mongoose.Schema({
 
     applicableProducts:[{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"product",
+        ref:"Product",
     }],
 
     applicableCategories:[{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"category",
+        ref:"Category",
     }],
 
+    // A discount is a discount: a shop cannot take more than the whole price
+    // off, and the field is checked in the model so a bad value cannot be
+    // written by any route.
     offerPercentage:{
         type : Number,
         required : true,
+        min: 0,
+        max: 100,
     },
 
     startDate:{
@@ -53,6 +58,15 @@ const offerSchema = new mongoose.Schema({
         default:false,
     }
 })
+
+// An offer that ends before it starts is not an offer, and a live one is the
+// only kind that can be stored as new.
+offerSchema.pre("validate", function (next) {
+    if (this.startDate && this.endDate && new Date(this.endDate) <= new Date(this.startDate)) {
+        this.invalidate("endDate", "An offer has to end after it starts.");
+    }
+    next();
+});
 
 
 const Offer = mongoose.model('Offer' , offerSchema)

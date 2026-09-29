@@ -1,4 +1,4 @@
-import Offer from "../models/offers.models.js";
+import { bestOfferFor, offerDiscountForUnit, offersForProduct } from "./offer-rules.js";
 
 // One place that turns the items of a populated cart into money. Every cart
 // read and every cart mutation goes through here, so a quantity change can
@@ -58,20 +58,14 @@ export const refreshCartTotals = async (cart) => {
       continue;
     }
 
-    const offers = await Offer.find({
-      $or: [
-        { applicableProducts: product._id },
-        { applicableCategories: product.category },
-      ],
-    });
+    // An offer is worked out by the same function the product page and the
+    // checkout page use, so a price shown and a price charged cannot differ.
+    // One offer at a time: the best one, capped at the price, rather than every
+    // offer that names this product added together.
+    const offers = await offersForProduct(product);
+    const best = bestOfferFor(product, offers);
 
-    const offerPerUnit = offers.reduce(
-      (acc, offer) =>
-        acc + (offer.offerPercentage ? (product.price * offer.offerPercentage) / 100 : 0),
-      0,
-    );
-
-    item.offerDiscount = offerPerUnit * item.quantity;
+    item.offerDiscount = offerDiscountForUnit(product, best) * item.quantity;
     cart.offerDiscount += item.offerDiscount;
     cart.subtotal += product.price * item.quantity;
     // A product without a discount rate is a product without a discount.
