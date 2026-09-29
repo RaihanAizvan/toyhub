@@ -187,6 +187,8 @@ export const postAddProductToCart = cart.postAddProductToCart
 
 export const postRemoveItemFromCartHandler = cart.postRemoveItemFromCartHandler
 
+export const postClearCart = cart.postClearCart
+
 
 
 //* -----------------------------------------!                                         

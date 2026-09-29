@@ -4,7 +4,25 @@ import { isObjectId } from "../../utils/ownership.js";
 import { refreshCartTotals } from "../../utils/cart-totals.js";
 
 const MAX_QUANTITY_PER_ITEM = 10;
+const MAX_LINES_PER_CART = 50;
 const MAX_LINES_PER_REQUEST = 50;
+
+// The shape the view draws. An account with no cart yet gets the same numbers
+// as an account whose cart was emptied, so a page never has to ask whether a
+// cart is there before reading a total off it.
+export const emptyCart = (userId) => ({
+  _id: null,
+  user: userId ?? null,
+  items: [],
+  discount: 0,
+  offerDiscount: 0,
+  couponDiscount: 0,
+  subtotal: 0,
+  excludedAmount: 0,
+  total: 0,
+  cutoffAmount: 0,
+  appliedCoupon: null,
+});
 
 const requireUserId = (req, res) => {
   const userId = req.session?.user?.id;
@@ -34,6 +52,40 @@ const parseQuantity = (value) => {
 // account, and an unknown cart answers exactly like somebody else's cart.
 const findOwnCart = (userId) =>
   Cart.findOne({ user: userId }).populate("items.product");
+
+// The same, but the account is given a cart to work on whether or not one is
+// stored yet. Nothing is written until a change is actually made.
+const ownCartForChange = async (userId) => {
+  const existing = await findOwnCart(userId);
+  return existing ?? new Cart({ user: userId, items: [] });
+};
+
+// What the view is given, and what an empty cart is given, is the same shape.
+const cartForView = (cart, userId) => {
+  if (!cart) {
+    return emptyCart(userId);
+  }
+
+  return {
+    ...cart.toObject(),
+    // The lines a shopper cannot buy are drawn with their price and are not
+    // in the totals, so the page says what they are worth on their own.
+    unavailableItemCount: cart.items.filter((item) => item.available === false).length,
+    items: cart.items.map((item) => ({
+      // A line whose product has gone still renders, with the reason on it.
+      product: item.product ?? null,
+      productId: lineProductId(item),
+      quantity: item.quantity,
+      price: Number(item.price) || 0,
+      discountPrice: Number(item.discountPrice) || 0,
+      offerDiscount: Number(item.offerDiscount) || 0,
+      image: item.image ?? item.product?.images?.[0] ?? null,
+      available: item.available !== false,
+      unavailableReason: item.unavailableReason ?? null,
+      lineTotal: (Number(item.price) || 0) * item.quantity,
+    })),
+  };
+};
 
 // A populated line carries the product document, an unpopulated one only the
 // id, so the id is read the same way in both cases.
@@ -75,33 +127,65 @@ export const postAddProductToCart = async (req, res) => {
       lines.push({ product, quantity });
     }
 
-    const cart = (await findOwnCart(userId)) || new Cart({ user: userId, items: [] });
+    const cart = await ownCartForChange(userId);
+
+    // Everything is checked before anything is written, so a refused request
+    // leaves the cart exactly as it was. Each planned line carries the product
+    // it belongs to, so the saved cart is the documented shape rather than a
+    // half-edited document.
+    const planned = cart.items.map((item) => ({
+      productId: lineProductId(item),
+      quantity: item.quantity,
+      product: item.product,
+    }));
 
     for (const { product, quantity } of lines) {
       const productId = product._id.toString();
-      const existingItemIndex = findItemIndex(cart, productId);
+      const existing = planned.find((line) => line.productId === productId);
 
-      if (existingItemIndex > -1) {
-        const wanted =
-          cart.items[existingItemIndex].quantity + quantity;
+      if (existing) {
+        const wanted = existing.quantity + quantity;
         if (wanted > MAX_QUANTITY_PER_ITEM) {
           return res.status(400).json({
             message: `At most ${MAX_QUANTITY_PER_ITEM} of a product can be in the cart`,
           });
         }
-        cart.items[existingItemIndex].quantity = wanted;
-      } else {
-        // The document, not just the id: the totals helper prices the line
-        // from it and the id is what gets stored.
-        cart.items.push({
-          product,
-          quantity,
-          price: product.price,
-          discountPrice: product.discount,
-          image: product.images?.[0],
+        if (wanted > Number(product.stock)) {
+          return res.status(409).json({
+            message: `Only ${product.stock} of ${product.name} are left`,
+          });
+        }
+        existing.quantity = wanted;
+        existing.product = product;
+        continue;
+      }
+
+      if (planned.length >= MAX_LINES_PER_CART) {
+        return res.status(400).json({
+          message: `A cart can hold at most ${MAX_LINES_PER_CART} different products`,
         });
       }
+
+      if (quantity > Number(product.stock)) {
+        return res.status(409).json({
+          message: `Only ${product.stock} of ${product.name} are left`,
+        });
+      }
+
+      planned.push({ productId, quantity, product });
     }
+
+    // A line whose product has been deleted is kept exactly as it was, so
+    // adding something else never quietly removes the line that tells the
+    // shopper what went wrong.
+    cart.items = planned.map((line) => ({
+      product: line.product,
+      quantity: line.quantity,
+      price: line.product?.price ?? 0,
+      discountPrice: line.product?.discount ?? 0,
+      offerDiscount: 0,
+      image: line.product?.images?.[0] ?? null,
+    }));
 
     await refreshCartTotals(cart);
 
@@ -144,13 +228,16 @@ export const updateQuantity = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    if (quantity > Number(product.stock)) {
+      return res.status(409).json({
+        message: `Only ${product.stock} of ${product.name} are left`,
+      });
+    }
+
     // The price always comes from the product, never from the request.
     cart.items[itemIndex].quantity = quantity;
-    cart.items[itemIndex].price = product.price;
-    cart.items[itemIndex].discountPrice = product.discount;
     cart.items[itemIndex].product = product;
 
-    await cart.save();
     await refreshCartTotals(cart);
 
     res.status(200).json({
@@ -159,7 +246,9 @@ export const updateQuantity = async (req, res) => {
       total: cart.total,
       discount: cart.discount,
       offerDiscount: cart.offerDiscount,
+      couponDiscount: cart.couponDiscount,
       cutoffAmount: cart.cutoffAmount,
+      cartItemCount: cart.items.length,
     });
   } catch (error) {
     console.error(error);
@@ -190,7 +279,14 @@ export const postRemoveItemFromCartHandler = async (req, res) => {
     }
 
     cart.items = cart.items.filter((item) => lineProductId(item) !== String(productId));
-    await cart.save();
+
+    // A coupon is judged against what is in the cart, so an emptied cart has
+    // nothing left for it to be worth.
+    if (cart.items.length === 0) {
+      cart.appliedCoupon = null;
+      cart.couponDiscount = 0;
+    }
+
     await refreshCartTotals(cart);
 
     res.status(200).json({
@@ -198,11 +294,48 @@ export const postRemoveItemFromCartHandler = async (req, res) => {
       subtotal: cart.subtotal,
       total: cart.total,
       discount: cart.discount,
+      offerDiscount: cart.offerDiscount,
+      couponDiscount: cart.couponDiscount,
+      cutoffAmount: cart.cutoffAmount,
       cartItemCount: cart.items.length,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Emptying the cart is a change like any other: the lines go, the coupon goes
+// with them, and the totals are priced again so nothing is left behind.
+export const postClearCart = async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+      return;
+    }
+
+    const cart = await findOwnCart(userId);
+    if (!cart) {
+      return res.status(200).json({
+        message: "Your cart is already empty",
+        cart: emptyCart(userId),
+      });
+    }
+
+    cart.items = [];
+    cart.appliedCoupon = null;
+    cart.couponDiscount = 0;
+    await refreshCartTotals(cart);
+
+    return res.status(200).json({
+      message: "Cart cleared",
+      cartItemCount: 0,
+      subtotal: cart.subtotal,
+      total: cart.total,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -213,30 +346,19 @@ export const getCart = async (req, res) => {
       return res.status(401).redirect("/user/login");
     }
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-    if (!cart) {
-      return res.render("user/cart", {
-        title: "Cart",
-        user: req.session.user,
-        cart: { items: [] },
-      });
-    }
+    const cart = await findOwnCart(userId);
 
-    const cartItemsWithDetails = cart.items.map((item) => ({
-      product: item.product,
-      quantity: item.quantity,
-      price: item.price,
-      discountPrice: item.discountPrice,
-    }));
+    // The totals are priced again as the page is drawn, so what the shopper
+    // reads is what the products say now and not what they were at some point.
+    if (cart) {
+      await refreshCartTotals(cart);
+    }
 
     res.render("user/cart", {
       title: "Cart",
       user: req.session.user,
       name: req.session.user?.name,
-      cart: {
-        ...cart.toObject(),
-        items: cartItemsWithDetails,
-      },
+      cart: cartForView(cart, userId),
     });
   } catch (error) {
     console.error(error);
@@ -249,4 +371,5 @@ export default {
   postAddProductToCart,
   updateQuantity,
   postRemoveItemFromCartHandler,
+  postClearCart,
 };

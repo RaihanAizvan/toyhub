@@ -97,7 +97,10 @@
 <%- include('header') %>
 
 <script>
-    const cartId = '<%= cart ? cart._id : "" %>';
+    // Which cart this is comes from the session, so there is no id on the page
+    // that could be edited to mean somebody else's cart.
+    const serverError = (error, fallback) =>
+        (error.response && error.response.data && error.response.data.message) || fallback;
 </script>
 
 <div class="bg-gray-50 pt-4 w-full text-sm mt-48 md:mt-0">
@@ -109,66 +112,81 @@
             <div class="col-span-2 space-y-4">
                 <% if (cart && cart.items && cart.items.length > 0) { %>
                     <% cart.items.forEach((item, index) => { %>
-                        <div class="flex justify-between items-center border-b pb-4 cart-item hover-scale premium-border rounded-md p-3" 
-                             id="cart-item-<%= item.product._id %>"
+                        <%# A line is drawn whatever happened to its product: the controller says
+                            what is wrong with it, so the page names the problem instead of
+                            reaching into a product that is not there. %>
+                        <% const product = item.product; %>
+                        <% const stock = product ? Number(product.stock) || 0 : 0; %>
+                        <% const available = Boolean(product) && item.available !== false; %>
+                        <div class="flex justify-between items-center border-b pb-4 cart-item hover-scale premium-border rounded-md p-3 <%= available ? '' : 'opacity-70' %>"
+                             id="cart-item-<%= item.productId %>"
                              style="animation-delay: <%= index * 0.1 %>s">
                             <div class="flex items-center w-full">
                                 <!-- Product Image -->
-                                <a href="/product/<%= item.product._id %>" class="transform transition-transform hover:scale-105">
-                                    <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-20 h-20 object-cover rounded-md mr-4 shadow-sm">
+                                <a href="/product/<%= item.productId %>" class="transform transition-transform hover:scale-105">
+                                    <img src="<%= item.image || '/images/placeholder.png' %>" alt="<%= product ? product.name : 'Product image' %>" class="w-20 h-20 object-cover rounded-md mr-4 shadow-sm">
                                 </a>
 
                                 <div class="flex-grow fade-in">
                                     <!-- Product Info -->
                                     <h2 class="font-semibold">
-                                        <a href="/product/<%= item.product._id %>" class="hover:text-primary transition-colors">
-                                            <%= item.product.name %>
+                                        <a href="/product/<%= item.productId %>" class="hover:text-primary transition-colors">
+                                            <%= product ? product.name : 'This product is no longer available' %>
                                         </a>
                                     </h2>
-                                    <p class="text-gray-500 text-sm"><%= item.product.description1 %></p>
+                                    <% if (product && product.description1) { %>
+                                        <p class="text-gray-500 text-sm"><%= product.description1 %></p>
+                                    <% } %>
+
+                                    <% if (!available) { %>
+                                        <p class="text-red-500 text-sm mt-1">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i><%= item.unavailableReason || 'This product cannot be bought right now' %>
+                                        </p>
+                                    <% } %>
 
                                     <!-- Quantity Selector -->
                                     <div class="flex items-center mt-2">
                                         <p class="text-gray-500 mr-2">Quantity:</p>
-                                        <% let max = Math.max(1, Math.min(item.product.stock, 10)); %>
-                                        <% if (max > 0) { %>
+                                        <% if (available) { %>
+                                            <% const max = Math.max(1, Math.min(stock, 10)); %>
                                             <select class="border border-gray-300 rounded-md p-1 hover:border-primary focus:ring-2 focus:ring-primary transition-all min-w-[60px]" 
-                                                    onchange="updateQuantity(this, '<%= item.product._id %>', <%= item.price %>)">
+                                                    data-previous="<%= item.quantity %>"
+                                                    onchange="updateQuantity(this, '<%= item.productId %>')">
                                                 <% for (let i = 1; i <= max; i++) { %>
                                                     <option value="<%= i %>" <% if(i === item.quantity) { %> selected <% } %>><%= i %></option>
                                                 <% } %>
                                             </select>
+                                            <% if (stock < 10) { %>
+                                                <span class="text-gray-500 text-sm ml-2"><%= stock %> left</span>
+                                            <% } %>
                                         <% } else { %>
                                             <span class="text-red-500 text-sm">Out of stock</span>
                                         <% } %>
                                     </div>
                                     <% if (item.offerDiscount > 0) { %>
                                         <div class="mt-2 text-sm text-green-500 fade-in bg-green-50 p-2 rounded-sm">
-                                            <p class="font-medium">Offer Discount: -₹<%= item.offerDiscount.toFixed(2) %></p>
-                                            <% item.offers.forEach(offer => { %>
-                                                <p class="text-xs"><%= offer.offerDescription %></p>
-                                            <% }) %>
+                                            <p class="font-medium">Offer Discount: -₹<%= Number(item.offerDiscount).toFixed(2) %></p>
                                         </div>
                                     <% } %>
                                 </div>
                             </div>
 
                             <!-- Individual Item Price -->
-                            <div class="text-lg font-bold text-green-600 ml-4 fade-in" id="item-price-<%= item.product._id %>">
-                                ₹<%= (item.quantity * item.price).toFixed(2) %>
+                            <div class="text-lg font-bold text-green-600 ml-4 fade-in" id="item-price-<%= item.productId %>">
+                                ₹<%= Number(item.lineTotal || 0).toFixed(2) %>
                             </div>
 
                             <!-- Remove Icon -->
-                            <button onclick="removeItemFromCart(event, '<%= item.product._id %>')" 
+                            <button onclick="removeItemFromCart(event, '<%= item.productId %>')"
                                     class="ml-5 hover:text-red-600 text-red-500 transform transition-all hover:scale-110 btn-premium" 
                                     title="Remove item">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     <% }) %>
-                    <% if (cart.items.some(item => item.product.stock <= 0)) { %>
+                    <% if (cart.items.some(item => !item.available)) { %>
                         <div class="bg-red-50 border border-red-200 rounded-md p-4 fade-in">
-                            <p class="text-red-600 text-lg font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Some products are out of stock. Please adjust your cart before proceeding to checkout.</p>
+                            <p class="text-red-600 text-lg font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Some products cannot be bought right now. Remove or adjust them before proceeding to checkout.</p>
                         </div>
                     <% } %>
                 <% } else { %>
@@ -190,14 +208,14 @@
                     <!-- Subtotal -->
                     <div class="flex justify-between items-center fade-in summary-divider" id="subtotal">
                         <span class="font-medium">Subtotal:</span>
-                        <span class="font-bold price text-green-600" id="subtotal-amount">₹<%= cart.subtotal ? cart.subtotal.toFixed(2) : '0.00' %></span>
+                        <span class="font-bold price text-green-600" id="subtotal-amount">₹<%= Number(cart.subtotal || 0).toFixed(2) %></span>
                     </div>
                     
                     <!-- Discount -->
                     <% if (cart.discount) { %>
                     <div class="flex justify-between items-center text-green-600 fade-in summary-divider">
                         <span class="font-medium">Discount:</span>
-                        <span class="font-bold price" id="discount-amount">-₹<%= cart.discount.toFixed(2) %></span>
+                        <span class="font-bold price" id="discount-amount">-₹<%= Number(cart.discount).toFixed(2) %></span>
                     </div>
                     <% } %>
                 
@@ -205,27 +223,40 @@
                     <% if (cart.offerDiscount) { %>
                         <div class="flex justify-between items-center text-green-600 fade-in summary-divider">
                             <span class="font-medium">Offer Discount:</span>
-                            <span class="font-bold price" id="offer-discount-amount">-₹<%= cart.offerDiscount.toFixed(2) %></span>
+                            <span class="font-bold price" id="offer-discount-amount">-₹<%= Number(cart.offerDiscount).toFixed(2) %></span>
                         </div>
+                    <% } %>
+
+                    <%# A line that cannot be bought is not in the total, so the
+                        summary says what it would have been worth rather than
+                        letting the numbers quietly not add up. %>
+                    <% if (Number(cart.excludedAmount) > 0) { %>
+                        <div class="flex justify-between items-center text-red-600 fade-in summary-divider">
+                            <span class="font-medium">Cannot be bought:</span>
+                            <span class="font-bold price" id="excluded-amount">₹<%= Number(cart.excludedAmount).toFixed(2) %></span>
+                        </div>
+                        <p class="text-xs text-red-500" id="excluded-note">
+                            <%= cart.unavailableItemCount %> of your items cannot be bought right now, so the total leaves them out.
+                        </p>
                     <% } %>
 
                     <!-- Cutoff Amount -->
                     <% if (cart.cutoffAmount) { %>
                         <div class="flex justify-between items-center text-red-600 fade-in summary-divider">
                             <span class="font-medium">Cutoff Amount:</span>
-                            <span class="font-bold price" id="cutoff-amount">+₹<%= cart.cutoffAmount.toFixed(2) %></span>
+                            <span class="font-bold price" id="cutoff-amount">+₹<%= Number(cart.cutoffAmount).toFixed(2) %></span>
                         </div>
                     <% } %>
 
                     <!-- Total -->
                     <div class="flex justify-between items-center text-lg font-bold text-green-600 fade-in pt-2 border-t border-gray-200">
                         <span>Total:</span>
-                        <span class="font-bold price" id="total-amount">₹<%= cart.total.toFixed(2) %></span>
+                        <span class="font-bold price" id="total-amount">₹<%= Number(cart.total || 0).toFixed(2) %></span>
                     </div>
                 </div>
 
                 <!-- Proceed to Checkout Button -->
-                <% if (cart.items.length > 0 && !cart.items.some(item => item.product.stock <= 0)) { %>
+                <% if (cart.items.length > 0 && cart.items.every(item => item.available)) { %>
                     <div class="mt-8 fade-in" id="proceed-to-checkout">
                         <a href="/checkout" class="bg-primary text-white font-semibold py-3 px-6 rounded-lg shadow premium-shadow btn-premium block text-center w-full text-lg">
                             Proceed to Checkout
@@ -238,6 +269,12 @@
                     <a href="/" class="text-gray-500 hover:text-primary transition-colors underline font-medium">
                         ← Continue Shopping
                     </a>
+                    <% if (cart.items.length > 0) { %>
+                        <button onclick="clearCart(this)"
+                                class="ml-4 text-red-500 hover:text-red-700 transition-colors underline font-medium">
+                            Clear cart
+                        </button>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -265,10 +302,8 @@ handleScrollAnimation();
 window.addEventListener('scroll', handleScrollAnimation);
 
 // Function to update quantity
-function updateQuantity(element, productId, itemPrice) {
-    if (!cartId) return;
-    
-    const button = element.closest('select').parentElement.querySelector('button') || element;
+function updateQuantity(element, productId) {
+    const button = element.closest('div').querySelector('button') || element;
     const originalText = button.innerHTML;
     button.classList.add('loading');
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -276,7 +311,6 @@ function updateQuantity(element, productId, itemPrice) {
     const quantity = element.value;
 
     axios.post('/cart/update-quantity', {
-        cartId: cartId,
         productId: productId,
         quantity: quantity
     })
@@ -286,8 +320,12 @@ function updateQuantity(element, productId, itemPrice) {
         window.location.reload();
     })
     .catch(error => {
-        toastr.error('Could not update cart.');
+        // The server says what is wrong with the quantity, and puts the
+        // selector back where it was rather than leaving a number that was
+        // never accepted.
+        toastr.error(serverError(error, 'Could not update cart.'));
         console.error(error);
+        element.value = element.dataset.previous || element.value;
     })
     .finally(() => {
         button.classList.remove('loading');
@@ -297,8 +335,6 @@ function updateQuantity(element, productId, itemPrice) {
 
 // Function to remove item from cart
 function removeItemFromCart(event, productId) {
-    if (!cartId) return;
-    
     if (!confirm('Are you sure you want to remove this item from your cart?')) {
         return;
     }
@@ -317,7 +353,6 @@ function removeItemFromCart(event, productId) {
 
     setTimeout(() => {
         axios.post('/cart/remove-item', {
-            cartId: cartId,
             productId: productId
         })
         .then(response => { 
@@ -326,7 +361,7 @@ function removeItemFromCart(event, productId) {
             window.location.reload();
         })
         .catch(error => {
-            toastr.error('Failed to remove item from cart.');
+            toastr.error(serverError(error, 'Failed to remove item from cart.'));
             console.error('Error removing item:', error);
             if (itemElement) {
                 itemElement.style.transform = 'translateX(0)';
@@ -338,6 +373,30 @@ function removeItemFromCart(event, productId) {
             button.innerHTML = originalText;
         });
     }, 300);
+}
+
+// Function to empty the whole cart
+function clearCart(button) {
+    if (!confirm('Remove everything from your cart?')) {
+        return;
+    }
+
+    const originalText = button.innerHTML;
+    button.classList.add('loading');
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    axios.post('/cart/clear')
+    .then(response => {
+        const { message } = response.data;
+        toastr.success(message);
+        window.location.reload();
+    })
+    .catch(error => {
+        toastr.error(serverError(error, 'Could not clear your cart.'));
+        console.error(error);
+        button.classList.remove('loading');
+        button.innerHTML = originalText;
+    });
 }
 
 // Initialize Toastr
