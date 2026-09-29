@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Address from "../../models/address.models.js";
 import AdminUser from "../../models/admin.models.js";
 import Cart from "../../models/cart.models.js";
+import CouponRedemption from "../../models/coupon-redemptions.models.js";
 import Category from "../../models/categories.model.js";
 import Coupon from "../../models/couponSchema.models.js";
 import Offer from "../../models/offers.models.js";
@@ -162,13 +163,16 @@ export const createCart = async (overrides = {}) => {
   return Cart.create(cart);
 };
 
+// A coupon the suite can actually use: a running code, a number of uses still
+// going, and no cap unless a test asks for one.
 export const buildCoupon = (overrides = {}) => ({
-  couponCode: unique("COUPON").toUpperCase(),
+  couponCode: unique("CPN").toUpperCase(),
   discount: 10,
   discountType: "percentage",
   minSpend: 0,
-  maxDiscount: 100,
-  usageLimit: 0,
+  minPurchase: 0,
+  maxDiscount: 0,
+  usageLimit: 5,
   startDate: daysFromNow(-1),
   endDate: daysFromNow(30),
   isBlocked: false,
@@ -177,6 +181,23 @@ export const buildCoupon = (overrides = {}) => ({
 
 export const createCoupon = async (overrides = {}) =>
   Coupon.create(buildCoupon(overrides));
+
+export const buildCouponRedemption = (overrides = {}) => ({
+  coupon: objectId(),
+  couponCode: unique("CPN").toUpperCase(),
+  user: objectId(),
+  order: objectId(),
+  amount: 0,
+  ...overrides,
+});
+
+export const createCouponRedemption = async (overrides = {}) => {
+  const redemption = buildCouponRedemption(overrides);
+  redemption.coupon = objectId(redemption.coupon);
+  redemption.user = objectId(redemption.user);
+  redemption.order = objectId(redemption.order);
+  return CouponRedemption.create(redemption);
+};
 
 export const buildOffer = (overrides = {}) => ({
   name: `Test Offer ${unique("offer")}`,
@@ -312,6 +333,8 @@ export const fixtures = {
   createCart,
   buildCoupon,
   createCoupon,
+  buildCouponRedemption,
+  createCouponRedemption,
   buildOffer,
   createOffer,
   buildOrderItem,

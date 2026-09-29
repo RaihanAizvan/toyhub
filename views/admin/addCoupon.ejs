@@ -96,6 +96,29 @@
             <p class="error text-red-500 hidden" id="minSpendError">Min spend must be between 1 and 10000.</p>
           </div>
           <div class="mb-4">
+            <label class="block text-gray-700">Max Discount (0 for no cap)</label>
+            <input type="number" name="maxDiscount" value="<%= coupon?.maxDiscount ?? 0 %>" min="0" class="w-full border px-3 py-2 rounded" />
+            <p class="text-sm text-gray-500">Only applies to a percentage discount.</p>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700">Limit to products</label>
+            <select name="applicableProducts" multiple size="5" class="w-full border px-3 py-2 rounded">
+              <% (products || []).forEach((product) => { %>
+                <option value="<%= product._id %>" <%= (coupon?.applicableProducts || []).map(String).includes(String(product._id)) ? 'selected' : '' %>><%= product.name %></option>
+              <% }) %>
+            </select>
+            <p class="text-sm text-gray-500">Leave empty to apply to the whole cart.</p>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700">Limit to categories</label>
+            <select name="applicableCategories" multiple size="5" class="w-full border px-3 py-2 rounded">
+              <% (categories || []).forEach((category) => { %>
+                <option value="<%= category._id %>" <%= (coupon?.applicableCategories || []).map(String).includes(String(category._id)) ? 'selected' : '' %>><%= category.name %></option>
+              <% }) %>
+            </select>
+            <p class="text-sm text-gray-500">The discount is measured against the matching lines only.</p>
+          </div>
+          <div class="mb-4">
             <label class="block text-gray-700">Discount Type</label>
             <select name="discountType" class="w-full border px-3 py-2 rounded" required>
               <option value="percentage">Percentage</option>
@@ -186,6 +209,8 @@
       }
 
       if (isValid) {
+        const selected = (name) => Array.from(form[name].selectedOptions).map((option) => option.value);
+
         axios.post('/admin/addCoupon', {
           couponCode: code,
           startDate: form.startDate.value,
@@ -193,14 +218,17 @@
           discount: discount,
           discountType: discountType,
           usageLimit: usageLimit,
-          minSpend: minSpend
+          minSpend: minSpend,
+          maxDiscount: Number(form.maxDiscount.value) || 0,
+          applicableProducts: selected('applicableProducts'),
+          applicableCategories: selected('applicableCategories')
         })
         .then(response => {
           toastr.success('Coupon added successfully');
           window.location.href = '/admin/coupons';
         })
         .catch(error => {
-          toastr.error('Failed to add coupon');
+          toastr.error(error.response?.data?.message || 'Failed to add coupon');
         });
       }
     });

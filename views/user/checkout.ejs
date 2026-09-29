@@ -279,14 +279,6 @@
             // Apply Coupon Feedback
             async function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value;
-                const cutoffAmountElement = document.getElementById('cutoffAmount');
-                const cutoffAmount = cutoffAmountElement ? parseFloat(cutoffAmountElement.textContent.replace('+₹', '')) : 0;
-
-                if (cutoffAmount > 0) {
-                    displayCouponError('Coupons cannot be applied when a cutoff amount is present.');
-                    toastr.error('Coupons cannot be applied when a cutoff amount is present.');
-                    return;
-                }
 
                 try {
                     // No amount is sent with a coupon: the shop prices the cart
@@ -302,49 +294,45 @@
                         toastr.error(response.data.message || 'Invalid coupon code.');
                     }
                 } catch (error) {
-                    displayCouponError('Error applying coupon. Please try again later.');
-                    toastr.error('Error applying coupon. Please try again later.');
+                    const message = error.response?.data?.message
+                        || 'Error applying coupon. Please try again later.';
+                    displayCouponError(message);
+                    toastr.error(message);
                 }
             }
 
-            function clearCoupon() {
-                // Reset fields
+            function showCouponRemoved(discountAmount, totalAmount) {
                 document.getElementById('couponCode').disabled = false;
                 document.getElementById('applyCouponButton').disabled = false;
 
                 const couponDiscountElement = document.getElementById('couponDiscount');
-                const totalElement = document.getElementById('total');
                 const couponDiscountContainer = document.getElementById('couponDiscountContainer');
                 const couponFeedbackElement = document.getElementById('couponFeedback');
+                const totalElement = document.getElementById('total');
                 const totalAmountInput = document.getElementById('totalAmount');
-                const offerDiscountElement = document.getElementById('offerDiscount');
-                const offerDiscountContainer = document.getElementById('offerDiscountContainer');
 
-                // Reset displayed values
-                couponDiscountElement.textContent = '-₹0.00';
+                couponDiscountElement.textContent = `-₹${Number(discountAmount || 0).toFixed(2)}`;
                 couponDiscountContainer.classList.add('hidden');
                 couponFeedbackElement.classList.add('hidden');
 
-                // Calculate the new total amount considering other discounts and removing coupon discount
-                const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
-                const offerDiscount = offerDiscountElement ? parseFloat(offerDiscountElement.textContent.replace('-₹', '')) : 0;
-                const discount = parseFloat(document.getElementById('discount').textContent.replace('-₹', '')) || 0;
+                totalElement.textContent = `₹${Number(totalAmount).toFixed(2)}`;
+                totalAmountInput.value = Number(totalAmount).toFixed(2);
 
-                // Check if cutoffAmount element exists and get its value
-                let cutoffAmount = 0;
-                const cutoffAmountElement = document.getElementById('cutoffAmount');
-                if (cutoffAmountElement) {
-                    cutoffAmount = parseFloat(cutoffAmountElement.textContent.replace('+₹', '')) || 0;
-                }
-
-                const newTotal = subtotal - discount - offerDiscount + cutoffAmount;
-
-                // Update the total amount displayed
-                totalElement.textContent = `₹${newTotal.toFixed(2)}`;
-                totalAmountInput.value = newTotal.toFixed(2);
-
-                // Ensure coupon is removed from session storage
                 sessionStorage.removeItem('appliedCoupon');
+            }
+
+            // The coupon is on the cart, so taking it off is a change to the
+            // cart. The shop does it and answers with the total to show, which
+            // is the only way the page and the cart can agree about it.
+            async function clearCoupon() {
+                try {
+                    const response = await axios.post('/checkout/remove-coupon');
+                    if (response.data.success) {
+                        showCouponRemoved(response.data.discountAmount, response.data.totalAmount);
+                    }
+                } catch (error) {
+                    toastr.error(error.response?.data?.message || 'Could not remove the coupon.');
+                }
             }
 
             // Ensure the clearCoupon function is called when the remove button is clicked
@@ -384,10 +372,10 @@
                 if (cartHasItems === 'false') {
                     clearCoupon(); // Clear coupon if no items in cart
                 } else {
-                    const storedCoupon = sessionStorage.getItem('appliedCoupon');
-                    if (storedCoupon) {
-                        document.getElementById('couponCode').value = storedCoupon;
-                        applyCoupon(); // Reapply coupon if stored
+                    const appliedCoupon = <%- JSON.stringify((cart && cart.appliedCoupon) || null) %>;
+                    if (appliedCoupon) {
+                        document.getElementById('couponCode').value = appliedCoupon;
+                        applyCoupon();
                     }
                 }
             });
