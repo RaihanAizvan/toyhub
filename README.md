@@ -205,6 +205,46 @@ Session identifiers are regenerated on login, and sessions are destroyed on logo
 
 The cookie name changed from the `connect.sid` default to `toyhub.sid`, so everyone is signed out once when this version is deployed.
 
+## Adding a product
+
+The add-product form and the Product schema use different words for the same
+thing, and the translation between them is written down in
+`utils/product-form.js` rather than spread through the request handler. A field
+read under the name the form gives it and written under a name the schema does
+not have is dropped by the database rather than saved, which is how warnings,
+prices and pictures went missing.
+
+| The form asks for | The product stores |
+| --- | --- |
+| `title` | `name` |
+| `warning` | `warnings` |
+| `sku` | `SKU` |
+| `stock_quantity` | `stock` |
+| `regular_price` | `price` |
+| `description1`, `description2`, `type`, `color` | the same names |
+| the files, and the crops of them | `images` |
+
+`priceAfterDiscount` is worked out from the price and the discount in that one
+file, so the shopper's pages, the product list and this form cannot each decide
+what a discount means. The form used to also ask for a sale price, which nothing
+read and which contradicted the discount; the page now shows the price the
+product will be listed at instead.
+
+**What is refused, and what it leaves behind.** A request is checked in full
+before anything is written, so a refused one leaves no product and no category
+changed. Each refusal is reported against the field that caused it, and the
+values that were typed are handed back so the product is not typed twice. A
+category that is not one of the shop's own is a mistake rather than a server
+error, and a name already in use is said to be the name's problem.
+
+**Pictures.** The form sends what was picked under `files` and the crops under
+`croppedImage_0` to `croppedImage_4`, and the crops are what the product shows.
+A file that was not cropped stands in for its own position rather than leaving a
+hole. Uploads happen before the request can be checked, so `utils/uploads.js`
+gives back the files no product points at: everything when the product was not
+created, and the uncropped originals when it was. A refused upload is answered
+by the upload itself, in the words of the field it belongs to.
+
 ## Order records
 
 An order is the record of what was bought, so it keeps the values as they were
