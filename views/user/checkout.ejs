@@ -45,7 +45,10 @@
                             <i class="fas fa-gift text-primary mr-2"></i>Available Offers
                         </h2>
                         <div class="space-y-3">
-                            <% offers.forEach(offer => { %>
+                            <% if (!offers || !offers.length) { %>
+                                <p class="text-gray-600">There is no offer running on anything in your cart right now.</p>
+                            <% } %>
+                            <% (offers || []).forEach(offer => { %>
                                 <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                                     <i class="fas fa-tag text-green-600 mt-1"></i>
                                     <div>
