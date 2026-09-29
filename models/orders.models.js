@@ -60,6 +60,47 @@ const OrderSchema = new mongoose.Schema({
       enum: ORDER_STATUSES,
       default: "pending"
     },
+    // When a line was called back on its own.
+    cancelledAt: {
+      type: Date,
+      default: null
+    },
+    // A line is refunded and its stock released on its own, so it keeps its own
+    // notes about both. The order's own notes are about the whole order, and a
+    // line cancelled on its own does not go through them: two lines coming out
+    // of one order are two refunds, not one.
+    stockReleasedAt: {
+      type: Date,
+      default: null
+    },
+    refund: {
+      status: {
+        type: String,
+        enum: ["none", "pending", "refunded", "failed"],
+        default: "none"
+      },
+      method: {
+        type: String,
+        enum: ["none", "razorpay", "wallet"],
+        default: "none"
+      },
+      amount: {
+        type: Number,
+        default: 0
+      },
+      gatewayRefundId: {
+        type: String,
+        default: null
+      },
+      at: {
+        type: Date,
+        default: null
+      },
+      error: {
+        type: String,
+        default: null
+      }
+    },
     // A product that has since been deleted is not a reason to lose the line,
     // so the name and the picture of the moment are kept with it.
     name: {
@@ -147,6 +188,58 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     enum: ORDER_STATUSES,
     default: 'pending'
+  },
+  // Who called the order back, when, and why. The reason is the one the shopper
+  // gave, which the form has always collected and the order has never kept.
+  cancelReason: {
+    type: String,
+    default: null,
+    maxlength: 500
+  },
+  cancelledAt: {
+    type: Date,
+    default: null
+  },
+  cancelledBy: {
+    type: String,
+    enum: ["user", "admin"],
+    default: null
+  },
+  // When the reserved stock was put back on the shelf. Written once, by a
+  // conditional update, so the same units cannot be given back twice.
+  stockReleasedAt: {
+    type: Date,
+    default: null
+  },
+  // What happened to the money, and which way it went. The note is claimed
+  // before any money moves, so one refund is made however many requests arrive.
+  refund: {
+    status: {
+      type: String,
+      enum: ["none", "pending", "refunded", "failed"],
+      default: "none"
+    },
+    method: {
+      type: String,
+      enum: ["none", "razorpay", "wallet"],
+      default: "none"
+    },
+    amount: {
+      type: Number,
+      default: 0
+    },
+    gatewayRefundId: {
+      type: String,
+      default: null
+    },
+    at: {
+      type: Date,
+      default: null
+    },
+    error: {
+      type: String,
+      default: null
+    }
   },
   // The key the checkout attempt was made with, so a retry of the same attempt
   // finds the order it already created instead of creating a second one.

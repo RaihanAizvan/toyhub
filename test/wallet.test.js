@@ -161,9 +161,10 @@ const signatureFor = (razorpayOrderId, razorpayPaymentId) =>
 
 // A gateway that answers without a network. `payment` decides what it says
 // about a payment, so a test can describe one that settled and one that did not.
-const useFakeGateway = ({ fails = false, payment, orderFails = false } = {}) => {
+const useFakeGateway = ({ fails = false, payment, orderFails = false, refundFails = false } = {}) => {
   const calls = [];
   const created = [];
+  const refunds = [];
   let sequence = 0;
 
   setRazorpayFactory(() => ({
@@ -206,10 +207,23 @@ const useFakeGateway = ({ fails = false, payment, orderFails = false } = {}) => 
         }
         return settled;
       },
+      refund: async (paymentId, params) => {
+        calls.refunds.push({ paymentId, params });
+        if (refundFails) {
+          throw new Error("the gateway will not refund this");
+        }
+        return {
+          id: `rfnd_fake_${calls.refunds.length}`,
+          payment_id: paymentId,
+          amount: params.amount,
+          status: "processed",
+        };
+      },
     },
   }));
 
   calls.fetches = [];
+  calls.refunds = [];
   return calls;
 };
 
@@ -914,21 +928,15 @@ describe("wallet", () => {
         const user = await createUser();
         const product = await createProduct({ stock: 5 });
         const wallet = await getOrCreateWallet(user._id);
+        // A wallet order: the money left a balance in this application, so it
+        // goes back to that balance.
         const order = await createOrder({
           user: user._id,
-          paymentMethod: "razorpay",
+          paymentMethod: "wallet",
           paid: true,
           totalAmount: 300,
           status: "pending",
-          items: [
-            {
-              product: product._id,
-              quantity: 1,
-              price: 300,
-              discountPrice: 0,
-              paymentMethod: "razorpay",
-            },
-          ],
+          items: [{ product: product._id, quantity: 1, price: 300 }],
         });
 
         const first = await send(server, `/account/orders/${order._id}/cancel-reason`, {
@@ -949,6 +957,11 @@ describe("wallet", () => {
         assert.equal(entry.reason, "refund");
         assert.equal(String(entry.idempotencyKey), `refund:order:${order._id}`);
         assert.equal(String(entry.reference.order), String(order._id));
+
+        const after = await Order.findById(order._id);
+        assert.equal(after.refund.status, "refunded", "the order says the money went back");
+        assert.equal(after.refund.method, "wallet");
+        assert.equal(after.cancelledBy, "user");
       });
     });
 

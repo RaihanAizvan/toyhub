@@ -460,6 +460,15 @@ const verifyPayment = async (req, res) => {
             });
         }
 
+        // Only an order that is meant to be paid by card can be settled by the
+        // card gateway, whatever it happens to carry on it.
+        if (order.paymentMethod !== 'razorpay') {
+            return res.status(409).json({
+                success: false,
+                message: 'This order is not paid with a card.',
+            });
+        }
+
         // The gateway order was created for the amount on the order, so a total
         // that no longer matches means this payment is not for this order.
         if (order.razorpayAmount !== toPaise(order.totalAmount)) {
@@ -665,13 +674,46 @@ const retryPayment = async (req, res) => {
             });
         }
 
+        // Only an order that is meant to be paid online can be paid online. A
+        // cash-on-delivery or wallet order is never handed to the gateway: it
+        // used to be, which turned a delivery order into a card payment.
+        if (order.paymentMethod !== 'razorpay') {
+            return res.status(409).json({
+                success: false,
+                message: order.paymentMethod === 'wallet'
+                    ? 'This order is paid from the wallet, not with a card.'
+                    : 'This order is paid on delivery, so there is nothing to retry.',
+            });
+        }
+
         const amount = toPaise(order.totalAmount);
+
+        // Asking to retry again while the amount has not changed gives back the
+        // same gateway order, so a double click cannot invalidate the payment
+        // page the shopper already opened.
+        if (order.razorpayOrderId && order.razorpayAmount === amount) {
+            return res.status(200).json({
+                success: true,
+                repeated: true,
+                message: 'This payment is already set up.',
+                razorpay_order_id: order.razorpayOrderId,
+                amount: order.razorpayAmount,
+                currency: 'INR',
+            });
+        }
+
         let gatewayOrder;
 
         try {
+            // The receipt says which payment page this is. It is worked out from
+            // the order, the amount and the gateway order it would replace, so
+            // asking again in the same state asks for the same page rather than
+            // a second one, and a new amount gets a receipt of its own.
             gatewayOrder = await createGatewayOrder({
                 amount,
-                receipt: receiptForCheckoutKey(`rtry_${order._id}_${Date.now()}`),
+                receipt: receiptForCheckoutKey(
+                    `rtry_${order._id}_${amount}_${order.razorpayOrderId ?? 'first'}`
+                ),
             });
         } catch (error) {
             console.error('Error creating Razorpay order:', error);
@@ -730,6 +772,13 @@ const verifyRetryPayment = async (req, res) => {
 
         if (order.paid) {
             return res.status(200).json({ success: true, repeated: true });
+        }
+
+        if (order.paymentMethod !== 'razorpay') {
+            return res.status(409).json({
+                success: false,
+                message: 'This order is not paid with a card.',
+            });
         }
 
         // A closed order cannot be paid or retried, and an order written under
