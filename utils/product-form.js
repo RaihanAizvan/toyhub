@@ -83,7 +83,12 @@ const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 // Every field of the form is checked here, and each check says what was wrong
 // with the value in the words the page shows beside the input. An administrator
 // who mistyped a price is told about the price.
-export const readProductForm = (body = {}, files = {}) => {
+//
+// Images are not part of this, because a product being created and a product
+// being edited do not agree about them: the first has to be given its pictures,
+// and the second already has some. The fields are the same either way, so they
+// are read once here and each caller decides about the pictures.
+export const readProductFields = (body = {}) => {
   const errors = {};
   const values = {};
 
@@ -189,6 +194,19 @@ export const readProductForm = (body = {}, files = {}) => {
     values.category = category;
   }
 
+  if (values.price !== undefined && values.discount !== undefined) {
+    values.priceAfterDiscount = priceAfterDiscount(values.price, values.discount);
+  }
+
+  return { values, errors };
+};
+
+// The fields of a product being created, plus the pictures it was created with.
+// Everything is checked before anything is written, so a request this refuses
+// leaves no product behind.
+export const readProductForm = (body = {}, files = {}) => {
+  const { values, errors } = readProductFields(body);
+
   const images = imagesFrom(files);
   if (images.length === 0) {
     errors.imageError = "Add at least 1 image";
@@ -198,27 +216,114 @@ export const readProductForm = (body = {}, files = {}) => {
     values.images = images;
   }
 
-  // A file that is not an image is refused by name here as well as by the
-  // upload middleware, so the answer says which file was wrong.
-  for (const [field, group] of Object.entries(files)) {
-    for (const file of Array.isArray(group) ? group : []) {
-      if (file?.mimetype && !IMAGE_TYPES.has(file.mimetype)) {
-        errors.imageError = `${file.originalname ?? "One of the files"} is not a jpg, png or webp image`;
-      }
-    }
+  const imageError = imageTypeError(files);
+  if (imageError) {
+    errors.imageError = imageError;
   }
 
-  if (values.price !== undefined && values.discount !== undefined) {
-    values.priceAfterDiscount = priceAfterDiscount(values.price, values.discount);
-  }
-
-  // Everything else the schema defaults is written out rather than left to the
-  // schema, so what a new product holds is visible in one place.
   return {
     ok: Object.keys(errors).length === 0,
     values,
     errors,
     images,
+  };
+};
+
+// A file that is not an image is refused by name here as well as by the upload
+// middleware, so the answer says which file was wrong.
+const imageTypeError = (files = {}) => {
+  for (const group of Object.values(files)) {
+    for (const file of Array.isArray(group) ? group : []) {
+      if (file?.mimetype && !IMAGE_TYPES.has(file.mimetype)) {
+        return `${file.originalname ?? "One of the files"} is not a jpg, png or webp image`;
+      }
+    }
+  }
+  return null;
+};
+
+const asList = (value) => (Array.isArray(value) ? value : value === undefined || value === "" ? [] : [value]);
+
+// What an edit says about the pictures a product already has.
+//
+// The form is not asked to repeat what it was already showing. It is asked which
+// of the pictures the administrator is keeping, and a picture nobody kept is
+// removed. That makes removal the thing an administrator does on purpose, rather
+// than the thing that happens when a field is missing from a request.
+//
+// Two things are sent, because one is not enough. `knownImages` is the list the
+// form was showing, and its presence is what says "this request is about the
+// pictures" — an unticked checkbox is sent as nothing at all, so without it a
+// form that unticked the only picture of a product would look exactly like a form
+// that said nothing about pictures, and the removal would be silently ignored.
+// `keepImages` is the ticked ones, and a picture the product does not hold cannot
+// be kept, so a request cannot point a product at somebody else's picture.
+export const imagesForEdit = (body = {}, files = {}, currentImages = []) => {
+  const known = asList(body.knownImages).map(text).filter(Boolean);
+  const asked = asList(body.keepImages).map(text).filter(Boolean);
+
+  const knownToProduct = known.filter((path) => currentImages.includes(path));
+  const kept = [];
+  const unknown = [];
+
+  for (const path of asked) {
+    if (currentImages.includes(path)) {
+      if (!kept.includes(path)) {
+        kept.push(path);
+      }
+    } else {
+      unknown.push(path);
+    }
+  }
+
+  // A request that names no pictures at all is keeping all of them: they are
+  // already there, and a request that does not mention them is a request about
+  // something else. A request that names the pictures it was showing is an edit
+  // of them, and unkeeping one is a decision.
+  const retained = known.length > 0 ? kept : [...currentImages];
+
+  const added = imagesFrom(files);
+  const images = [...retained, ...added].slice(0, IMAGES_PER_PRODUCT);
+
+  return {
+    images,
+    // What the form was showing that the product no longer has is not a removal
+    // by the administrator; it is a picture that went away by some other means,
+    // and it is left alone.
+    removed: knownToProduct.filter((path) => !images.includes(path)),
+    added,
+    unknown,
+  };
+};
+
+// The fields of a product being edited, plus what the request said about its
+// pictures. `currentImages` is what the product holds now, which is the only
+// thing a request is allowed to keep or remove.
+export const readProductEditForm = (body = {}, files = {}, currentImages = []) => {
+  const { values, errors } = readProductFields(body);
+  const { images, removed, added, unknown } = imagesForEdit(body, files, currentImages);
+
+  if (images.length === 0) {
+    // A product with no picture is not a product this shop can sell, whichever
+    // form asked for it.
+    errors.imageError = "A product needs at least 1 image. Keep one, or add one.";
+  } else {
+    values.images = images;
+  }
+
+  const imageError = imageTypeError(files);
+  if (imageError) {
+    errors.imageError = imageError;
+  }
+
+  return {
+    ok: Object.keys(errors).length === 0,
+    values,
+    errors,
+    images,
+    removed,
+    added,
+    unknown,
   };
 };
 
@@ -233,6 +338,19 @@ export const formValues = (body = {}) => {
     if (value) {
       values[key] = value;
     }
+  }
+  return values;
+};
+
+// The same, for a page that re-renders an existing product. Every field is
+// included, and an empty one is included as empty, because there the fields the
+// product already holds are what the page would show instead: a description the
+// administrator cleared must come back cleared rather than filled in again from
+// the product.
+export const postedProductValues = (body = {}) => {
+  const values = {};
+  for (const key of Object.keys(PRODUCT_FIELDS)) {
+    values[key] = text(body[key]);
   }
   return values;
 };

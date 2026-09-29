@@ -45,6 +45,10 @@ async function isAdmin(req, res, next) {
   // otherwise end at the page that says nothing is here. It is answered here
   // instead, in the words of the field it belongs to, because a file that is too
   // large or is not an image is a mistake in the picture, not a missing page.
+  // A refused upload is answered here rather than by the page that says nothing
+  // is there, and the form it sends the person back to is named by the route: the
+  // add form for a create, the product's own edit form for an edit, which is why
+  // `formPath` may be a function of the request rather than only a string.
   const handleUpload = (formPath = '/admin/addProduct') => (req, res, next) => {
     upload.fields(IMAGE_FIELDS)(req, res, (error) => {
       if (!error) {
@@ -52,16 +56,17 @@ async function isAdmin(req, res, next) {
       }
 
       console.error('Upload refused:', error.message);
-      req.session.toast = { message: describeUploadError(error), type: 'error' };
+      const message = describeUploadError(error);
+      req.session.toast = { message, type: 'error' };
 
       // The form reads its answer as json, because the cropped pictures are
       // built in the browser; anything else is sent back to the page it came
       // from.
       if (req.xhr === true || String(req.get('accept') ?? '').includes('application/json')) {
-        return res.status(400).json({ success: false, errors: { imageError: describeUploadError(error) } });
+        return res.status(400).json({ success: false, errors: { imageError: message } });
       }
 
-      return res.redirect(formPath);
+      return res.redirect(typeof formPath === 'function' ? formPath(req) : formPath);
     });
   };
   

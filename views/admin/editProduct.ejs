@@ -12,47 +12,50 @@
         </li>
         <li>
           <a href="/admin/products"
-            class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all  p-2 text-gray-700">All
+            class="flex items-center rounded hover:shadow-xl hover:bg-gray-100 transition-all p-2 text-gray-700">All
             Products</a>
         </li>
         <li>
           <a href="/admin/orders"
-            class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">Order
+            class="flex items-center p-2 text-gray-700 hover:shadow-xl hover:bg-gray-100 transition-all">Order
             List</a>
         </li>
         <li>
           <a href="/admin/users"
-            class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">User
+            class="flex items-center p-2 text-gray-700 hover:shadow-xl hover:bg-gray-100 transition-all">User
             List</a>
         </li>
         <li>
           <a href="/admin/category"
-            class="flex items-center p-2 text-gray-700 hover:shadow-xl rounded-lg hover:bg-gray-100 transition-all">
+            class="flex items-center p-2 text-gray-700 hover:shadow-xl hover:bg-gray-100 transition-all">
             Product Details</a>
         </li>
-        <li>
-          <a href="/admin/addProduct" class="flex items-center bg-primary rounded transition-all  p-2 text-gray-700">
+        <li> <a href="/admin/addProduct" class="flex items-center bg-primary rounded transition-all p-2 text-gray-700">
             <span class="ml-3">Add Product</span></a>
         </li>
-        <li> <a href="/admin/salesReport" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl transition-all p-2 text-gray-700">Sales Report</a>
-        <li><a href="/admin/coupons" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Coupons</a></li>
-        <li><a href="/admin/offers" class="flex items-center rounded hover:bg-gray-200 transition-all p-2 text-gray-700">Offers</a></li>
+        <li><a href="/admin/salesReport" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl p-2 text-gray-700">Sales Report</a>
+        </li>
+        <li><a href="/admin/coupons" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl p-2 text-gray-700">Coupons</a></li>
+        <li><a href="/admin/offers" class="flex items-center rounded hover:bg-gray-100 hover:shadow-xl p-2 text-gray-700">Offers</a></li>
       </ul>
     </nav>
     <div class="mt-6">
-      <h3 class="text-sm font-semibold ">Categories</h3>
+      <h3 class="text-sm font-semibold">Categories</h3>
       <hr>
       <ul class="mt-2 space-y-2">
         <li>
-          <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+          <a href="#"
+            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
             1</a>
         </li>
         <li>
-          <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
+          <a href="#"
+            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
             2</a>
         </li>
         <li>
-          <a href="#" class="flex items-center p-2 hover:bg-gray-200 transition-all rounded  text-gray-700">Category
+          <a href="#"
+            class="flex items-center p-2 hover:bg-gray-200 transition-all rounded text-gray-700">Category
             3</a>
         </li>
       </ul>
@@ -61,7 +64,7 @@
           <form action="/admin/logout" method="POST">
             <a href="/admin/logout">
               <button type="submit"
-                class="flex items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded  ">Logout</button>
+                class="flex items-center p-2 hover:bg-gray-200 mt-3 transition-all rounded">Logout</button>
             </a>
           </form>
         </li>
@@ -73,165 +76,458 @@
     <h1 class="text-2xl font-semibold">Edit Product</h1>
     <p class="text-sm text-gray-500 mb-8">Home &gt; All Products &gt; Edit Product</p>
     <!-- Form container -->
-    <div class="bg-white p-8 rounded-lg shadow-md">
-        <form id="productForm" class="grid grid-cols-2 gap-6">
-            <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
-                <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md" placeholder="Type name here" value="<%= product.name %>">
-                <p class="error" id="titleError"></p>
+    <div class="bg-white p-4 md:p-8 rounded-lg shadow-md">
+      <form id="productForm" class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6" method="POST"
+        action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data">
+        <% if(locals.errors && errors.formError) { %>
+          <p id="error-form" class="col-span-1 md:col-span-2 text-red-500 text-sm"><%= errors.formError %></p>
+        <% } %>
+        <!-- Product Title -->
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="product-title">Product Title</label>
+          <input type="text" id="product-title" name="title" class="mt-1 p-2 w-full border rounded-md"
+            placeholder="Type name here"
+            value="<%= locals.values ? (values.title || '') : product.name %>">
+          <% if(locals.errors) { %>
+            <p id="error-title" class="text-red-500 text-sm mt-1" hidden><%= errors.titleError %></p>
+          <% } %>
+        </div>
+        <!-- Description 1 -->
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
+          <textarea id="description1" name="description1" rows="3"
+            class="mt-1 p-2 w-full border rounded-md"
+            placeholder="Type Description here"><%= locals.values ? (values.description1 || '') : product.description1 %></textarea>
+          <% if(locals.errors) { %>
+            <p id="error-description1" class="text-red-500 text-sm mt-1" hidden><%= errors.description1Error %></p>
+          <% } %>
+        </div>
+        <!-- Description 2 -->
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
+          <textarea id="description2" name="description2" rows="3"
+            class="mt-1 p-2 w-full border rounded-md"
+            placeholder="Type Description here"><%= locals.values ? (values.description2 || '') : (product.description2 || '') %></textarea>
+          <% if(locals.errors) { %>
+            <p id="error-description2" class="text-red-500 text-sm mt-1" hidden><%= errors.description2Error %></p>
+          <% } %>
+        </div>
+        <!-- Category -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="category">Category</label>
+          <select id="category" name="category" class="mt-1 p-2 w-full border rounded-md">
+            <% const chosenCategory = locals.values ? values.category : (existingCategory ? String(existingCategory._id) : '') %>
+            <% if(locals.categories && categories.length) { %>
+              <% categories.forEach(category=> { %>
+                <option value="<%= category._id %>" <%= chosenCategory === String(category._id) ? 'selected' : '' %>>
+                  <%= category.name %>
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option value="">No categories available</option>
+            <% } %>
+          </select>
+          <% if(locals.errors) { %>
+            <p id="error-category" class="text-red-500 text-sm mt-1" hidden><%= errors.categoryError %></p>
+          <% } %>
+        </div>
+        <!-- Warning -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="warning">Warning</label>
+          <input type="text" id="warning" name="warning" class="mt-1 p-2 w-full border rounded-md"
+            placeholder="Type Warning here"
+            value="<%= locals.values ? (values.warning || '') : (product.warnings || '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-warning" class="text-red-500 text-sm mt-1" hidden><%= errors.warningError %></p>
+          <% } %>
+        </div>
+        <!-- Type -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="type">Type</label>
+          <input type="text" id="type" name="type" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the type"
+            value="<%= locals.values ? (values.type || '') : product.type %>">
+          <% if(locals.errors) { %>
+            <p id="error-type" class="text-red-500 text-sm mt-1" hidden><%= errors.typeError %></p>
+          <% } %>
+        </div>
+        <!-- Color -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="color">Color</label>
+          <input type="text" id="color" name="color" class="mt-1 p-2 w-full border rounded-md" placeholder="Color"
+            value="<%= locals.values ? (values.color || '') : (product.color || '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-color" class="text-red-500 text-sm mt-1" hidden><%= errors.colorError %></p>
+          <% } %>
+        </div>
+        <!-- Weight -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="weight">Weight</label>
+          <input type="text" id="weight" name="weight" class="mt-1 p-2 w-full border rounded-md"
+            placeholder="Enter the weight"
+            value="<%= locals.values ? (values.weight || '') : (product.weight ?? '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-weight" class="text-red-500 text-sm mt-1" hidden><%= errors.weightError %></p>
+          <% } %>
+        </div>
+        <!-- Discount -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="discount">Discount</label>
+          <input type="text" id="discount" name="discount" class="mt-1 p-2 w-full border rounded-md" placeholder="1258"
+            value="<%= locals.values ? (values.discount || '') : (product.discount ?? '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-discount" class="text-red-500 text-sm mt-1" hidden><%= errors.discountError %></p>
+          <% } %>
+        </div>
+        <!-- SKU -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="sku">SKU</label>
+          <input type="text" id="sku" name="sku" class="mt-1 p-2 w-full border rounded-md" placeholder="Fox-3983"
+            value="<%= locals.values ? (values.sku || '') : (product.SKU || '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-sku" class="text-red-500 text-sm mt-1" hidden><%= errors.skuError %></p>
+          <% } %>
+        </div>
+        <!-- Stock Quantity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="stock-quantity">Stock Quantity</label>
+          <input type="text" id="stock-quantity" name="stock_quantity" class="mt-1 p-2 w-full border rounded-md"
+            placeholder="1258"
+            value="<%= locals.values ? (values.stock_quantity || '') : (product.stock ?? '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-stock_quantity" class="text-red-500 text-sm mt-1" hidden><%= errors.stock_quantityError %></p>
+          <% } %>
+        </div>
+        <!-- Regular Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="regular-price">Regular Price</label>
+          <input type="text" id="regular-price" name="regular_price" class="mt-1 p-2 w-full border rounded-md"
+            placeholder="₹1000"
+            value="<%= locals.values ? (values.regular_price || '') : (product.price ?? '') %>">
+          <% if(locals.errors) { %>
+            <p id="error-regular_price" class="text-red-500 text-sm mt-1" hidden><%= errors.regular_priceError %></p>
+          <% } %>
+        </div>
+        <!-- The price a shopper pays -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="price-after-discount">Price after discount</label>
+          <p id="price-after-discount" class="mt-1 p-2 w-full border rounded-md bg-gray-50 text-gray-700">
+            Worked out from the regular price and the discount above.
+          </p>
+        </div>
+
+        <!-- The pictures the product already has -->
+        <div class="col-span-1 md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700">Pictures</label>
+          <p class="text-xs text-gray-500 mt-1">
+            Untick a picture to take it off this product. Its removal is saved when the product is saved, not before.
+          </p>
+          <div id="kept-images" class="flex flex-wrap gap-4 mt-2">
+            <% const keptImages = Array.isArray(product.images) ? product.images : [] %>
+            <% keptImages.forEach(function (image) { %>
+              <label class="relative inline-block border border-gray-200 rounded-lg p-2">
+                <img src="<%= image %>" alt="A picture of this product" class="w-28 h-28 object-cover rounded">
+                <span class="flex items-center gap-1 text-xs text-gray-600 mt-1">
+                  <input type="checkbox" class="keep-image" value="<%= image %>" checked>
+                  keep
+                </span>
+              </label>
+            <% }) %>
+            <% if(!keptImages.length) { %>
+              <p class="text-sm text-gray-500">This product has no pictures yet. Add one below.</p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- New pictures -->
+        <div class="col-span-1 md:col-span-2">
+          <label for="dropzone-file"
+            class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 20 16">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 13h3a3 3 0 0 0 0-6h-.26a5 5 0 1 0-9.48 0A4.5 4.5 0 0 0 5 13H2"></path>
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m10 8-3 3m3-3 3 3m-3-3v9"></path>
+              </svg>
+              <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop
+              </p>
+              <p class="text-xs text-gray-500">JPG, PNG or WEBP, up to 5 MB each, five images at most</p>
             </div>
-            <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700" for="description1">Description 1</label>
-                <textarea id="description1" name="description1" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"><%= product.description1 %></textarea>
-                <p class="error" id="description1Error"></p>
+            <input id="dropzone-file" name="files" type="file" class="hidden" accept="image/jpeg,image/png,image/webp"
+              multiple>
+          </label>
+        </div>
+        <div id="image-preview" class="flex flex-wrap mt-4"></div>
+        <% if(locals.errors && errors.imageError) { %>
+          <p class="text-red-500 text-sm mt-1" id="image-error"><%= errors.imageError %></p>
+        <% } %>
+        <% if(locals.errors) { %>
+          <p id="error-image" class="col-span-1 md:col-span-2 text-red-500 text-sm mt-1" hidden>
+            <%= errors.imageError %>
+          </p>
+        <% } %>
+
+        <!-- Cropper modal -->
+        <div id="cropper-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden p-4">
+          <div class="bg-white p-4 rounded-lg max-w-2xl w-full mx-auto">
+            <img id="cropper-image" class="max-w-full h-auto" alt="Crop Image">
+            <div class="mt-4 flex justify-end">
+              <button type="button" id="cancel-crop"
+                class="px-4 py-2 bg-gray-500 text-white rounded mr-2">Cancel</button>
+              <button type="button" id="apply-crop" class="px-4 py-2 bg-blue-500 text-white rounded">Apply
+                Crop</button>
             </div>
-            <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700" for="description2">Description 2</label>
-                <textarea id="description2" name="description2" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Description here"><%= product.description2 %></textarea>
-                <p class="error" id="description2Error"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="category">Category</label>
-                <select id="category" name="category" class="mt-1 p-2 w-full border rounded-md">
-                    <option value="">Select a Category</option>
-                    <% if (categories && categories.length > 0) { %>
-                        <% categories.forEach(category => { %>
-                            <option value="<%= category._id %>" 
-                                <% if (String(category._id) === String(existingCategory._id)) { %> 
-                                    selected 
-                                <% } %>>
-                                <%= category.name %>
-                            </option>
-                        <% }) %>
-                    <% } else { %>
-                        <option value="">No categories available</option>
-                    <% } %>
-                </select>
-                <p class="error" id="categoryError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="warning">Warning</label>
-                <input type="text" id="warning" name="warning" class="mt-1 p-2 w-full border rounded-md" placeholder="Type Warning here" value="<%= product.warnings %>">
-                <p class="error" id="warningError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="type">Type</label>
-                <input type="text" id="type" name="type" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the type" value="<%= product.type %>">
-                <p class="error" id="typeError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="color">Color</label>
-                <input type="text" id="color" name="color" class="mt-1 p-2 w-full border rounded-md" placeholder="Color" value="<%= product.color %>">
-                <p class="error" id="colorError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="weight">Weight</label>
-                <input type="number" id="weight" name="weight" class="mt-1 p-2 w-full border rounded-md" placeholder="Enter the weight" value="<%= product.weight %>">
-                <p class="error" id="weightError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="discount">Discount</label>
-                <input type="number" id="discount" name="discount" class="mt-1 p-2 w-full border rounded-md" placeholder="1258" value="<%= product.discount %>">
-                <p class="error" id="discountError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="sku">SKU</label>
-                <input type="text" id="sku" name="sku" class="mt-1 p-2 w-full border rounded-md" placeholder="Fox-3983" value="<%= product.SKU %>">
-                <p class="error" id="skuError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="stock-quantity">Stock Quantity</label>
-                <input type="number" id="stock-quantity" name="stock_quantity" class="mt-1 p-2 w-full border rounded-md" placeholder="1258" value="<%= product.stock %>">
-                <p class="error" id="stockQuantityError"></p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700" for="regular-price">Regular Price</label>
-                <input type="number" id="regular-price" name="price" class="mt-1 p-2 w-full border rounded-md" placeholder="₹1000" value="<%= product.price %>">
-                <p class="error" id="priceError"></p>
-            </div>
-            <div class="col-span-2 flex justify-end">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Update Product</button>
-            </div>
-        </form>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-span-1 md:col-span-2">
+          <button id="submit-button" type="submit"
+            class="w-full md:w-auto px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save changes</button>
+        </div>
+      </form>
     </div>
-</div>  
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
-    document.getElementById('productForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        const formObject = {};
+  document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('dropzone-file');
+    const previewContainer = document.getElementById('image-preview');
+    const cropperModal = document.getElementById('cropper-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    const applyCropButton = document.getElementById('apply-crop');
+    const cancelCropButton = document.getElementById('cancel-crop');
+    const productForm = document.getElementById('productForm');
+    const submitButton = document.getElementById('submit-button');
+    let cropper;
+    let currentImageElement;
+    let croppedImages = [];
 
-        let isValid = true;
+    fileInput.addEventListener('change', handleFileSelect);
+    applyCropButton.addEventListener('click', applyCrop);
+    cancelCropButton.addEventListener('click', closeCropperModal);
 
-        // Clear previous error messages
-        document.querySelectorAll('.error').forEach(el => el.textContent = '');
-
-        // Validate fields
-        if (!formData.get('title') || formData.get('title').length < 5) {
-            document.getElementById('titleError').textContent = 'Title is required and must be at least 5 characters long';
-            isValid = false;
-        }
-        if (!formData.get('description1') || formData.get('description1').length < 10) {
-            document.getElementById('description1Error').textContent = 'Description 1 is required and must be at least 10 characters long';
-            isValid = false;
-        }
-        if (!formData.get('description2') || formData.get('description2').length < 10) {
-            document.getElementById('description2Error').textContent = 'Description 2 is required and must be at least 10 characters long';
-            isValid = false;
-        }
-        if (!formData.get('category')) {
-            document.getElementById('categoryError').textContent = 'Category is required';
-            isValid = false;
-        }
-        if (!formData.get('type')) {
-            document.getElementById('typeError').textContent = 'Type is required';
-            isValid = false;
-        }
-        if (!formData.get('sku')) {
-            document.getElementById('skuError').textContent = 'SKU is required';
-            isValid = false;
-        }
-        if (!formData.get('stock_quantity') || formData.get('stock_quantity') < 0) {
-            document.getElementById('stockQuantityError').textContent = 'Stock Quantity is required and must be greater than 0';
-            isValid = false;
-        }
-        if (!formData.get('price') || formData.get('price') <= 0) {
-            document.getElementById('priceError').textContent = 'Price is required and must be greater than 0';
-            isValid = false;
-        }
-        if (formData.get('discount') && (formData.get('discount') <= 0 || formData.get('discount') >= 99)) {
-            document.getElementById('discountError').textContent = 'Discount must be between 1 and 98';
-            isValid = false;
-        }
-
-        if (!isValid) {
-            return;
-        }
-
-        formData.forEach((value, key) => {
-            formObject[key] = value;
+    function handleFileSelect(event) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        Array.from(files).forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (e) => createImageElement(e.target.result, index, file.name);
+          reader.readAsDataURL(file);
         });
+      }
+    }
 
-        axios.post(form.action, formObject)
-            .then(response => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Product updated successfully',
-                    showConfirmButton: false,
-                    timer: 1000
-                }).then(() => {
-                    window.location.href = '/admin/products';
-                });
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error updating product',
-                    text: 'Please try again later'
-                });
-                console.error('Error:', error);
-            });
+    function createImageElement(src, index, fileName) {
+      const imageSection = document.createElement('div');
+      imageSection.classList.add('relative', 'inline-block', 'mr-4', 'mb-4');
+      imageSection.setAttribute('data-image-index', index);
+
+      const img = document.createElement('img');
+      img.src = src;
+      img.classList.add('w-28', 'h-28', 'object-cover', 'mr-4');
+
+      const cropButton = document.createElement('button');
+      cropButton.type = 'button';
+      cropButton.innerText = 'Crop Image';
+      cropButton.classList.add('bg-blue-500', 'text-white', 'px-2', 'py-1', 'mt-2', 'rounded', 'cursor-pointer');
+      cropButton.onclick = (event) => {
+        event.preventDefault();
+        openCropper(img, fileName);
+      };
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.innerHTML = '&times;';
+      deleteButton.classList.add('absolute', 'top-0', 'right-0', 'bg-red-500', 'text-white', 'rounded-full', 'w-6', 'h-6', 'flex', 'items-center', 'justify-center', 'cursor-pointer');
+      deleteButton.onclick = (event) => {
+        event.preventDefault();
+        // Taken off the request, not off the product: nothing is removed until
+        // the product is saved, so a cancelled edit leaves it as it was.
+        imageSection.remove();
+        croppedImages = croppedImages.filter(item => item.fileName !== fileName);
+      };
+
+      imageSection.appendChild(img);
+      imageSection.appendChild(cropButton);
+      imageSection.appendChild(deleteButton);
+      previewContainer.appendChild(imageSection);
+    }
+
+    function openCropper(imgElement, fileName) {
+      cropperImage.src = imgElement.src;
+      cropperModal.classList.remove('hidden');
+      cropperModal.classList.add('flex');
+      currentImageElement = imgElement;
+
+      if (cropper) {
+        cropper.destroy();
+      }
+
+      cropper = new Cropper(cropperImage, { aspectRatio: 1, viewMode: 1 });
+      currentImageElement.setAttribute('data-file-name', fileName);
+    }
+
+    function closeCropperModal() {
+      cropperModal.classList.add('hidden');
+      cropperModal.classList.remove('flex');
+      if (cropper) {
+        cropper.destroy();
+      }
+    }
+
+    function applyCrop() {
+      if (cropper) {
+        const croppedCanvas = cropper.getCroppedCanvas();
+        const dataUrl = croppedCanvas.toDataURL();
+        currentImageElement.src = dataUrl;
+        const fileName = currentImageElement.getAttribute('data-file-name');
+
+        const existingIndex = croppedImages.findIndex(img => img.fileName === fileName);
+        if (existingIndex !== -1) {
+          croppedImages[existingIndex] = { fileName, dataUrl: dataUrl };
+        } else {
+          croppedImages.push({ fileName, dataUrl: dataUrl });
+        }
+
+        closeCropperModal();
+      }
+    }
+
+    // The price a shopper pays, shown as it is worked out, so the number the
+    // product will be listed at is not a surprise on the product page.
+    const priceField = document.getElementById('regular-price');
+    const discountField = document.getElementById('discount');
+    const priceAfterField = document.getElementById('price-after-discount');
+
+    const showPriceAfterDiscount = function () {
+      const price = Number(priceField.value);
+      const discount = Number(discountField.value);
+      if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(discount)) {
+        priceAfterField.textContent = 'Worked out from the regular price and the discount above.';
+        return;
+      }
+      priceAfterField.textContent = '₹' + Math.max(0, Math.ceil(price * (1 - discount / 100)));
+    };
+
+    priceField.addEventListener('input', showPriceAfterDiscount);
+    discountField.addEventListener('input', showPriceAfterDiscount);
+    showPriceAfterDiscount();
+
+    const clearErrors = function () {
+      document.querySelectorAll('[id^="error-"]').forEach(function (node) {
+        node.hidden = true;
+        node.textContent = '';
+      });
+    };
+
+    const showErrors = function (errors) {
+      clearErrors();
+      let firstField = null;
+
+      Object.keys(errors || {}).forEach(function (key) {
+        const message = errors[key];
+        if (!message) {
+          return;
+        }
+        const node = document.getElementById('error-' + key.replace(/Error$/, ''));
+        if (node) {
+          node.textContent = message;
+          node.hidden = false;
+          firstField = firstField || node;
+        }
+      });
+
+      return firstField;
+    };
+
+    // The pictures are cropped in the browser, so the request is built here
+    // rather than by the form posting itself, and it carries which of the
+    // pictures the product already has are being kept.
+    productForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      clearErrors();
+
+      const formData = new FormData(productForm);
+
+      // The checkboxes for the pictures the product already has are not named, so
+      // they do not go in the request on their own. Which of them are ticked is
+      // what says which are kept, and a picture that is not ticked is removed
+      // when the product is saved.
+      //
+      // The list of pictures the page was showing goes as well. An unticked
+      // checkbox is sent as nothing at all, so without it unticking the only
+      // picture of a product would look the same as saying nothing about pictures,
+      // and the removal would be quietly ignored.
+      document.querySelectorAll('.keep-image').forEach(function (box) {
+        formData.append('knownImages', box.value);
+        if (box.checked) {
+          formData.append('keepImages', box.value);
+        }
+      });
+
+      croppedImages.forEach(function (img, index) {
+        formData.append('croppedImage_' + index, dataURItoBlob(img.dataUrl), img.fileName);
+      });
+
+      const label = submitButton ? submitButton.textContent : '';
+      if (submitButton) {
+        // A second click while this one is in the air would save the edit twice.
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving…';
+      }
+
+      fetch('/admin/editProduct/<%= product._id %>', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken(), 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+      })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            return { status: response.status, data: data };
+          });
+        })
+        .then(function (answer) {
+          if (answer.data && answer.data.success) {
+            window.location.href = answer.data.redirect;
+            return;
+          }
+
+          const first = showErrors(answer.data && answer.data.errors);
+          if (first) {
+            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = label;
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+          showErrors({ form: 'The product could not be saved. Nothing has been changed.' });
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = label;
+          }
+        });
     });
+
+    function dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(',')[1]);
+      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
+    }
+
+    <% if (flashMessage) { %>
+      toastr['<%= flashMessage.type %>']('<%= flashMessage.message %>');
+    <% } %>
+  });
 </script>
