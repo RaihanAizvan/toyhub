@@ -1,5 +1,5 @@
 import AdminUser from '../models/admin.models.js';
-import upload from "../utils/multer.js"
+import upload, { IMAGE_FIELDS, describeUploadError } from "../utils/multer.js"
 import { clearSessionCookie } from "../utils/session.js"
 import { isAdminAccount } from "../controllers/adminModules/login.js"
 
@@ -36,16 +36,34 @@ async function isAdmin(req, res, next) {
   }
   
   //This is middleware for uploading multiple images which from frontent using fetch api also cropped images
-  
-  const handleUpload = upload.fields([
-    { name: 'files', maxCount: 10 },  // Original files
-    { name: 'croppedImage_0', maxCount: 1 },
-    { name: 'croppedImage_1', maxCount: 1 },
-    { name: 'croppedImage_2', maxCount: 1 },
-    { name: 'croppedImage_3', maxCount: 1 },
-    { name: 'croppedImage_4', maxCount: 1 },
-    // Add more if you expect more than 5 images
-  ]);
+  // The fields and their limits are the ones utils/multer.js accepts, so the two
+  // cannot drift apart: a form that can send a file is a form the upload will
+  // take, and one that cannot is refused rather than stored under a name that
+  // nothing reads.
+  //
+  // A file the upload refuses never reaches the handler, so the request would
+  // otherwise end at the page that says nothing is here. It is answered here
+  // instead, in the words of the field it belongs to, because a file that is too
+  // large or is not an image is a mistake in the picture, not a missing page.
+  const handleUpload = (formPath = '/admin/addProduct') => (req, res, next) => {
+    upload.fields(IMAGE_FIELDS)(req, res, (error) => {
+      if (!error) {
+        return next();
+      }
+
+      console.error('Upload refused:', error.message);
+      req.session.toast = { message: describeUploadError(error), type: 'error' };
+
+      // The form reads its answer as json, because the cropped pictures are
+      // built in the browser; anything else is sent back to the page it came
+      // from.
+      if (req.xhr === true || String(req.get('accept') ?? '').includes('application/json')) {
+        return res.status(400).json({ success: false, errors: { imageError: describeUploadError(error) } });
+      }
+
+      return res.redirect(formPath);
+    });
+  };
   
   export default {
     isAdmin,

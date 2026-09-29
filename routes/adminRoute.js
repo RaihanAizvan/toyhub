@@ -34,7 +34,9 @@
 
     //router for renderig addProduct page
     router.get("/addProduct", adminController.getAddProduct)
-    router.post("/addProduct", isAdmin.handleUpload,  adminController.postAddProduct)
+    // The upload answers for itself when it refuses a file, so the page says
+    // which picture was wrong instead of the request ending at nothing.
+    router.post("/addProduct", isAdmin.handleUpload('/admin/addProduct'), adminController.postAddProduct)
     router.get("/products", adminController.getProductList)
     router.get('/editProduct/:id', adminController.getEditProduct);
     router.post('/editProduct/:id', adminController.postEditProduct);
