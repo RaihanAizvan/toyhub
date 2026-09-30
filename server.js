@@ -21,6 +21,8 @@ import { assertRequiredEnv } from "./utils/config.js";
 import { ensureBootstrapAdmin } from "./controllers/adminModules/login.js";
 import { createSessionMiddleware, resolveSessionSettings } from "./utils/session.js";
 import { exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "./utils/csrf.js";
+import { passwordPolicyScript } from "./utils/password-policy.js";
+import { phonePolicyScript } from "./utils/phone-number.js";
 
 
 
@@ -68,6 +70,12 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // The layout injects the session token into every server rendered form
 app.locals.injectCsrfFields = injectCsrfFields;
+
+// The pages that ask for a password before it is sent are given the server's
+// rule rather than keeping one of their own, which is how the signup page and the
+// signup handler came to enforce different passwords.
+app.locals.passwordPolicyScript = passwordPolicyScript;
+app.locals.phonePolicyScript = phonePolicyScript;
 
 app.use(morgan('dev'))
 

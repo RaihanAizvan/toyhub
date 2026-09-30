@@ -4,9 +4,13 @@ import express from "express";
 import session from "express-session";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import userAuth from "../controllers/userModules/auth.js";
 import User from "../models/users.models.js";
 import { hashToken, safeEqual } from "../utils/auth-tokens.js";
+import { passwordPolicyScript, isStrongPassword } from "../utils/password-policy.js";
+import { phonePolicyScript, isValidPhoneNumber, normalizePhoneNumber } from "../utils/phone-number.js";
 import { getSessionStore } from "../utils/session.js";
 import { setMailTransport } from "../utils/mailer.js";
 import { applyTestEnv } from "./helpers/test-env.js";
@@ -38,6 +42,10 @@ const buildApp = () => {
   app.set("view engine", "ejs");
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  // The signup and reset pages are handed the password and phone rules by the
+  // server, the same way the real server hands them to the browser.
+  app.locals.passwordPolicyScript = passwordPolicyScript;
+  app.locals.phonePolicyScript = phonePolicyScript;
   app.use(
     session({
       name: "toyhub.sid",
@@ -620,4 +628,137 @@ describe("password reset", () => {
 
 after(async () => {
   await closeGlobalSessionStore();
+});
+
+// The signup page and the signup handler both decide whether a password and a
+// mobile number are acceptable. They used to disagree: the page's regular
+// expression wanted letters and digits and nothing else, so a password like
+// `ryhua10@Toyhub` was refused by the browser and never reached the handler that
+// would have accepted it, and the message named a rule the reader had not been
+// told about.
+//
+// Both sides are handed one rule now, and this asks both of them about the same
+// passwords and the same numbers. The page's copy is the script the server
+// actually hands the browser, read out of the page that uses it, so a rule that
+// starts drifting apart again fails here rather than in a person's browser.
+describe("the signup page and the signup handler agree on what a password is", () => {
+  const pageScript = (view) =>
+    readFileSync(
+      path.join(viewsDirectory, view),
+      "utf8",
+    );
+
+  // Runs the rule the server hands the browser, and returns what the browser
+  // would answer for each value.
+  const asTheBrowserSeesIt = () => {
+    const sandbox = { window: {} };
+    runInNewContext(passwordPolicyScript(), sandbox);
+    return sandbox.window.toyhubPasswordPolicy;
+  };
+
+  const asTheBrowserSeesAPhone = () => {
+    const sandbox = { window: {} };
+    runInNewContext(phonePolicyScript(), sandbox);
+    return sandbox.window.toyhubPhonePolicy;
+  };
+
+  // The passwords and numbers a person actually types, rather than a rule
+  // restated: the ones that matter here are the ones with a symbol in them.
+  const passwords = [
+    "ryhua10@Toyhub",
+    "Toyhub10!",
+    "correct horse battery",
+    "p@ssw0rd.with.dots",
+    "a1!@#$%^&*",
+    "1234567890123456",
+    "Toyhub10",
+    "abcdefghij",
+    "12345678",
+    "short1",
+    "",
+    "        ",
+  ];
+
+  const phones = [
+    "9876543210",
+    "98765 43210",
+    "98765-43210",
+    "+91 98765 43210",
+    "(98765) 43210",
+    "  9876543210  ",
+    "12345",
+    "987654321012345",
+    "9876543210123456",
+    "not a number",
+    "",
+  ];
+
+  it("judges every password the same way on both sides", () => {
+    const browser = asTheBrowserSeesIt();
+
+    for (const password of passwords) {
+      assert.equal(
+        browser.isStrong(password),
+        isStrongPassword(password),
+        `the page and the handler should agree about ${JSON.stringify(password)}`,
+      );
+    }
+  });
+
+  it("judges every mobile number the same way on both sides", () => {
+    const browser = asTheBrowserSeesAPhone();
+
+    for (const phone of phones) {
+      assert.equal(
+        browser.isValid(phone),
+        isValidPhoneNumber(phone),
+        `the page and the handler should agree about ${JSON.stringify(phone)}`,
+      );
+      assert.equal(
+        browser.normalize(phone),
+        normalizePhoneNumber(phone),
+        `and should write it the same way: ${JSON.stringify(phone)}`,
+      );
+    }
+  });
+
+  it("accepts the password that was refused, rather than only saying it should be", () => {
+    // The one that started this: a real password with a symbol in it.
+    assert.equal(
+      isStrongPassword("ryhua10@Toyhub"),
+      true,
+      "a symbol is not a reason to refuse a password",
+    );
+  });
+
+  it("is asked about the password before it is sent, using the rule it was given", () => {
+    // The page must not have quietly kept a rule of its own.
+    for (const view of ["user/signup.ejs", "user/resend-otp.ejs"]) {
+      const page = pageScript(view);
+      assert.doesNotMatch(
+        page,
+        /\[A-Za-z\\d\]\{8,\}/,
+        `${view} must not carry its own password rule; it is given the server's`,
+      );
+      assert.match(page, /toyhubPasswordPolicy/, `${view} should use the rule the server hands it`);
+    }
+  });
+
+  it("says the rule it is enforcing", () => {
+    const page = pageScript("user/signup.ejs");
+
+    // A message that names a rule the reader was not given is worse than no
+    // message, because it sends them looking for a rule that is not there.
+    assert.doesNotMatch(page, /Invalid phone number format/);
+    assert.match(page, /toyhubPhonePolicy/, "and the phone rule is the server's too");
+  });
+
+  it("keeps the password out of the server's logs", () => {
+    // `isStrongPassword` used to `console.log` the password it was checking.
+    const source = readFileSync(
+      path.join(viewsDirectory, "..", "controllers", "userModules", "auth.js"),
+      "utf8",
+    );
+    assert.doesNotMatch(source, /console\.log\(\s*["']?password/i);
+  });
 });
