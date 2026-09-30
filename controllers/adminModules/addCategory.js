@@ -1,4 +1,5 @@
 import Category from "../../models/categories.model.js";
+import mongoose from "mongoose";
 import cloudinary from "../../utils/cloudinary.js";
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
@@ -84,33 +85,70 @@ export async function getEditCategory(req, res) {
 }
 
 export async function postEditCategory(req, res) {
-    const { name, description } = req.body;
+    const { name } = req.body;
     const imageFile = req.file;
 
-    try {
-        // Validate: Check if name exists and has the required length
-        if (!name) {
-            return res.status(400).render('admin/editCategory', { message: 'Category name is required' });
-        }
-        if (name.length < 3 || name.length > 30) {
-            return res.status(400).render('admin/editCategory', { message: 'Name must be between 3 and 30 characters' });
+    // The form is the answer to every one of these. It reads the category it is
+    // editing, so it has to be given that category every time — which it was not:
+    // each of the branches below rendered it with a message and nothing else, and
+    // the form asks for `category.name` in its very first field. So a name that
+    // was too short, or already taken, or empty produced a page about a missing
+    // variable rather than the message that was written to explain it.
+    //
+    // So the category is fetched first, and every refusal is answered through the
+    // one place that knows how to render this form.
+    let category = null;
+
+    const refuse = (status, message) => {
+        if (!category) {
+            return res.status(status).render('admin/error', { message });
         }
 
-        // Find the category by ID
-        const category = await Category.findById(req.params.id);
+        // `name` is what was typed, so the field comes back holding the words being
+        // objected to rather than the words that were already saved. Sending someone
+        // back to a form that has forgotten what they just wrote is a small way of
+        // making a typo cost twice.
+        return res.status(status).render('admin/editCategory', { category, name, message });
+    };
+
+    try {
+        // An id that is not one asks for nothing, rather than for a server error:
+        // `findById` with a malformed id throws, and that throw used to be caught
+        // as though the database had failed.
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return refuse(404, 'That category is not in the shop.');
+        }
+
+        category = await Category.findById(req.params.id);
         if (!category) {
-            return res.status(404).render('admin/editCategory', { message: 'Category not found' });
+            return refuse(404, 'That category is not in the shop.');
+        }
+
+        // Validate: Check if name exists and has the required length
+        if (!name) {
+            return refuse(400, 'Category name is required');
+        }
+        if (name.length < 3 || name.length > 30) {
+            return refuse(400, 'Name must be between 3 and 30 characters');
         }
 
         // Validate: Check if new name already exists (case insensitive), excluding the current category being edited
         const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') }, _id: { $ne: req.params.id } });
         if (existingCategory) {
-            return res.status(400).render('admin/editCategory', { message: 'Category name already exists' });
+            return refuse(400, 'Category name already exists');
         }
 
         // Update category details
         category.name = name;
-        category.description = description;
+
+        // No description is set here, though this function used to read one out of
+        // the form. The form has never had a description field, and the schema has
+        // never had a description to put it in, so the value was always undefined
+        // and always discarded — a line that read as though descriptions were
+        // editable here when nothing of the kind happens on this page.
+        // eslint-disable-next-line no-warning-comments
+        // (TODO: if categories are ever meant to have descriptions, that is a change
+        // to the schema and to the form together, not to this function alone.)
 
         if (imageFile) {
             // Upload the new image to Cloudinary
@@ -122,7 +160,7 @@ export async function postEditCategory(req, res) {
         res.redirect('/admin/category');
     } catch (error) {
         console.error('Error updating category:', error);
-        res.status(500).render('admin/editCategory', { message: 'Error updating category' });
+        refuse(500, 'The category could not be saved. Nothing has been changed.');
     }
 }
 

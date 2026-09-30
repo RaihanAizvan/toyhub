@@ -138,9 +138,9 @@
                                     class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Submit
                                     Categories</button>
                             </div>
-                            <% if (locals.message) { %>
+                            <% if (locals.nameError || locals.message) { %>
                                 <p class="text-red-500 mt-4">
-                                    <%= locals.message , locals.nameError %>
+                                    <%= locals.nameError || locals.message %>
                                 </p>
                                 <% } %>
                         </form>

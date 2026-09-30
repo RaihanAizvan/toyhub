@@ -86,7 +86,19 @@
                             <% } %>
                         </td>
                         <td class="py-3 px-6 border-b"><%= product.name %></td>
-                        <td class="py-3 px-6 border-b"><%= product.category.name %></td>
+                        <%# A product whose category no longer resolves is said so
+                            rather than ending the page. Reading `category.name` on a
+                            missing category threw, and because it threw while the
+                            table was being built, one such product took the whole
+                            list down with it: every product became unreachable, not
+                            just the one in the wrong category. %>
+                        <td class="py-3 px-6 border-b">
+                            <% if (product.category && product.category.name) { %>
+                                <%= product.category.name %>
+                            <% } else { %>
+                                <span class="text-gray-400 italic" title="This product's category is no longer in the list">No category</span>
+                            <% } %>
+                        </td>
                         <td class="py-3 px-6 border-b">$<%= product.price %></td>
                         <td class="py-3 px-6 border-b"><%= product.stock %></td>
                         <td class="py-3 px-6 border-b">

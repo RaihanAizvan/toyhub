@@ -112,7 +112,18 @@
                   <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="py-3 px-6 text-left"><%= (locals.currentPage - 1) * 10 + index + 1 %></td>
                     <td class="py-3 px-6 text-left"><%= order._id %></td>
-                    <td class="py-3 px-6 text-left"><%= order.user.name %></td>
+                    <%# An order whose customer no longer exists is said so rather
+                        than ending the page. Reading `user.name` on a missing customer
+                        threw, and because it threw partway down the table, every
+                        order on the page went with it rather than the one order
+                        that had lost its customer. %>
+                    <td class="py-3 px-6 text-left">
+                        <% if (order.user && order.user.name) { %>
+                            <%= order.user.name %>
+                        <% } else { %>
+                            <span class="text-gray-400 italic" title="This customer no longer has an account">Deleted customer</span>
+                        <% } %>
+                    </td>
                     <% const formattedDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Invalid Date'; %>
                     <td class="py-3 px-6 text-left"><%= formattedDate %></td>
                     <td class="py-3 px-6 text-left">$<%= order.totalAmount %></td>

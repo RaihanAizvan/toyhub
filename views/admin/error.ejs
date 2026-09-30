@@ -1,0 +1,22 @@
+<%# The page an admin lands on when a request cannot be answered.
+
+    Five handlers render this. It did not exist, so every one of them failed while
+    trying to report a failure: the answer to "this category is not here" was
+    another error, "Failed to lookup view admin/error", and the thing an admin
+    most needs — an explanation — was the thing that broke.
+
+    So it says what went wrong, and offers the way back. The message is written by
+    the handler that knows what happened; nothing here guesses at it.
+%>
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg text-center">
+    <h1 class="text-xl font-bold text-gray-800 mb-2">Something went wrong</h1>
+
+    <p class="text-gray-600 mb-6">
+        <%= message || 'This could not be shown right now. Nothing has been changed.' %>
+    </p>
+
+    <a href="/admin"
+        class="inline-block px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+        Back to the dashboard
+    </a>
+</div>
