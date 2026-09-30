@@ -83,6 +83,16 @@ const getCheckoutPage = async function (req, res) {
         const user = await User.findById(req.session.user.id).populate('addresses');
         const offers = await offersForCart(cart);
 
+        // There is nothing to check out. This is an ordinary state — a shopper
+        // whose cart was cleared in another tab, or who came straight here — and
+        // the page reads cart.cutoffAmount in its price summary without asking
+        // whether there is a cart, so it answered 500 to a shopper who had simply
+        // not filled one. The cart page shows an empty cart; checkout sends the
+        // shopper back to where filling one happens.
+        if (!cart || !cart.items || cart.items.length === 0) {
+            return res.redirect('/cart');
+        }
+
         
         const coupons = await Coupon.find({
             isBlocked: false,

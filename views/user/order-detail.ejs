@@ -186,16 +186,20 @@
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-phone text-primary"></i>
-                            <p><strong>Phone:</strong> <%= order.user.phone_number %></p>
+                            <p><strong>Phone:</strong> <%= (order.user && order.user.phone_number) ? order.user.phone_number : "—" %></p>
                         </div>
                         <div class="flex items-start gap-2">
                             <i class="fas fa-map-marker-alt text-primary mt-1"></i>
                             <p><strong>Shipping Address:</strong><br>
+                                <% if (order.address) { %>
                                 <%= order.address.name %>,<br>
                                 <%= order.address.street %>,<br>
                                 <%= order.address.city %>, <%= order.address.state %>,<br>
                                 <%= order.address.zip %><br>
                                 Phone: <%= order.address.phone %>
+                            <% } else { %>
+                                No address was recorded for this order
+                            <% } %>
                             </p>
                         </div>
                     </div>
@@ -259,10 +263,19 @@
                         <div class="product-card p-6">
                             <div class="flex items-center gap-6">
                                 <div class="img-zoom w-24 h-24">
-                                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover rounded-lg">
+                                    <%# A product taken off sale after it was ordered
+                                        leaves this line pointing at nothing. Reading
+                                        through that ended the order page, so one
+                                        withdrawn item hid the whole order from the
+                                        person who placed it. %>
+                                    <% if (item.product && item.product.images && item.product.images[0]) { %>
+                                        <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover rounded-lg">
+                                    <% } else { %>
+                                        <div class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs text-center p-1">No picture</div>
+                                    <% } %>
                                 </div>
                                 <div class="flex-grow">
-                                    <h4 class="text-lg font-semibold text-gray-800"><%= item.product.name %></h4>
+                                    <h4 class="text-lg font-semibold text-gray-800"><%= (item.product && item.product.name) ? item.product.name : "This product is no longer available" %></h4>
                                     <div class="mt-2 space-y-1">
                                         <p class="text-gray-600">Quantity: <%= item.quantity %></p>
                                         <p class="text-gray-600">Price: ₹<%= item.price.toFixed(2) %></p>
@@ -394,7 +407,7 @@
                         prefill: {
                             name: "<%= order.user?.name %>",
                             email: "<%= order.user?.email %>",
-                            contact: "<%= order.address.phone %>",
+                            contact: "<%= (order.address && order.address.phone) ? order.address.phone : '' %>",
                         },
                         theme: {
                             color: "#FF8C00",

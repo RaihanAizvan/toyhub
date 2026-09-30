@@ -97,22 +97,31 @@
                         <h2 class="text-lg font-semibold text-gray-700 mb-4">Customer Information</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
+                                <%# A buyer whose account is gone, and an order that predates address
+                                    fields being required, are both ordinary states for an
+                                    order this old. Reading through either one ended the
+                                    page, so the administrator could not see the order at
+                                    all in order to look into it. %>
                                 <p><strong>Name:</strong>
-                                    <%= order.user.name %>
+                                    <%= (order.user && order.user.name) ? order.user.name : "This customer no longer has an account" %>
                                 </p>
                                 <p><strong>Email:</strong>
-                                    <%= order.user.email %>
+                                    <%= (order.user && order.user.email) ? order.user.email : "—" %>
                                 </p>
                                 <p><strong>Joined Date:</strong>
-                                    <%= new Date(order.user.joined_date).toLocaleDateString() %>
+                                    <%= (order.user && order.user.joined_date) ? new Date(order.user.joined_date).toLocaleDateString() : "—" %>
                                 </p>
                             </div>
                             <div>
                                 <p><strong>Phone:</strong>
-                                    <%= order.user.phone_number %>
+                                    <%= (order.user && order.user.phone_number) ? order.user.phone_number : "—" %>
                                 </p>
                                 <p><strong>Address: <br></strong>
+                                    <% if (order.address) { %>
                                     <%= order.address.name %>,<br> <%= order.address.street %>, <%= order.address.city %>, <br><%= order.address.state %>, <%= order.address.zip %>, Phone: <%= order.address.phone %>
+                                <% } else { %>
+                                    No address was recorded for this order
+                                <% } %>
                                 </p>
                             </div>
                         </div>
@@ -185,14 +194,14 @@
                                         <tr class="border-b border-gray-200 hover:bg-gray-100">
                                             <td class="py-3 px-6">
                                                 <% if (item.product) { %>
-                                                    <img src="<%= item.product.images[0] %>" alt="Product Image" class="w-10 h-10 object-cover">
+                                                    <img src="<%= (item.product && item.product.images && item.product.images[0]) ? item.product.images[0] : "/img/placeholder.png" %>" alt="<%= (item.product && item.product.name) ? item.product.name : "Product" %>" class="w-10 h-10 object-cover">
                                                 <% } else { %>
                                                     <span class="text-gray-500">No Image</span>
                                                 <% } %>
                                             </td>
                                             <td class="py-3 px-6">
                                                 <% if (item.product) { %>
-                                                    <%= item.product.name %>
+                                                    <%= (item.product && item.product.name) ? item.product.name : "This product is no longer available" %>
                                                 <% } else { %>
                                                     <span class="text-gray-500">No Product</span>
                                                 <% } %>

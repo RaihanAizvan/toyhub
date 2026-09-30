@@ -5,6 +5,11 @@ import Offer from '../../models/offers.models.js';
 import Coupon from '../../models/couponSchema.models.js';
 async function getLandingPage(req, res) {
     try {
+        // Written elsewhere in the shop as {type, message} — that is the shape
+        // productList.js writes and productList.ejs reads. Read as a bare
+        // string, and paired below with a `type` that was never declared, this
+        // could only ever throw, so it has never run: nothing on the shopper
+        // side writes a flash yet, so it always read null and stayed hidden.
         const flashMessage = req.session.flashMessage || null;
         if (req.session.flashMessage) {
             delete req.session.flashMessage;
@@ -54,7 +59,7 @@ async function getLandingPage(req, res) {
                 categories,
                 offerProducts,
                 coupons,
-                flashMessage: flashMessage ? { message: flashMessage, type: type } : null
+                flashMessage: flashMessage
             });
         } else {
             res.render('user/home', {
@@ -67,7 +72,7 @@ async function getLandingPage(req, res) {
                 categories,
                 offerProducts,
                 coupons,
-                flashMessage: flashMessage ? { message: flashMessage, type: type } : null,
+                flashMessage: flashMessage,
             });
         }
     } catch (error) {
