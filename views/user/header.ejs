@@ -450,6 +450,28 @@
 
     // --- API Logic ---
 
+    // One suggestion row. The name goes in as text, and the row carries the id
+    // so it links to the canonical product route instead of searching again.
+    function buildSuggestion(item) {
+        const row = document.createElement('a');
+        row.href = item && item._id ? `/product/${encodeURIComponent(item._id)}` : '#';
+        row.className =
+            'block px-4 py-3 cursor-pointer hover:bg-green-50 border-b border-gray-50 last:border-b-0 flex items-center transition-colors';
+
+        const icon = document.createElement('div');
+        icon.className = 'bg-gray-100 rounded p-2 mr-3 text-green-600';
+        const glyph = document.createElement('i');
+        glyph.className = 'fas fa-tag text-xs';
+        icon.appendChild(glyph);
+
+        const label = document.createElement('span');
+        label.className = 'text-sm font-medium text-gray-700';
+        label.textContent = item && item.name ? item.name : 'Unnamed Item';
+
+        row.append(icon, label);
+        return row;
+    }
+
     function handleSearchInput(value) {
         if (!value) return;
 
@@ -468,15 +490,12 @@
                 }
 
                 if (Array.isArray(data)) {
-                    suggestions.innerHTML = data.map(item => `
-                        <div class="px-4 py-3 cursor-pointer hover:bg-green-50 border-b border-gray-50 last:border-0 flex items-center transition-colors" 
-                            onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
-                            <div class="bg-gray-100 rounded p-2 mr-3 text-green-600">
-                                <i class="fas fa-tag text-xs"></i>
-                            </div>
-                            <span class="text-sm font-medium text-gray-700">${item.name || 'Unnamed Item'}</span>
-                        </div>
-                    `).join('');
+                    // Built with DOM calls, not innerHTML. A product name is
+                    // whatever an admin typed, and it used to be pasted into
+                    // markup and into an onclick attribute, where one quote in the
+                    // name ended the handler and everything after it became script.
+                    // textContent prints a name; it never reads it as markup.
+                    suggestions.replaceChildren(...data.map(buildSuggestion));
                     suggestions.classList.remove('hidden');
                 }
             })

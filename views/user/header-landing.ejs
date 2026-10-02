@@ -105,6 +105,25 @@
     function handleSearchInput(value) {
         if (!value) return;
 
+    // One suggestion row: the name as text, and the product's own id as the link.
+    function buildSuggestion(item) {
+        const row = document.createElement('a');
+        row.href = item && item._id ? `/product/${encodeURIComponent(item._id)}` : '#';
+        row.className = 'block p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0';
+
+        const label = document.createElement('span');
+        label.textContent = item && item.name ? item.name : 'Unnamed Item';
+        row.appendChild(label);
+        return row;
+    }
+
+    function errorRow(message) {
+        const row = document.createElement('div');
+        row.className = 'p-3 text-red-500';
+        row.textContent = message;
+        return row;
+    }
+
         axios.get(`/search/?q=${encodeURIComponent(value)}`)
             .then(response => {
                 const data = response.data;
@@ -115,13 +134,11 @@
                 }
 
                 if (Array.isArray(data) && data.length > 0) {
-                    suggestions.innerHTML = data
-                        .map(item => `
-                            <div class="p-3 cursor-pointer hover:bg-gray-100 border-b last:border-b-0" 
-                                onclick="searchItem('${item.name?.replace(/'/g, "\\'")}')">
-                                ${item.name || 'Unnamed Item'}
-                            </div>
-                        `).join('');
+                    // Built as DOM nodes, not markup. A product name is whatever
+                    // an admin typed; pasted into innerHTML it was script, and
+                    // pasted into an onclick attribute one quote in the name ended
+                    // the handler. textContent prints a name, it does not read it.
+                    suggestions.replaceChildren(...data.map(buildSuggestion));
                     suggestions.classList.remove('hidden');
                 } else {
                     suggestions.innerHTML = '<div class="p-3 text-gray-500">No results found</div>';
@@ -130,7 +147,9 @@
             })
             .catch(error => {
                 console.error('Search error:', error);
-                suggestions.innerHTML = '<div class="p-3 text-red-500">Error fetching results: ' + error.message + '</div>';
+                    // Fixed text only: the message came from the network and
+                    // used to be concatenated into markup.
+                    suggestions.replaceChildren(errorRow('Search is unavailable right now'));
                 suggestions.classList.remove('hidden');
             });
     }
