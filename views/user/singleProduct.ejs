@@ -249,7 +249,7 @@
                             </div>
                             <div>
                                 <span class="font-medium text-gray-700">Category:</span>
-                                <span class="ml-2 text-gray-600"><%= product.category.name %></span>
+                                <span class="ml-2 text-gray-600"><%= (product.category && product.category.name) ? product.category.name : "No category" %></span>
                             </div>
                             <div>
                                 <span class="font-medium text-gray-700" id="stock-count" 
@@ -667,9 +667,9 @@
                                     Category
                                 </div>
                             </td>
-                            <td class="p-4 text-center"><%= product.category.name %></td>
+                            <td class="p-4 text-center"><%= (product.category && product.category.name) ? product.category.name : "No category" %></td>
                             <% relatedProducts.slice(0, 4).forEach(similarProduct => { %>
-                                <td class="p-4 text-center"><%= similarProduct.category.name %></td>
+                                <td class="p-4 text-center"><%= (similarProduct.category && similarProduct.category.name) ? similarProduct.category.name : "No category" %></td>
                             <% }) %>
                         </tr>
                         <tr class="hover:bg-green-50 transition-colors">

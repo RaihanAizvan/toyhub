@@ -80,8 +80,16 @@
                             <h3 class="text-sm font-semibold text-gray-700 line-clamp-2 h-10">
                                 <%= product.name %>
                             </h3>
+                            <%# A product whose category was deleted still has to be
+                                shown here: reading through the missing category threw,
+                                and it threw while the card was being built, so every
+                                other best seller went with it. %>
                             <p class="text-xs text-gray-500">
-                                <%= product.category.name %>
+                                <% if (product.category && product.category.name) { %>
+                                    <%= product.category.name %>
+                                <% } else { %>
+                                    <span class="italic">No category</span>
+                                <% } %>
                             </p>
                             <div class="flex items-center mt-2">
                                 <span class="text-lg font-semibold text-green-600">$<%= product.priceAfterDiscount %></span>

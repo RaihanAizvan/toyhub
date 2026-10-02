@@ -1,7 +1,12 @@
 <form action="/admin/category/edit/<%= category._id %>" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <% if (locals.message) { %>
+    <p class="mb-4 text-red-500">
+        <%= locals.message %>
+    </p>
+    <% } %>
     <div class="mb-6">
         <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Category Name</label>
-        <input type="text" id="name" name="name" value="<%= category.name %>" required
+        <input type="text" id="name" name="name" value="<%= locals.name ? locals.name : category.name %>" required
             class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
     </div>
     

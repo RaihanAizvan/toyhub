@@ -65,6 +65,8 @@
     </div>
 </div>
 
+<script><%- passwordPolicyScript() %></script>
+
 <% if (token) { %>
 <script>
 function validateForm() {
@@ -72,7 +74,7 @@ function validateForm() {
 
     const newPassword = document.getElementById('newPassword');
     const newPasswordError = document.getElementById('newPasswordError');
-    if(!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(newPassword.value)) {
+    if(!window.toyhubPasswordPolicy.isStrong(newPassword.value)) {
         newPasswordError.classList.remove('hidden');
         isValid = false;
     } else {

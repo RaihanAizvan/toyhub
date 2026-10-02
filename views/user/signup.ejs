@@ -118,6 +118,9 @@
 
 <%- include("./footer") -%>
 
+<script><%- passwordPolicyScript() %></script>
+<script><%- phonePolicyScript() %></script>
+
 <script>
     const togglePassword1 = document.querySelector('#togglePassword1');
     const password = document.querySelector('#password');
@@ -168,17 +171,24 @@
             return;
         }
 
-        // Phone validation (10-15 digits)
-        const phoneRegex = /^[0-9]{10,15}$/;
-        if (!phoneRegex.test(phone)) {
-            showError('Invalid phone number format');
+        // The mobile number rule is the server's, handed to the page by
+        // utils/phone-number.js. It used to be a page-only regular expression that
+        // wanted ten unbroken digits, so a number written "98765 43210" was
+        // refused, and nothing said that the spacing was the problem.
+        const phoneRule = window.toyhubPhonePolicy;
+        if (!phoneRule.isValid(phone)) {
+            showError(phoneRule.message);
             return;
         }
 
-        // Password validation (min 8 chars, at least 1 letter and 1 number)
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!passwordRegex.test(password)) {
-            showError('Password must be at least 8 characters long, contain one letter and one number');
+        // The password rule is the server's, handed to the page by
+        // utils/password-policy.js. It used to be a second copy of the rule here,
+        // and the two did not agree: this one allowed letters and digits and
+        // nothing else, so any password with a symbol in it was refused by the
+        // browser and never reached the server that would have accepted it.
+        const rule = window.toyhubPasswordPolicy;
+        if (!rule.isStrong(password)) {
+            showError(rule.message);
             return;
         }
 

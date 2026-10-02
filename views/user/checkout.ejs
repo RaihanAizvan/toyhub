@@ -158,15 +158,15 @@
                                     <div class="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                                         <div class="flex items-center space-x-4">
                                             <div class="relative w-16 h-16">
-                                                <img src="<%= item.product.images[0] %>" 
-                                                     alt="<%= item.product.name %>"
+                                                <img src="<%= (item.product && item.product.images && item.product.images[0]) ? item.product.images[0] : "/img/placeholder.png" %>" 
+                                                     alt="<%= (item.product && item.product.name) ? item.product.name : 'Product' %>"
                                                      class="w-full h-full object-contain rounded-lg">
                                                 <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                                     <%= item.quantity %>
                                                 </span>
                                             </div>
                                             <div>
-                                                <h3 class="font-semibold text-gray-800 line-clamp-1"><%= item.product.name %></h3>
+                                                <h3 class="font-semibold text-gray-800 line-clamp-1"><%= (item.product && item.product.name) ? item.product.name : "This product is no longer available" %></h3>
                                                 <p class="text-gray-500 text-sm">₹<%= item.price.toFixed(2) %> × <%= item.quantity %></p>
                                             </div>
                                         </div>

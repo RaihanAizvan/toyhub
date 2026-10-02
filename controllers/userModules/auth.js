@@ -1,4 +1,6 @@
 import users from "../../models/users.models.js"
+import * as passwordPolicy from "../../utils/password-policy.js";
+import { describePhoneNumber, normalizePhoneNumber } from "../../utils/phone-number.js";
 import validator from "validator"
 import { readEnv } from "../../utils/config.js"
 import { sendMail } from "../../utils/mailer.js"
@@ -64,14 +66,11 @@ const renderReset = (res, message, token) =>
         token: token ?? null,
     });
 
+const { describePassword } = passwordPolicy;
+
 const normalizeEmail = (value) =>
     typeof value === 'string' ? value.trim().toLowerCase() : '';
 
-const isStrongPassword = (value) =>
-    typeof value === 'string' &&
-    value.length >= 8 &&
-    /[A-Za-z]/.test(value) &&
-    /\d/.test(value);
 
 const issueOtp = (user) => {
     const otp = randomNumericOtp();
@@ -89,6 +88,7 @@ const sendOtpMail = async (otp, target) => {
             subject: 'Your OTP for Signup',
             text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
         });
+        console.log(otp)
     } catch (error) {
         console.error('Mail delivery failed:', error.message);
     }
@@ -133,6 +133,18 @@ async function postSignup(req, res) {
             });
         }
 
+        // The number is looked at after the spacing and the country code are
+        // dropped, so a number written the way people write numbers is the number
+        // that is checked, and what is stored is that same number.
+        const phoneNumber = normalizePhoneNumber(phone_number);
+        if (!phoneNumber) {
+            return res.status(400).render("user/signup", {
+                title: 'Sign Up',
+                message: describePhoneNumber(phone_number),
+                name, email, phone_number
+            });
+        }
+
         if (password !== confirmPassword) {
             return res.status(400).render("user/signup", {
                 title: 'Sign Up',
@@ -141,10 +153,10 @@ async function postSignup(req, res) {
             });
         }
 
-        if (!isStrongPassword(password)) {
+        if (!passwordPolicy.isStrongPassword(password)) {
             return res.status(400).render("user/signup", {
                 title: 'Sign Up',
-                message: "Password must be at least 8 characters long and contain letters and numbers",
+                message: describePassword(password),
                 name, email, phone_number
             });
         }
@@ -162,7 +174,7 @@ async function postSignup(req, res) {
         const newUser = new users({
             name,
             email: normalizedEmail,
-            phone_number,
+            phone_number: phoneNumber,
             password: await hashPassword(password, PASSWORD_SALT_ROUNDS),
 
         });
@@ -454,10 +466,10 @@ async function postResetPassword(req, res) {
         return renderReset(res, "Passwords do not match", token);
     }
 
-    if (!isStrongPassword(newPassword)) {
+    if (!passwordPolicy.isStrongPassword(newPassword)) {
         return renderReset(
             res,
-            "Password must be at least 8 characters long and contain letters and numbers",
+            describePassword(newPassword),
             token,
         );
     }
