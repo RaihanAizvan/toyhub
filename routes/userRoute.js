@@ -17,7 +17,10 @@ router.get('/login', userController.getLogin);
 
 router.post('/login', userController.postLogin);
 
-router.get('/resend-otp', userController.postResentOtp);
+// Requesting another code changes the account's pending code, so it is a POST.
+// As a GET it was reachable from any page, which is how the code somebody was
+// typing got thrown away.
+router.post('/resend-otp', userController.postResentOtp);
 
 // Logging out is a change to the account, so it is a POST carrying the CSRF
 // token. It used to be a GET, which any page on the internet could ask a
