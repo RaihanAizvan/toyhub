@@ -28,6 +28,7 @@ import {
 } from "../../utils/razorpay.js";
 import { creditWallet } from "../../utils/wallet.js";
 import { isObjectId } from "../../utils/ownership.js";
+import { withTransaction } from "../../utils/transaction.js";
 
 // Retry and success pages are order reads like any other, so they only ever
 // resolve orders of the session user.
@@ -46,6 +47,18 @@ const requireUserId = (req, res) => {
     }
     return String(userId);
 };
+
+// A duplicate key inside the transaction that places the order. It is thrown
+// rather than returned so the transaction aborts: returning would commit it, and
+// committing a reservation for an order that was never written is exactly the
+// divergence the transaction exists to prevent. The winner is looked up outside,
+// after the abort has already unwound this attempt.
+class DuplicateCheckoutKey extends Error {
+    constructor() {
+        super('a parallel request won this checkout attempt');
+        this.name = 'DuplicateCheckoutKey';
+    }
+}
 
 // A problem the shopper can act on keeps its own status and message. Anything
 // else is a bug, and a bug is never dressed up as a stock message.
@@ -143,6 +156,9 @@ const postPlaceOrderInCheckout = async (req, res) => {
     const method = paymentMethod === 'razorpay' ? 'razorpay' : 'cod';
 
     let reserved = null;
+    // Set when a transaction aborted this attempt, so the catch below knows the
+    // stock is already back on the shelf.
+    let unwoundByAbort = false;
 
     try {
         const user = await User.findById(userId);
@@ -179,27 +195,53 @@ const postPlaceOrderInCheckout = async (req, res) => {
         const address = await requireOwnAddress(userId, selectedAddress);
         const { cart, lines } = await loadPricedCart(userId, { expectedTotal: totalAmount });
 
-        reserved = await reserveStock(lines);
-
-        const order = new Order(buildOrder({
-            user,
-            cart,
-            lines,
-            address,
-            paymentMethod: method,
-            // Cash on delivery and an abandoned card are not paid.
-            paid: false,
-            checkoutKey,
-        }));
+        // The stock taken, the order written, the coupon spent and the cart
+        // cleared are one thing that happened or one thing that did not. On a
+        // server that can commit a transaction that is guaranteed by the
+        // database; on a standalone server the same work runs on its own and the
+        // compensation in the catch below is what puts it back.
+        let order = null;
 
         try {
-            await order.save();
+            order = await withTransaction(async (session) => {
+                // Kept outside the transaction too: nothing else can fail after
+                // this work returns, but a throw here is unwound by the abort on
+                // a server that has one, so the catch below has to know whether
+                // the list has already been given back.
+                reserved = await reserveStock(lines, { session });
+                unwoundByAbort = Boolean(session);
+
+                const placed = new Order(buildOrder({
+                    user,
+                    cart,
+                    lines,
+                    address,
+                    paymentMethod: method,
+                    // Cash on delivery and an abandoned card are not paid.
+                    paid: false,
+                    checkoutKey,
+                }));
+
+                try {
+                    await placed.save(session ? { session } : {});
+                } catch (error) {
+                    // A duplicate key means a parallel request won the race with
+                    // the same attempt, so the order exists after all.
+                    if (error?.code === 11000) {
+                        throw new DuplicateCheckoutKey();
+                    }
+                    throw error;
+                }
+
+                await spendCouponForOrder({ cart, order: placed, userId, session });
+
+                // The cart only goes once the order is on disk.
+                await clearPurchasedCart(userId, { session });
+
+                return placed;
+            });
         } catch (error) {
-            // A duplicate key means a parallel request won the race with the
-            // same attempt, so the order exists after all.
-            if (error?.code === 11000) {
-                await releaseStock(reserved);
-                reserved = null;
+            if (error instanceof DuplicateCheckoutKey) {
                 const winner = await findOrderByCheckoutKey(userId, checkoutKey);
                 if (winner) {
                     return res.status(200).json({
@@ -209,14 +251,16 @@ const postPlaceOrderInCheckout = async (req, res) => {
                         repeated: true,
                     });
                 }
+                throw new CheckoutError(409, 'That order is already being placed. Please try again.');
             }
+
+            // A transaction that aborted has already put the stock back.
+            if (reserved && !unwoundByAbort) {
+                await releaseStock(reserved);
+            }
+            reserved = null;
             throw error;
         }
-
-        await spendCouponForOrder({ cart, order, userId });
-
-        // The cart only goes once the order is on disk.
-        await clearPurchasedCart(userId);
 
         return res.status(200).json({
             orderId: order._id,
@@ -288,6 +332,9 @@ const createRazorPayOrder = async (req, res) => {
 
     const { selectedAddress, checkoutKey, totalAmount } = req.body;
     let reserved = null;
+    // Set when a transaction aborted this attempt, so the catch below knows the
+    // stock is already back on the shelf.
+    let unwoundByAbort = false;
 
     try {
         const user = await User.findById(userId);
@@ -309,24 +356,44 @@ const createRazorPayOrder = async (req, res) => {
         const address = await requireOwnAddress(userId, selectedAddress);
         const { cart, lines, totalAmount: serverTotal } = await loadPricedCart(userId, { expectedTotal: totalAmount });
 
-        reserved = await reserveStock(lines);
-
-        const order = new Order(buildOrder({
-            user,
-            cart,
-            lines,
-            address,
-            paymentMethod: 'razorpay',
-            paid: false,
-            checkoutKey,
-        }));
+        // The reservation, the order and the coupon are committed together where
+        // the server can. The gateway call is not inside it: a network call has no
+        // business holding a transaction open, and the work below already unwinds
+        // everything if the gateway does not answer.
+        let order = null;
 
         try {
-            await order.save();
+            order = await withTransaction(async (session) => {
+                // Kept outside the transaction: the gateway call below is not in
+                // it, and a gateway that does not answer has to give this back.
+                reserved = await reserveStock(lines, { session });
+                unwoundByAbort = Boolean(session);
+
+                const placed = new Order(buildOrder({
+                    user,
+                    cart,
+                    lines,
+                    address,
+                    paymentMethod: 'razorpay',
+                    paid: false,
+                    checkoutKey,
+                }));
+
+                try {
+                    await placed.save(session ? { session } : {});
+                } catch (error) {
+                    if (error?.code === 11000) {
+                        throw new DuplicateCheckoutKey();
+                    }
+                    throw error;
+                }
+
+                await spendCouponForOrder({ cart, order: placed, userId, session });
+
+                return placed;
+            });
         } catch (error) {
-            if (error?.code === 11000) {
-                await releaseStock(reserved);
-                reserved = null;
+            if (error instanceof DuplicateCheckoutKey) {
                 const winner = await findOrderByCheckoutKey(userId, checkoutKey);
                 if (winner?.razorpayOrderId) {
                     return res.status(200).json({
@@ -337,11 +404,16 @@ const createRazorPayOrder = async (req, res) => {
                         repeated: true,
                     });
                 }
+                throw new CheckoutError(409, 'That payment is already being set up. Please try again.');
             }
+
+            // A transaction that aborted has already put the stock back.
+            if (reserved && !unwoundByAbort) {
+                await releaseStock(reserved);
+            }
+            reserved = null;
             throw error;
         }
-
-        await spendCouponForOrder({ cart, order, userId });
 
         try {
             const gatewayOrder = await createGatewayOrder({
@@ -526,6 +598,9 @@ const postWalletPayment = async (req, res) => {
 
     const { selectedAddress, checkoutKey, totalAmount } = req.body;
     let reserved = null;
+    // Set when a transaction aborted this attempt, so the catch below knows the
+    // stock is already back on the shelf.
+    let unwoundByAbort = false;
     let debited = 0;
     let order = null;
 
@@ -548,33 +623,65 @@ const postWalletPayment = async (req, res) => {
         const address = await requireOwnAddress(userId, selectedAddress);
         const { cart, lines, totalAmount: serverTotal } = await loadPricedCart(userId, { expectedTotal: totalAmount });
 
-        reserved = await reserveStock(lines);
-
-        // The order is written first, because the debit is keyed by the order
-        // and a request that repeats this one finds the order it already made
-        // and spends nothing.
-        order = new Order(buildOrder({
-            user,
-            cart,
-            lines,
-            address,
-            paymentMethod: 'wallet',
-            paid: false,
-            checkoutKey,
-        }));
-
-        await spendCouponForOrder({ cart, order, userId });
-
+        // The stock taken, the order written and the coupon spent are committed
+        // together where the server can, and unwound by hand where it cannot.
+        //
+        // The wallet debit is deliberately not part of it. The ledger claims an
+        // entry by writing it, then waits for whoever claimed it, and a claim
+        // that is only visible to its own transaction is a claim nobody else can
+        // see -- so the debit is left outside, where its idempotency key and its
+        // refund already make a retry safe.
         try {
-            await order.save();
+            order = await withTransaction(async (session) => {
+                // Kept even when the work is inside a transaction: the debit
+                // happens after the commit, and if it fails this list is what
+                // has to be given back.
+                reserved = await reserveStock(lines, { session });
+                // Records that the server is unwinding this itself, so the catch
+                // does not give the same stock back a second time.
+                unwoundByAbort = Boolean(session);
+
+                // The order is written before the debit, because the debit is
+                // keyed by the order and a request that repeats this one finds
+                // the order it already made and spends nothing.
+                const placed = new Order(buildOrder({
+                    user,
+                    cart,
+                    lines,
+                    address,
+                    paymentMethod: 'wallet',
+                    paid: false,
+                    checkoutKey,
+                }));
+
+                try {
+                    await placed.save(session ? { session } : {});
+                } catch (error) {
+                    if (error?.code === 11000) {
+                        throw new DuplicateCheckoutKey();
+                    }
+                    throw error;
+                }
+
+                // The coupon is spent for an order that exists. Spending it
+                // before the write meant a refused write left a use taken off a
+                // coupon for an order that was never created, and a duplicate key
+                // left it keyed to an id that lost the race and does not exist.
+                await spendCouponForOrder({ cart, order: placed, userId, session });
+
+                return placed;
+            });
         } catch (error) {
-            if (error?.code === 11000) {
+            if (error instanceof DuplicateCheckoutKey) {
+                // Another request with the same key already paid for this order,
+                // so this one only gives the stock back.
+                if (reserved && !unwoundByAbort) {
+                    await releaseStock(reserved);
+                }
+                reserved = null;
+
                 const winner = await findOrderByCheckoutKey(userId, checkoutKey);
                 if (winner) {
-                    // Another request with the same key already paid for this
-                    // order, so this one only gives the stock back.
-                    await releaseStock(reserved);
-                    reserved = null;
                     return res.status(200).json({
                         orderId: winner._id,
                         paymentMethod: winner.paymentMethod,
@@ -582,7 +689,14 @@ const postWalletPayment = async (req, res) => {
                         repeated: true,
                     });
                 }
+                throw new CheckoutError(409, 'That order is already being placed. Please try again.');
             }
+
+            // A transaction that aborted has already put the stock back.
+            if (reserved && !unwoundByAbort) {
+                await releaseStock(reserved);
+            }
+            reserved = null;
             throw error;
         }
 
