@@ -23,10 +23,22 @@
                     <div class="grid grid-cols-1 gap-4">
                         <% reviews.forEach(review => { %>
                             <div class="bg-white rounded-lg overflow-hidden transform hover:scale-102 transition-all duration-300 border border-gray-200">
+                                <%
+                                    // A product can be deleted after someone has
+                                    // reviewed it. The review stays, so the page says the
+                                    // product is gone rather than reaching through a null.
+                                    const reviewProduct = review.productId;
+                                    const reviewImage =
+                                        reviewProduct && Array.isArray(reviewProduct.images) && reviewProduct.images.length
+                                            ? reviewProduct.images[0]
+                                            // Nothing left to show, so it falls back to the one
+                                            // image this project actually ships.
+                                            : '/images/logo.png';
+                                %>
                                 <div class="flex p-4">
                                     <div class="relative w-24 h-24 flex-shrink-0">
-                                        <img src="<%= review.productId.images[0] %>" 
-                                             alt="<%= review.productId.name %>" 
+                                        <img src="<%= reviewImage %>" 
+                                             alt="<%= reviewProduct ? reviewProduct.name : 'Deleted product' %>" 
                                              class="w-full h-full object-cover rounded-lg shadow-sm">
                                         <div class="absolute -top-2 -right-2 bg-white rounded-full shadow-md p-1">
                                             <div class="text-yellow-400 text-lg font-bold">
@@ -37,7 +49,7 @@
                                     
                                     <div class="ml-4 flex-grow">
                                         <h3 class="font-bold text-gray-800 text-lg mb-2 line-clamp-1">
-                                            <%= review.productId.name %>
+                                            <%= reviewProduct ? reviewProduct.name : 'This product is no longer available' %>
                                         </h3>
                                         
                                         <div class="flex items-center mb-3 text-sm">
