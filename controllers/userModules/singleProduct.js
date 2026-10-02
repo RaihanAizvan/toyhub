@@ -275,42 +275,53 @@ async function submitReview(req, res) {
     }
   }
 
+// A suggestion is a short label, so the search is short too. Without a bound a
+// caller could hand this a megabyte of text and ask the database to match it.
+const MAX_SEARCH_LENGTH = 60;
+const MAX_SEARCH_RESULTS = 8;
+
+// The text is matched literally. It used to be dropped into a `$regex` as typed,
+// which meant a shopper could send `.*` and match everything, or `(a+)+` and
+// occupy a database worker for a very long time.
+const escapeForRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const searchProducts = async (req, res) => {
     try {
-        const { q } = req.query;
-        
-        // Return empty array if query is too short
-        if (!q || q.length < 2) {
-            console.log("No query")
+        const raw = typeof req.query.q === 'string' ? req.query.q : '';
+        const q = raw.trim().slice(0, MAX_SEARCH_LENGTH);
+
+        // Too short to be worth asking about, or nothing left after trimming.
+        if (q.length < 2) {
             return res.json([]);
         }
 
-        // Find products matching name or description with case-insensitive regex
-        // Limit to 5 suggestions for better UX
+        const pattern = new RegExp(escapeForRegex(q), 'i');
+
         const products = await Product.find(
             {
                 $or: [
-                    { name: { $regex: q, $options: 'i' } },
-                    { description1: { $regex: q, $options: 'i' } },
-                    { description2: { $regex: q, $options: 'i' } }
+                    { name: pattern },
+                    { description1: pattern },
+                    { description2: pattern },
                 ],
-                isBlocked: false
+                isBlocked: false,
             },
-            { name: 1, _id: 1 } // Include _id field
-        );
+            // Only what a suggestion row needs, and `_id` so the browser can link
+            // to the canonical product route instead of searching for the name
+            // again.
+            { name: 1, _id: 1 },
+        )
+            // The comment here used to promise five suggestions; without a limit
+            // the query answered with every product in the shop.
+            .limit(MAX_SEARCH_RESULTS)
+            .lean();
 
-
-
-        if (!products) {
-            console.log("No products found");
-            return res.json([]);
-        }
-
-        res.json(products);
-
+        return res.json(products);
     } catch (error) {
+        // The reason is not sent on: it names collection shapes and query
+        // structure to whoever asked.
         console.error('Error fetching search suggestions:', error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: 'Search is unavailable right now' });
     }
 }
 
