@@ -20,6 +20,13 @@ import {
     invalidateUserSessions,
     regenerateSession,
 } from "../../utils/session.js"
+import {
+    clear as clearRateLimit,
+    hit as hitRateLimit,
+    requestSource,
+    resetRateLimits,
+    retryAfterSeconds,
+} from "../../utils/rate-limit.js"
 
 // Authentication policy, applied identically on every route:
 //
@@ -30,10 +37,16 @@ import {
 // * OTP resends are rate limited per account by OTP_RESEND_COOLDOWN_MS and
 //   OTP_MAX_RESENDS_PER_HOUR.
 // * Logins are rate limited per account by LOGIN_MAX_ATTEMPTS /
-//   LOGIN_LOCK_MS.
+//   LOGIN_LOCK_MS, and per request source by LOGIN_MAX_ATTEMPTS_PER_SOURCE /
+//   LOGIN_SOURCE_WINDOW_MS.
 // * A successful login always rotates the session identifier.
 // * An unverified account may sign in (verification happens during signup);
 //   a blocked account is rejected with the generic failure response.
+// * OTP guesses and resends are counted per request source as well as per
+//   account, for the same reason login attempts are.
+// * A blocked account is not verified by the OTP route either, and gets the
+//   same sentence as a wrong code.
+// * Requesting another code is a POST. As a GET it was reachable from any page.
 
 const GENERIC_AUTH_ERROR = "Invalid email or password";
 const GENERIC_OTP_ERROR = "That code is not valid. Request a new one and try again.";
@@ -45,6 +58,14 @@ const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_MAX_RESENDS_PER_HOUR = 3;
 const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
+// The limits above are per account, so they do nothing about one caller trying
+// a list of accounts. These count per request source as well.
+const LOGIN_MAX_ATTEMPTS_PER_SOURCE = 30;
+const LOGIN_SOURCE_WINDOW_MS = 15 * 60 * 1000;
+const OTP_MAX_ATTEMPTS_PER_SOURCE = 20;
+const OTP_SOURCE_WINDOW_MS = 15 * 60 * 1000;
+const RESEND_MAX_PER_SOURCE = 10;
+const RESEND_SOURCE_WINDOW_MS = 60 * 60 * 1000;
 const RESET_REQUEST_COOLDOWN_MS = 60 * 1000;
 const PASSWORD_SALT_ROUNDS = 12;
 
@@ -88,7 +109,10 @@ const sendOtpMail = async (otp, target) => {
             subject: 'Your OTP for Signup',
             text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
         });
-        console.log(otp)
+        // Deliberately no logging of the code. It is the only thing standing
+        // between the address and the account, and a log file is a place people
+        // read that should not have it in.
+        console.info(`OTP issued for a signup, expires in ${OTP_TTL_MS / 1000}s`);
     } catch (error) {
         console.error('Mail delivery failed:', error.message);
     }
@@ -224,10 +248,31 @@ async function postOtp(req, res) {
         return res.redirect('/user/signup');
     }
 
+    // Six single-character boxes, but nothing says they have to be digits, and
+    // nothing stops one of them being a megabyte. An answer that is not exactly
+    // six digits is refused here rather than hashed.
     const enteredOtp = [
         req.body.otp1, req.body.otp2, req.body.otp3,
         req.body.otp4, req.body.otp5, req.body.otp6,
     ].join('');
+
+    const sourceLimit = hitRateLimit(
+        'otp-source',
+        requestSource(req),
+        OTP_MAX_ATTEMPTS_PER_SOURCE,
+        OTP_SOURCE_WINDOW_MS,
+    );
+    if (!sourceLimit.allowed) {
+        return renderOtp(
+            res,
+            429,
+            `Too many guesses. Try again in ${retryAfterSeconds(sourceLimit.retryAfterMs)} seconds.`,
+        );
+    }
+
+    if (!/^\d{6}$/.test(enteredOtp)) {
+        return renderOtp(res, 400, GENERIC_OTP_ERROR);
+    }
 
     try {
         const user = await users.findOne({ email });
@@ -238,6 +283,12 @@ async function postOtp(req, res) {
 
         if (user.verified) {
             return res.redirect('/user/login');
+        }
+
+        // A blocked account is not verified, here or on any other route. It gets
+        // the same sentence as a wrong code rather than being told why.
+        if (user.isBlocked) {
+            return renderOtp(res, 403, GENERIC_OTP_ERROR);
         }
 
         if (!isTokenUsable({ tokenHash: user.otpHash, expiresAt: user.otpExpires })) {
@@ -283,6 +334,24 @@ async function postResendOtp(req, res) {
             return res.redirect("/user/signup");
         }
 
+        if (user.isBlocked) {
+            return renderOtp(res, 403, GENERIC_OTP_ERROR);
+        }
+
+        const sourceLimit = hitRateLimit(
+            'resend-source',
+            requestSource(req),
+            RESEND_MAX_PER_SOURCE,
+            RESEND_SOURCE_WINDOW_MS,
+        );
+        if (!sourceLimit.allowed) {
+            return renderOtp(
+                res,
+                429,
+                `Too many codes requested. Try again in ${retryAfterSeconds(sourceLimit.retryAfterMs)} seconds.`,
+            );
+        }
+
         const now = Date.now();
         const windowStart = user.otpResendWindowStart?.getTime() ?? 0;
         const resendsThisHour = now - windowStart < 60 * 60 * 1000
@@ -326,6 +395,23 @@ function getLogin(req, res) {
 async function postLogin(req, res) {
     try {
         const { email, password } = req.body;
+        const source = requestSource(req);
+
+        // Counted before the account is even looked up, so walking a list of
+        // addresses runs into this rather than getting a fresh allowance each.
+        const sourceLimit = hitRateLimit(
+            "login-source",
+            source,
+            LOGIN_MAX_ATTEMPTS_PER_SOURCE,
+            LOGIN_SOURCE_WINDOW_MS,
+        );
+        if (!sourceLimit.allowed) {
+            return renderLogin(
+                res,
+                429,
+                `Too many sign in attempts. Try again in ${retryAfterSeconds(sourceLimit.retryAfterMs)} seconds.`,
+            );
+        }
 
         if (!email || !password) {
             await burnPasswordCompare(password);
@@ -372,6 +458,10 @@ async function postLogin(req, res) {
         user.loginLockedUntil = null;
         user.lastLoginAt = new Date();
         await user.save();
+
+        // The failures before this one were somebody fumbling a password, not
+        // someone working through a list of accounts.
+        clearRateLimit("login-source", source);
 
         // Rotate the session identifier to prevent session fixation.
         await regenerateSession(req);
@@ -507,6 +597,10 @@ async function postResetPassword(req, res) {
         return renderReset(res, "Error resetting password. Please try again.");
     }
 }
+
+// Re-exported so a test can start from a clean count instead of inheriting
+// whatever the previous test spent.
+export { resetRateLimits };
 
 export default {
     postSignup,

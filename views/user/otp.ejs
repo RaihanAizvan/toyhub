@@ -38,15 +38,26 @@
                 Verify OTP
             </button>
 
-            <div class="text-center">
-                <p class="text-gray-600">
-                    Didn't get the OTP? 
-                    <a href="#" id="resend-otp" class="text-green-600 hover:text-green-800 font-medium disabled" onclick="resendOTP()">
-                        Try again in <span id="countdown"><%= locals.remainingTime %></span> seconds
-                    </a>
-                </p>
-            </div>
         </form>
+
+            <!--
+                Outside the form above, because a form inside a form is not a
+                thing. It is a POST because asking for another code is a change:
+                as a link it was a GET, which the CSRF check passes straight
+                through, so any page could put an image tag in front of it and
+                throw away the code somebody was in the middle of typing.
+            -->
+            <div class="text-center mt-4">
+                <form action="/user/resend-otp" method="POST" id="resend-otp-form" class="inline">
+                    <span class="text-gray-600">
+                        Didn't get the OTP?
+                    </span>
+                    <button type="submit" id="resend-otp"
+                            class="text-green-600 hover:text-green-800 font-medium bg-transparent border-0 cursor-pointer disabled">
+                        Try again in <span id="countdown"><%= locals.remainingTime %></span> seconds
+                    </button>
+                </form>
+            </div>
     </div>
 </div>
 
@@ -94,6 +105,7 @@
             resendButton.classList.add('disabled');
             resendButton.style.opacity = '0.5';
             resendButton.style.cursor = 'not-allowed';
+            resendButton.disabled = true;
         }
         
         const timer = setInterval(() => {
@@ -103,8 +115,8 @@
                 resendButton.classList.remove('disabled');
                 resendButton.style.opacity = '1';
                 resendButton.style.cursor = 'pointer';
-                resendButton.href = '/user/resend-otp';
-                resendButton.onclick = null;
+                resendButton.disabled = false;
+                countdownElement.textContent = '';
                 localStorage.removeItem('otpTimeLeft');
             } else {
                 timeLeft -= 1;

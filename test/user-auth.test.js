@@ -58,7 +58,7 @@ const buildApp = () => {
   app.post("/user/signup", userAuth.postSignup);
   app.get("/user/otp", userAuth.getOtp);
   app.post("/user/otp", userAuth.postOtp);
-  app.get("/user/resend-otp", userAuth.postResendOtp);
+  app.post("/user/resend-otp", userAuth.postResendOtp);
   app.post("/user/login", userAuth.postLogin);
   app.get("/user/session", (req, res) =>
     res.json({ user: req.session.user ?? null }),
@@ -270,7 +270,7 @@ describe("signup OTP verification", () => {
       const cookie = signup.cookie;
 
       const cooldown = await send(server, "/user/resend-otp", {
-        method: "GET",
+        method: "POST",
         cookie,
       });
       assert.equal(cooldown.status, 429);
@@ -285,7 +285,7 @@ describe("signup OTP verification", () => {
           { email: "otp.resend@example.invalid" },
           { $set: { otpIssuedAt: new Date(Date.now() - 10 * 60 * 1000) } },
         );
-        return send(server, "/user/resend-otp", { method: "GET", cookie });
+        return send(server, "/user/resend-otp", { method: "POST", cookie });
       };
 
       for (let attempt = 1; attempt <= 3; attempt += 1) {

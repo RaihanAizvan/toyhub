@@ -245,6 +245,23 @@ heading("4. the otp page, and a wrong code");
     wrong.status === 400 && !/incorrect|invalid|wrong/i.test(wrong.text),
     wrong.text.match(/<p class="[^"]*error[^"]*"[^>]*>([^<]*)</)?.[1] ?? `status ${wrong.status}`,
   );
+
+  // Asking for another code changes the account's pending code, so it is a POST
+  // with the session token. A GET is refused, because the CSRF check lets GETs
+  // through and this is a change.
+  const resendByLink = await visit("/user/resend-otp");
+  check(
+    "a plain link cannot ask for another code",
+    resendByLink.status !== 200 && resendByLink.status !== 302,
+    `a GET to /user/resend-otp answered ${resendByLink.status}`,
+  );
+
+  const resent = await browser.submit("/user/resend-otp", {});
+  check(
+    "a new code can be asked for with the session token",
+    resent.status === 200 || resent.status === 429,
+    `status ${resent.status}`,
+  );
 }
 
 heading("5. the real code, read out of the email");
@@ -297,8 +314,22 @@ heading("7. the session, and the page that needs one");
   check("a signed in person reaches a page that needs a session", page.status === 200, `status ${page.status}`);
   check("the page knows who is signed in", page.text.includes(NAME));
 
-  const response = await visit("/user/logout");
-  check("logout redirects to login", response.status === 302 && response.location === "/user/login", `status ${response.status} -> ${response.location}`);
+  // Logout is a POST carrying the session token, so a page on the internet
+  // cannot log anybody out by linking to it. A GET is refused, which is the
+  // point of the change.
+  const byLink = await visit("/user/logout");
+  check(
+    "a plain link cannot log anybody out",
+    byLink.status !== 302,
+    `a GET to /user/logout answered ${byLink.status}`,
+  );
+
+  const response = await browser.submit("/user/logout", {});
+  check(
+    "logout redirects to login",
+    response.status === 302 && response.location === "/user/login",
+    `status ${response.status} -> ${response.location}`,
+  );
 
   const after = await visit("/account");
   check("the session is gone afterwards", /login|sign in/i.test(after.text) && after.status !== 500, `status ${after.status}`);
