@@ -182,30 +182,36 @@ export const applyCoupon = async ({ userId, couponCode, cart, orderId = null }) 
 // A MongoDB transaction would need a replica set, so the guarantee is built
 // from the unique index and the conditional update instead, which hold on a
 // standalone server too.
-export const redeemCoupon = async ({ coupon, userId, orderId, amount }) => {
-  const redemption = await CouponRedemption.create({
+export const redeemCoupon = async ({ coupon, userId, orderId, amount, session = null }) => {
+  // Saved through the document rather than `create`, because `create` given an
+  // array answers with an array, and everything below reads this as the one
+  // redemption it just wrote.
+  const redemption = new CouponRedemption({
     coupon: coupon._id,
     couponCode: coupon.couponCode,
     user: userId,
     order: orderId,
     amount: Number(amount) || 0,
   });
+  await redemption.save(session ? { session } : {});
 
   try {
     const updated = await Coupon.findOneAndUpdate(
       { _id: coupon._id, usageLimit: { $gt: 0 } },
       { $inc: { usageLimit: -1, timesUsed: 1 } },
-      { new: true },
+      { new: true, session },
     );
 
     if (!updated) {
       // The last use went to somebody else while this order was being written,
       // so this one does not get the discount.
-      await CouponRedemption.deleteOne({ _id: redemption._id });
+      await CouponRedemption.deleteOne({ _id: redemption._id }, { session });
       throw new CheckoutError(409, "That coupon has just been used up.");
     }
   } catch (error) {
-    if (!(error instanceof CheckoutError)) {
+    // Inside a transaction the redemption is rolled back with everything else, so
+    // only the unwound path deletes it by hand.
+    if (!(error instanceof CheckoutError) && !session) {
       await CouponRedemption.deleteOne({ _id: redemption._id });
     }
     throw error;
@@ -216,12 +222,12 @@ export const redeemCoupon = async ({ coupon, userId, orderId, amount }) => {
 
 // Give a coupon back when the order it was spent on did not go through, so a
 // failed payment does not cost the shopper the code they were entitled to.
-export const releaseCoupon = async ({ orderId }) => {
+export const releaseCoupon = async ({ orderId, session = null }) => {
   if (!orderId) {
     return null;
   }
 
-  const redemption = await CouponRedemption.findOneAndDelete({ order: orderId });
+  const redemption = await CouponRedemption.findOneAndDelete({ order: orderId }, { session });
   if (!redemption) {
     return null;
   }
@@ -229,6 +235,7 @@ export const releaseCoupon = async ({ orderId }) => {
   await Coupon.updateOne(
     { _id: redemption.coupon },
     { $inc: { usageLimit: 1, timesUsed: -1 } },
+    { session },
   );
   return redemption;
 };

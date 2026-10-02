@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import Cart from "../models/cart.models.js";
 import Coupon from "../models/couponSchema.models.js";
+import CouponRedemption from "../models/coupon-redemptions.models.js";
 import Order from "../models/orders.models.js";
 import Product from "../models/product.models.js";
 import User from "../models/users.models.js";
@@ -17,6 +18,7 @@ import WalletLedger from "../models/walletLedger.models.js";
 import { CSRF_HEADER_NAME, exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "../utils/csrf.js";
 import { resetRazorpayFactory, setRazorpayFactory } from "../utils/razorpay.js";
 import { applyTestEnv } from "./helpers/test-env.js";
+import { canUseTransactions } from "../utils/transaction.js";
 import { canReachTestDatabase, withTestDatabase } from "./helpers/test-db.js";
 import {
   createAddress,
@@ -564,6 +566,166 @@ describe("checkout", () => {
       const after = await Product.findById(product._id);
       assert.equal(after.stock, 8);
       assert.equal(await Order.countDocuments({}), 1);
+    });
+  });
+
+  itWhenReachable("a wallet checkout that cannot write its order gives the coupon back", async () => {
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 1000, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 2);
+      const coupon = await createCoupon({
+        discount: 10,
+        discountType: "percentage",
+        minPurchase: 1000,
+        maxDiscount: 1000,
+        usageLimit: 5,
+      });
+      await createWallet({ user: user._id, balance: 5000 });
+
+      const applied = await send(server, "/checkout/apply-coupon", {
+        as: user._id,
+        body: { couponCode: coupon.couponCode },
+      });
+      assert.equal(applied.status, 200);
+
+      const before = await Coupon.findById(coupon._id);
+      assert.equal(before.usageLimit, 5, "nothing spent yet");
+      assert.equal(before.timesUsed, 0);
+
+      // The order write is what fails. The reservation and the coupon redemption
+      // have both already happened by this point.
+      const writeOrder = Order.prototype.save;
+      Order.prototype.save = async function refuse() {
+        throw new Error("the write was refused");
+      };
+
+      let response;
+      try {
+        response = await send(server, "/checkout/wallet", {
+          as: user._id,
+          body: { selectedAddress: String(address._id), checkoutKey: "wallet-coupon-fail" },
+        });
+      } finally {
+        Order.prototype.save = writeOrder;
+      }
+
+      assert.equal(response.status, 500);
+      assert.equal(await Order.countDocuments({}), 0, "no order exists");
+
+      const after = await Coupon.findById(coupon._id);
+      assert.equal(
+        after.usageLimit,
+        5,
+        "the coupon use went back: the order it was spent for was never written",
+      );
+      assert.equal(after.timesUsed, 0, "the use count went back with it");
+      assert.equal(
+        await CouponRedemption.countDocuments({ coupon: coupon._id }),
+        0,
+        "the redemption record went back too",
+      );
+
+      const shelf = await Product.findById(product._id);
+      assert.equal(shelf.stock, 10, "the reserved stock came back");
+      assert.equal(shelf.sold, 0);
+    });
+  });
+
+  itWhenReachable("the order is written inside a transaction, not beside it", async () => {
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 500, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 2);
+
+      // The write is asked what session it was given. On a server that can commit
+      // a transaction it has to be given one that is inside a transaction: an
+      // order written outside one is not part of the work the stock reservation
+      // is part of, which is the whole point.
+      let sessionDuringWrite;
+      const writeOrder = Order.prototype.save;
+      Order.prototype.save = async function watched(options) {
+        const session = options?.session ?? null;
+        sessionDuringWrite = session ? session.inTransaction() : false;
+        return writeOrder.call(this, options);
+      };
+
+      let response;
+      try {
+        response = await send(server, "/checkout", {
+          as: user._id,
+          body: { selectedAddress: String(address._id), paymentMethod: "cod" },
+        });
+      } finally {
+        Order.prototype.save = writeOrder;
+      }
+
+      assert.equal(response.status, 200);
+      assert.equal(await Order.countDocuments({}), 1, "the order was written");
+
+      if (await canUseTransactions()) {
+        assert.equal(sessionDuringWrite, true, "the order was written inside a transaction");
+      } else {
+        assert.equal(sessionDuringWrite, false, "a standalone server writes it on its own");
+      }
+
+      const shelf = await Product.findById(product._id);
+      assert.equal(shelf.stock, 8, "the stock went with it");
+    });
+  });
+
+  itWhenReachable("a refused write leaves nothing behind on either kind of server", async () => {
+    await withTestDatabase(async () => {
+      const user = await createUser();
+      const product = await createProduct({ price: 1000, discount: 0, stock: 10 });
+      const address = await createAddress({ user: user._id, ...addressFields() });
+      await cartFor(user, product, 2);
+      const coupon = await createCoupon({
+        discount: 10,
+        discountType: "percentage",
+        minPurchase: 1000,
+        maxDiscount: 1000,
+        usageLimit: 5,
+      });
+      await send(server, "/checkout/apply-coupon", {
+        as: user._id,
+        body: { couponCode: coupon.couponCode },
+      });
+
+      // The write the order depends on is the one that fails, and it fails after
+      // the stock has already been taken.
+      const writeOrder = Order.prototype.save;
+      Order.prototype.save = async function refuse() {
+        throw new Error("the write was refused");
+      };
+
+      let response;
+      try {
+        response = await send(server, "/checkout", {
+          as: user._id,
+          body: { selectedAddress: String(address._id), paymentMethod: "cod" },
+        });
+      } finally {
+        Order.prototype.save = writeOrder;
+      }
+
+      assert.equal(response.status, 500);
+
+      // Nothing that was done before the refused write may survive it: not the
+      // reservation, not the coupon use, not the cart deletion.
+      const shelf = await Product.findById(product._id);
+      assert.equal(shelf.stock, 10, "the reservation is gone");
+      assert.equal(shelf.sold, 0);
+
+      const spent = await Coupon.findById(coupon._id);
+      assert.equal(spent.usageLimit, 5, "the coupon was not spent");
+      assert.equal(spent.timesUsed, 0);
+      assert.equal(await CouponRedemption.countDocuments({ coupon: coupon._id }), 0);
+
+      assert.ok(await Cart.findOne({ user: user._id }), "the cart is still there");
+      assert.equal(await Order.countDocuments({}), 0);
     });
   });
 

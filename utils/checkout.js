@@ -136,12 +136,15 @@ export const removeCouponFromCart = async (userId) => {
 // repeats the one that placed it finds the redemption already written and
 // nothing is taken off the usage count twice. An order that never went through
 // gives the coupon back the same way it took it.
-export const spendCouponForOrder = async ({ cart, order, userId }) => {
+export const spendCouponForOrder = async ({ cart, order, userId, session = null }) => {
   if (!cart?.appliedCoupon) {
     return null;
   }
 
-  const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon });
+  // The session goes in the options position. `findOne`'s second argument is a
+  // projection, so a session handed over there is read as a field to return --
+  // and asks the driver to cast it.
+  const coupon = await Coupon.findOne({ couponCode: cart.appliedCoupon }, null, { session });
   if (!coupon) {
     return null;
   }
@@ -152,6 +155,7 @@ export const spendCouponForOrder = async ({ cart, order, userId }) => {
       userId,
       orderId: order._id,
       amount: Number(cart.couponDiscount) || 0,
+      session,
     });
   } catch (error) {
     if (error?.code === 11000) {
@@ -171,15 +175,18 @@ export { redeemCoupon, releaseCoupon };
 //
 // A MongoDB transaction would need a replica set, so the guarantee is built
 // from the conditional update instead, which holds on a standalone server too.
-export const reserveStock = async (lines) => {
+export const reserveStock = async (lines, { session = null } = {}) => {
   const reserved = [];
 
   try {
     for (const { product, quantity } of lines) {
+      // The conditional update is still what stops two checkouts taking the last
+      // unit between them. The session only decides whether the stock change is
+      // committed with the rest of the order or unwound by hand afterwards.
       const updated = await Product.findOneAndUpdate(
         { _id: product._id, stock: { $gte: quantity } },
         { $inc: { stock: -quantity, sold: quantity } },
-        { new: true },
+        { new: true, session },
       );
 
       if (!updated) {
@@ -191,7 +198,11 @@ export const reserveStock = async (lines) => {
       reserved.push({ productId: product._id, quantity });
     }
   } catch (error) {
-    await releaseStock(reserved);
+    // Inside a transaction the abort puts the stock back on its own, so only the
+    // unwound path has to undo it by hand.
+    if (!session) {
+      await releaseStock(reserved);
+    }
     throw error;
   }
 
@@ -200,8 +211,11 @@ export const reserveStock = async (lines) => {
 
 // The lines to give back can be a reservation made in this request or the items
 // of an order that is being given up, so both shapes are read here.
-export const releaseStock = async (lines = []) => {
-  for (const line of lines) {
+export const releaseStock = async (lines = [], { session = null } = {}) => {
+  // `null` as well as `undefined`: when the work ran inside a transaction the
+  // caller never held a reservation to give back -- the abort did it -- so this
+  // is called with nothing and has to mean nothing rather than throw.
+  for (const line of lines ?? []) {
     const productId = line.productId ?? line.product;
     if (!productId || !line.quantity) {
       continue;
@@ -210,6 +224,7 @@ export const releaseStock = async (lines = []) => {
     await Product.updateOne(
       { _id: productId },
       { $inc: { stock: line.quantity, sold: -line.quantity } },
+      { session },
     );
   }
 };
@@ -281,8 +296,8 @@ export const receiptForCheckoutKey = receiptFor;
 
 // The cart belongs to the order once the order exists, so it is only cleared
 // after the order was written.
-export const clearPurchasedCart = async (userId) => {
-  await Cart.deleteOne({ user: userId });
+export const clearPurchasedCart = async (userId, { session = null } = {}) => {
+  await Cart.deleteOne({ user: userId }, { session });
 };
 
 // A wallet is only debited when the balance is still there, so two checkouts at
