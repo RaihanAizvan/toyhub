@@ -387,7 +387,10 @@ async function postLogin(req, res) {
     }
 }
 
-async function getLogout(req, res) {
+// The session is destroyed on the server, so the copy the browser was holding
+// is worth nothing afterwards. The cookie is cleared and no-store is set on the
+// way out, so a cached page cannot replay it.
+async function postLogout(req, res) {
     try {
         req.session.destroy((err) => {
             if (err) {
@@ -513,7 +516,7 @@ export default {
     getLogin,
     postLogin,
     postResendOtp,
-    getLogout,
+    postLogout,
     getForgotPassword,
     postForgotPassword,
     getResetPassword,

@@ -79,7 +79,7 @@ export const postLogin = userAuthentication.postLogin
 
 export const postResentOtp = userAuthentication.postResendOtp
 
-export const getLogout = userAuthentication.getLogout
+export const postLogout = userAuthentication.postLogout
 
 export const getForgotPassword = userAuthentication.getForgotPassword
 

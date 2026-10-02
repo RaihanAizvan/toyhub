@@ -516,7 +516,16 @@
                     timerProgressBar: true,
                     didOpen: () => { Swal.showLoading() }
                 }).then(() => {
-                    window.location.href = '/user/logout';
+                    // A POST carrying the session's CSRF token, because logging
+                    // out is a change to the account and not a page to visit. A
+                    // form is built here because this is script, not a template,
+                    // so the layout never got to put the token in one.
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/user/logout';
+                    csrfProtectForm(form);
+                    document.body.appendChild(form);
+                    form.submit();
                 })
             }
         });
