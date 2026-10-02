@@ -19,7 +19,10 @@ router.post('/login', userController.postLogin);
 
 router.get('/resend-otp', userController.postResentOtp);
 
-router.get('/logout',userController.getLogout)
+// Logging out is a change to the account, so it is a POST carrying the CSRF
+// token. It used to be a GET, which any page on the internet could ask a
+// browser to fetch and quietly sign the person out.
+router.post('/logout',userController.postLogout)
 
 router.get('/forgot-password',userController.getForgotPassword)
 

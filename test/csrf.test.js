@@ -67,7 +67,7 @@ const buildApp = () => {
     res.render("admin/adminLogin", { title: "Admin Login", error: "" }),
   );
   app.post("/user/login", userAuth.postLogin);
-  app.get("/user/logout", userAuth.getLogout);
+  app.post("/user/logout", userAuth.postLogout);
   app.post("/demo", (req, res) => res.json({ ok: true, echo: req.body?.value ?? null }));
 
   return app;
@@ -319,6 +319,58 @@ describe("token lifetime", () => {
     });
   });
 
+  it("is not wired into the real router as something a link can follow", async () => {
+    // The app above declares its own route, so it cannot notice the shipped
+    // router disagreeing. This reads the router the application actually mounts.
+    const router = (await import("../routes/userRoute.js")).default;
+
+    const methodsFor = (pathname) =>
+      router.stack
+        .filter((layer) => layer.route?.path === pathname)
+        .flatMap((layer) => Object.keys(layer.route.methods ?? {}));
+
+    const logout = methodsFor("/logout");
+    assert.ok(logout.length, "the router has a logout route");
+    assert.deepEqual(
+      logout,
+      ["post"],
+      "logging out must only be reachable by POST, or any page can sign people out",
+    );
+  });
+
+  it("will not log anyone out from a plain link", async (t) => {
+    if (skipWithoutDatabase(t)) return;
+    await withDatabase(async () => {
+      const user = await createUser({ email: "csrf.getlogout@example.invalid" });
+      const page = await loginPage();
+      const login = await request("/user/login", {
+        method: "POST",
+        cookie: page.cookie,
+        body: {
+          email: user.email,
+          password: "TestPassw0rd!",
+          [CSRF_FIELD_NAME]: page.token,
+        },
+      });
+      assert.equal(login.status, 302);
+
+      // Any page on the internet can ask a browser to fetch a URL. Logging out
+      // has to be a POST carrying the token, or a site can sign people out.
+      const byLink = await request("/user/logout", { cookie: login.cookie });
+      assert.equal(byLink.status, 404, "there is no GET logout to follow");
+
+      // The session is untouched, so the same cookie is still signed in.
+      const after = await request("/demo", {
+        method: "POST",
+        cookie: login.cookie,
+        csrf: tokenFrom((await request("/token", { cookie: login.cookie })).text),
+        body: { value: "still-here" },
+      });
+      assert.equal(after.status, 200);
+      assert.match(after.text, /"echo":"still-here"/, "the session still works");
+    });
+  });
+
   it("cannot be replayed after logging out, because the session is destroyed", async (t) => {
     if (skipWithoutDatabase(t)) return;
     await withDatabase(async () => {
@@ -338,7 +390,11 @@ describe("token lifetime", () => {
       const before = await request("/token", { cookie: login.cookie });
       const token = tokenFrom(before.text);
 
-      const logout = await request("/user/logout", { cookie: login.cookie });
+      const logout = await request("/user/logout", {
+        method: "POST",
+        cookie: login.cookie,
+        csrf: token,
+      });
       assert.equal(logout.status, 302);
       assert.equal(logout.cookie, "toyhub.sid=");
 
