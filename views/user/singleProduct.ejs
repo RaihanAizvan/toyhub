@@ -281,12 +281,19 @@
                 <div class="flex flex-col md:flex-row gap-8 mb-12">
                     <!-- Left: Overall Rating -->
                     <div class="md:w-1/3 flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl">
-                        <div class="text-5xl font-bold text-gray-800 mb-4"><%= product.averageRating.toFixed(1) %></div>
+                        <%
+                            // A product with no reviews yet, or one written before these
+                            // numbers were kept, has nothing to call toFixed on.
+                            const shownAverage = Number.isFinite(product.averageRating)
+                                ? product.averageRating
+                                : 0;
+                        %>
+                        <div class="text-5xl font-bold text-gray-800 mb-4"><%= shownAverage.toFixed(1) %></div>
                         <div class="flex text-yellow-400 text-2xl mb-2">
                             <% for(let i=1; i<=5; i++) { %>
-                                <% if(i <= Math.floor(product.averageRating)) { %>
+                                <% if(i <= Math.floor(shownAverage)) { %>
                                     <i class="fas fa-star"></i>
-                                <% } else if(i === Math.ceil(product.averageRating) && !Number.isInteger(product.averageRating)) { %>
+                                <% } else if(i === Math.ceil(shownAverage) && !Number.isInteger(shownAverage)) { %>
                                     <i class="fas fa-star-half-alt"></i>
                                 <% } else { %>
                                     <i class="far fa-star"></i>
@@ -346,7 +353,7 @@
                                     <div class="flex-1">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <h4 class="font-semibold"><%= review.userId.name %></h4>
+                                                <h4 class="font-semibold"><%= review.userId ? review.userId.name : 'Deleted account' %></h4>
                                                 <div class="text-sm text-gray-500"><%= new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
                                             </div>
                                             <div class="flex text-yellow-400">
@@ -382,11 +389,11 @@
                                 <% product.ratings.slice(3).forEach(review => { %>
                                     <div class="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
                                         <div class="flex items-start gap-4 mb-4">
-                                            <img src="<%= review.userId.avatar || 'https://via.placeholder.com/50' %>" class="rounded-full w-12 h-12 object-cover" alt="User">
+                                            <img src="<%= (review.userId && review.userId.avatar) || 'https://via.placeholder.com/50' %>" class="rounded-full w-12 h-12 object-cover" alt="User">
                                             <div class="flex-1">
                                                 <div class="flex justify-between items-start">
                                                     <div>
-                                                        <h4 class="font-semibold"><%= review.userId.name %></h4>
+                                                        <h4 class="font-semibold"><%= review.userId ? review.userId.name : 'Deleted account' %></h4>
                                                         <div class="text-sm text-gray-500"><%= new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
                                                     </div>
                                                     <div class="flex text-yellow-400">

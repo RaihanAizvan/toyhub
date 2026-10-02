@@ -4,6 +4,16 @@ import User from '../../models/users.models.js'
 import { offersForProduct } from "../../utils/offer-rules.js";
 import mongoose from 'mongoose'
 import Rating from '../../models/ratings.models.js'
+import Order from '../../models/orders.models.js'
+import {
+  cleanReviewText,
+  isEligibleOrderStatus,
+  isReviewableProductId,
+  parseRating,
+  REVIEW_COMMENT_MAX,
+  REVIEW_TITLE_MAX,
+  summariseRatings,
+} from "../../utils/reviews.js";
 
 
 
@@ -215,65 +225,123 @@ export const searchAndFilterProducts = async (req, res) => {
     }
 };
 
-async function submitReview(req, res) {
+// Someone is an eligible reviewer when they have an order for the product that
+// has actually been sent. Reads the order's own state through the normaliser,
+// so an order written before the status list existed still counts.
+const hasOrderedTheProduct = async (userId, productId) => {
+  const match = await Order.findOne({
+    user: userId,
+    items: { $elemMatch: { product: productId } },
+  }).lean();
+
+  if (!match) {
+    return false;
+  }
+  if (isEligibleOrderStatus(match.status)) {
+    return true;
+  }
+  // A line can be cancelled on its own while the rest of the order goes out, so
+  // one bad line does not cancel the whole order's claim.
+  return (match.items ?? []).some(
+    (item) =>
+      String(item.product) === String(productId) && isEligibleOrderStatus(item.status),
+  );
+};
+
+// Recomputes everything a product page shows about its reviews and writes it in
+// one update: the average, the count, the five-way split, and the list of review
+// ids the page reads its "top three" from. They used to be read back out of every
+// review and written with a document save, which loses one writer's numbers to
+// another's, and the review id was pushed onto the product separately, so the
+// list and the totals could disagree.
+const syncProductRatingSummary = async (productId) => {
+  const ratings = await Rating.find({ productId })
+    .select('_id rating status')
+    .sort({ date: -1 })
+    .lean();
+  const summary = summariseRatings(ratings);
+
+  await Product.updateOne(
+    { _id: productId },
+    { $set: { ...summary, ratings: ratings.map((rating) => rating._id) } },
+  );
+  return summary;
+};
+
+export const submitReview = async (req, res) => {
     try {
-        //check for user
-        if (!req.session.user) {
+        const userId = req.session?.user?.id;
+        if (!userId) {
             return res.status(401).json({ message: 'You must be logged in to submit a review' });
         }
-      const { rating, title, comment } = req.body;
-      const productId = req.params.id;
-      const userId = req.session.user.id;
 
-      // Validate userId
-      if (!userId) {
-        return res.status(400).json({ message: 'User ID is required' });
-      }
-  
-      // Create new rating document
-      const newRating = new Rating({
-        userId,
-        productId,
-        rating,
-        title,
-        comment,
-        date: new Date(),
-        isVerifiedPurchase: false // Could check order history to verify
-      });
-  
-      // Save the rating
-      await newRating.save();
-  
-      // Add rating reference to user
-      await User.findByIdAndUpdate(userId, {
-        $push: { ratings: newRating._id }
-      });
-  
-      // Update product with new rating
-      const product = await Product.findById(productId);
-      product.ratings.push(newRating._id);
-      
-      // Recalculate average rating
-      const allRatings = await Rating.find({ productId });
-      const ratingSum = allRatings.reduce((sum, r) => sum + r.rating, 0);
-      product.averageRating = ratingSum / allRatings.length;
-      product.ratingCount = allRatings.length;
-      
-      // Update rating stats
-      product.ratingStats = allRatings.reduce((stats, r) => {
-        stats[r.rating] = (stats[r.rating] || 0) + 1;
-        return stats;
-      }, {});
-  
-      await product.save();
-  
-      res.status(200).json({ message: 'Review submitted successfully' });
-  
+        const productId = req.params.id;
+        if (!isReviewableProductId(productId)) {
+            return res.status(404).json({ message: 'That product does not exist' });
+        }
+
+        const product = await Product.findById(productId).select('_id').lean();
+        if (!product) {
+            // It used to reach the aggregate step and fail on a missing document,
+            // which answered a deleted product with a 500.
+            return res.status(404).json({ message: 'That product does not exist' });
+        }
+
+        const rating = parseRating(req.body?.rating);
+        if (rating === null) {
+            return res.status(400).json({ message: 'Choose a rating from 1 to 5' });
+        }
+
+        const title = cleanReviewText(req.body?.title, REVIEW_TITLE_MAX);
+        const comment = cleanReviewText(req.body?.comment, REVIEW_COMMENT_MAX);
+
+        // The flag used to be written as a literal `false` with a note that
+        // checking the order history would be nicer, so anyone with a session
+        // could review anything and be counted as a buyer.
+        if (!(await hasOrderedTheProduct(userId, product._id))) {
+            return res.status(403).json({
+                message: 'You can only review a product you have received',
+            });
+        }
+
+        const fields = {
+            rating,
+            title,
+            comment,
+            date: new Date(),
+            isVerifiedPurchase: true,
+        };
+
+        // One review per product per person: a second attempt edits the first
+        // rather than adding to the count.
+        const existing = await Rating.findOne({ productId, userId }).select('_id').lean();
+
+        let review;
+        let created = false;
+        if (existing) {
+            review = await Rating.findByIdAndUpdate(existing._id, { $set: fields }, { new: true });
+        } else {
+            review = await Rating.create({ ...fields, productId, userId });
+            created = true;
+        }
+
+        await syncProductRatingSummary(product._id);
+
+        return res.status(created ? 201 : 200).json({
+            message: created ? 'Review submitted successfully' : 'Review updated successfully',
+            reviewId: review._id.toString(),
+        });
     } catch (error) {
-      console.error('Error submitting review:', error);
-      res.status(500).json({ message: 'Failed to submit review' });
+        // Two people can pass the check above at the same moment and the second
+        // create loses on the unique index. That is the same person being told
+        // their review is already there, not a failure.
+        if (error?.code === 11000) {
+            return res.status(409).json({ message: 'You have already reviewed this product' });
+        }
+        console.error('Error submitting review:', error);
+        return res.status(500).json({ message: 'Failed to submit review' });
     }
-  }
+};
 
 // A suggestion is a short label, so the search is short too. Without a bound a
 // caller could hand this a megabyte of text and ask the database to match it.
