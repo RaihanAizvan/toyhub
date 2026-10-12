@@ -4,6 +4,7 @@ import Category from '../../models/categories.model.js';
 import Offer from '../../models/offers.models.js';
 import Coupon from '../../models/couponSchema.models.js';
 import { wishlistIdStrings } from '../../utils/wishlist.js';
+import { withProductCounts } from '../../utils/categories.js';
 async function getLandingPage(req, res) {
     try {
         // Written elsewhere in the shop as {type, message} — that is the shape
@@ -26,7 +27,9 @@ async function getLandingPage(req, res) {
             .limit(10)  // Limit to 10 products (adjustable)
             
         // Fetch all categories (no need for isBlocked filter here unless categories have a similar field)
-        const categories = await Category.find({isActive:true}).sort({ createdAt: -1 }).limit(6)
+        const categories = await withProductCounts(
+            await Category.find({isActive:true}).sort({ createdAt: -1 }).limit(6).lean()
+        );
 
         //coupons
         const coupons = await Coupon.find({isBlocked:false}).limit(4).sort({discount:-1})

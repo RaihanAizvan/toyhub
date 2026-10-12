@@ -45,11 +45,11 @@
 
             <% if(locals.categories && categories.length > 0) { %>
                 <% categories.forEach((category) => { %>
-                    <a href="/user/category/<%= category.id %>" class="flex-shrink-0 snap-center">
+                    <a href="/user/category/<%= category._id %>" class="flex-shrink-0 snap-center">
                         <div class="category-card bg-white rounded-2xl border border-gray-100 shadow-sm w-48 h-64 md:w-56 md:h-72 flex flex-col items-center justify-between p-6">
                             <div class="w-full h-32 md:h-40 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden">
                                 <img
-                                    src="<%= category.image %>"
+                                    src="<%= (category.image && category.image.trim()) ? category.image : '/images/logo.png' %>"
                                     alt="<%= category.name %>"
                                     class="w-3/4 h-3/4 object-contain"
                                     loading="lazy"
@@ -61,7 +61,7 @@
                                     <%= category.name %>
                                 </h3>
                                 <span class="inline-block mt-2 text-xs font-medium text-gray-500">
-                                    <%= category.items %> Items
+                                    <%= category.productCount %> Items
                                 </span>
                             </div>
                         </div>

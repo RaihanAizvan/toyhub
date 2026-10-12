@@ -4,6 +4,12 @@ import mongoose from "mongoose";
 import cloudinary from "../../utils/cloudinary.js";
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import {
+    CATEGORY_NAME_MAX,
+    CATEGORY_NAME_MIN,
+    isCategoryName,
+    findCategoryNamed,
+} from "../../utils/categories.js";
 
 // Function to render the add category page
 export async function getAddCategory(req, res) {
@@ -39,34 +45,42 @@ export async function getAddCategory(req, res) {
 
 // Function to handle adding a new category
 export async function postAddCategory(req, res) {
-    const categories = await Category.find({});
-    const { name } = req.body;
     try {
-        // Validate: Check if name exists and has the required length
-        if (!name  || name.length < 3 || name.trim()==='') {
-            return res.status(400).render('admin/addCategory', { nameError: 'Category name is required',categories});
+        const categories = await Category.find({});
+        const { name } = req.body;
+
+        // The validation here is the same function that guards the edit form,
+        // so the two pages agree on what a category name is.
+        const serviceName = (name ?? '').trim();
+        if (serviceName.length === 0) {
+            return res.status(400).render('admin/addCategory', { nameError: 'Category name is required', categories });
         }
-        if (name.length < 3 || name.length > 30) {
-            return res.status(400).render('admin/addCategory', { nameError: 'Name must be between 3 and 30 characters' ,categories});
+        if (!isCategoryName(name)) {
+            return res.status(400).render('admin/addCategory',
+                { nameError: `Name must be between ${CATEGORY_NAME_MIN} and ${CATEGORY_NAME_MAX} characters`, categories });
         }
 
-        // Validate: Check if category with the same name exists (case insensitive)
-        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+        // Validate: Check if category with the same name exists (case insensitively)
+        const existingCategory = await findCategoryNamed(name);
         if (existingCategory) {
-            return res.status(400).render('admin/addCategory', { nameError: 'Category name already exists' ,categories});
+            return res.status(400).render('admin/addCategory', { nameError: 'Category name already exists', categories });
         }
 
         // Proceed with saving the category if validation passed
         const imageUrl = req.file ? req.file.path : '';
         const category = new Category({
-            name,
-            image: imageUrl
+            name: serviceName,
+            image: imageUrl,
+            // A new category is live as soon as it is made. Hiding it would
+            // take two pages to see one effect, and the list says how to turn
+            // it off.
+            isActive: true
         });
         await category.save();
         res.redirect('/admin/category');
     } catch (error) {
         console.error('Error adding category:', error);
-        res.status(500).render('admin/addCategory', { message: 'Error adding category details',categories });
+        res.status(500).render('admin/addCategory', { message: 'Error adding category details' });
     }
 }
 
@@ -124,22 +138,24 @@ export async function postEditCategory(req, res) {
             return refuse(404, 'That category is not in the shop.');
         }
 
-        // Validate: Check if name exists and has the required length
-        if (!name) {
+        // The validation is the same function and the same limits that the
+        // create form uses, so the two pages cannot drift apart.
+        const serviceName = (name ?? '').trim();
+        if (serviceName.length === 0) {
             return refuse(400, 'Category name is required');
         }
-        if (name.length < 3 || name.length > 30) {
-            return refuse(400, 'Name must be between 3 and 30 characters');
+        if (!isCategoryName(name)) {
+            return refuse(400, `Name must be between ${CATEGORY_NAME_MIN} and ${CATEGORY_NAME_MAX} characters`);
         }
 
         // Validate: Check if new name already exists (case insensitive), excluding the current category being edited
-        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') }, _id: { $ne: req.params.id } });
+        const existingCategory = await findCategoryNamed(name, req.params.id);
         if (existingCategory) {
             return refuse(400, 'Category name already exists');
         }
 
         // Update category details
-        category.name = name;
+        category.name = serviceName;
 
         // No description is set here, though this function used to read one out of
         // the form. The form has never had a description field, and the schema has
