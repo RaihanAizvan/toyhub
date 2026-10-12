@@ -272,7 +272,7 @@
                             </a>
                             <div class="action-buttons">
                                 <button type="button"
-                                    class="wishlist-btn <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-gray-400' %>"
+                                    class="wishlist-btn <%= wishlist.includes(String(product._id)) ? 'text-red-500' : 'text-gray-400' %>"
                                     data-product-id="<%= product._id %>"
                                     onclick="toggleWishlist(event, '<%= product._id %>')">
                                     <i class="fas fa-heart text-lg"></i>
@@ -328,7 +328,7 @@
         const button = event.currentTarget;
         const isInWishlist = button.classList.contains('text-red-500');
 
-        const url = isInWishlist ? `/wishlist/` : `/wishlist/₹{productId}`;
+        const url = isInWishlist ? `/wishlist/` : `/wishlist/${productId}`;
         const method = isInWishlist ? 'delete' : 'post';
 
         axios({

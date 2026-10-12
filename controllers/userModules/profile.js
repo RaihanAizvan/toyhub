@@ -326,19 +326,41 @@ export const postItemCancel = async (req, res) => {
 };
 
 //wishlist
+// The id reaches these routes either as a body field (the delete call) or as a
+// path segment (the add call). Both are accepted, but neither is trusted.
+const wishlistProductId = (req) => req.body?.productId ?? req.params?.id;
+
 export const getWishlist = async (req, res) => {
-    const userId = req.session.user.id; // Log the user ID
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
 
     try {
-        // Populate the 'wishlist' field in the User model, which contains references to 'Product'
-        const user = await Users.findById(userId).populate('wishlist');
+        const user = await Users.findById(userId).lean();
+        const savedIds = (user?.wishlist || []).map(String);
 
-        // Log the fetched wishlist
+        // `populate` drops a reference whose product is gone without saying so,
+        // which is exactly the case that has to be caught: a product deleted
+        // since it was saved. The products are fetched by hand so the missing
+        // ones can be counted, dropped from the page, and dropped from the
+        // account too. Otherwise the stored list keeps growing holes that can
+        // never be shown or removed.
+        const products = await Product.find({ _id: { $in: savedIds } }).lean();
+        const byId = new Map(products.map((product) => [String(product._id), product]));
+        const items = savedIds.map((id) => byId.get(id)).filter(Boolean);
+
+        if (items.length !== savedIds.length) {
+            await Users.updateOne(
+                { _id: userId },
+                { $set: { wishlist: items.map((item) => item._id) } },
+            );
+        }
 
         res.render('user/wishlist', {
             title: 'Wishlist',
             name: req.session.user?.name,
-            wishlistItems: user.wishlist || []
+            wishlistItems: items
         });
     } catch (error) {
         console.error('Error fetching wishlist:', error);
@@ -348,54 +370,60 @@ export const getWishlist = async (req, res) => {
 
 
 export const postWishlist = async (req, res) => {
-    const { productId } = req.body;
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const productId = wishlistProductId(req);
+    if (!isObjectId(productId)) {
+        return res.status(400).json({ success: false, message: "Invalid product id" });
+    }
+
     try {
-        const user = await Users.findById(req.session.user.id)
-
-
-        //check if the product is alreadyu in the wishlist
-        if (user.wishlist && user.wishlist.includes(productId)) {
-            return res.status(400).json({
-                message: "product already in whishlist"
-            })
+        // A reference to a product that does not exist would populate to null
+        // and break the wishlist page, so it is refused before it is stored.
+        const product = await Product.findById(productId).select('_id').lean();
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // if not add the product to the wishlist
+        // $addToSet makes the add idempotent and atomic: adding the same
+        // product twice, or from two tabs at once, leaves one entry and gets
+        // the same answer both times. The old check compared an ObjectId to a
+        // string, which never matched, so duplicates were the normal outcome.
+        await Users.updateOne({ _id: userId }, { $addToSet: { wishlist: product._id } });
 
-        user.wishlist.push(productId);
-        await user.save();
-
-        return res.status(200).json({ message: "product added to whishlist" })
+        return res.status(200).json({ success: true, message: "Product added to wishlist" });
     }
     catch (err) {
-        console.log(err)
-        return res.status(500).json({ message: "internal server error" })
+        console.error('Error adding to wishlist:', err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
 
-
-
 export const deleteWishlist = async (req, res) => {
-    const { productId } = req.body;
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const productId = wishlistProductId(req);
+    if (!isObjectId(productId)) {
+        return res.status(400).json({ success: false, message: "Invalid product id" });
+    }
 
     try {
-        const user = await Users.findById(req.session.user.id);
-        // Check if the product is in the wishlist
-        if (!user.wishlist.includes(productId)) {
-            return res.status(400).json({
-                message: "Product not found in wishlist"
-            });
-        }
+        // Removing something that is not there is a success, not an error: the
+        // caller wanted it gone and it is gone. $pull is scoped to this user,
+        // so one person's request can never touch another person's list.
+        await Users.updateOne({ _id: userId }, { $pull: { wishlist: productId } });
 
-        // Remove the product from the wishlist
-        user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
-        await user.save();
-
-        return res.status(200).json({ message: "Product removed from wishlist" });
+        return res.status(200).json({ success: true, message: "Product removed from wishlist" });
     } catch (error) {
         console.error('Error removing product from wishlist:', error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 

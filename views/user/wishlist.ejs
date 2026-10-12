@@ -18,7 +18,7 @@
                             <div class="md:hidden group bg-white rounded-lg border border-gray-200 hover:border-primary transition-all duration-300 overflow-hidden flex w-full mb-4">
                                 <!-- Image Section -->
                                 <div class="relative w-24 h-24 flex-shrink-0">
-                                    <img src="<%= item.images[0] %>" 
+                                    <img src="<%= (item.images && item.images[0]) || '/images/logo.png' %>" 
                                          alt="<%= item.name %>"
                                          class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                                     <div class="absolute top-1 right-1">
@@ -36,14 +36,14 @@
                                             <%= item.name %>
                                         </h3>
                                         <p class="text-xs text-gray-600 line-clamp-1 mb-1">
-                                            <%= item.description1 %>
+                                            <%= item.description1 || '' %>
                                         </p>
                                     </div>
 
                                     <div class="flex items-center justify-between mt-auto">
                                         <div class="flex items-center gap-1">
                                             <div class="text-base font-bold text-primary">
-                                                ₹<%= item.priceAfterDiscount %>
+                                                ₹<%= item.priceAfterDiscount ?? item.price %>
                                             </div>
                                             <div class="text-xs line-through text-gray-500">
                                                 ₹<%= item.price %>
@@ -62,7 +62,7 @@
                                 <!-- Image Section -->
                                 <div class="relative w-32 h-32">
                                     <div class="w-full h-full overflow-hidden">
-                                        <img src="<%= item.images[0] %>" 
+                                        <img src="<%= (item.images && item.images[0]) || '/images/logo.png' %>" 
                                              alt="<%= item.name %>"
                                              class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                                     </div>
@@ -81,14 +81,14 @@
                                             <%= item.name %>
                                         </h3>
                                         <p class="text-sm text-gray-600 line-clamp-2 mb-2">
-                                            <%= item.description1 %>
+                                            <%= item.description1 || '' %>
                                         </p>
                                     </div>
 
                                     <div class="grid grid-cols-2 items-center justify-between mt-auto">
                                         <div class="flex items-center gap-1.5">
                                             <div class="text-lg font-bold text-primary">
-                                                ₹<%= item.priceAfterDiscount %>
+                                                ₹<%= item.priceAfterDiscount ?? item.price %>
                                             </div>
                                             <div class="text-xs line-through text-gray-500">
                                                 ₹<%= item.price %>
