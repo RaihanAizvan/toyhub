@@ -20,6 +20,7 @@ import * as landingRoute from "./controllers/userController.js";
 import { assertRequiredEnv } from "./utils/config.js";
 import { ensureBootstrapAdmin } from "./controllers/adminModules/login.js";
 import { createSessionMiddleware, resolveSessionSettings } from "./utils/session.js";
+import { createHealthRouter } from "./utils/health.js";
 import { exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "./utils/csrf.js";
 import { passwordPolicyScript } from "./utils/password-policy.js";
 import { phonePolicyScript } from "./utils/phone-number.js";
@@ -35,6 +36,10 @@ assertRequiredEnv();
 const sessionSettings = resolveSessionSettings();
 
 const app = express();
+
+// Health and readiness answer before anything else, so a probe does not open a
+// session, pass CSRF, or wait on the request middleware to describe the process.
+app.use(createHealthRouter());
 
 // Connect to the database 
 connectDB()
@@ -171,9 +176,16 @@ app.use((req,res) => {
 });
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
-});
+//
+// On a serverless platform the exported app is what serves requests, and the
+// platform owns the listening socket; binding a port here as well is at best
+// ignored and at worst a second listener. `npm start` still runs the server the
+// ordinary way.
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
+  });
+}
 
 
 export default app
