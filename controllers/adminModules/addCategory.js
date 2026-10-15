@@ -1,4 +1,5 @@
 import Category from "../../models/categories.model.js";
+import { parsePagination } from "../../utils/validation.js";
 import mongoose from "mongoose";
 import cloudinary from "../../utils/cloudinary.js";
 import multer from 'multer';
@@ -12,15 +13,14 @@ export async function getAddCategory(req, res) {
     
     try {
         // Pagination parameters
-        const page = parseInt(req.query.page) || 1; // Current page
-        const pageSize = parseInt(req.query.limit) || 6; // Number of categories per page
+        const { page, limit: pageSize, skip } = parsePagination(req.query, { defaultLimit: 6 }); // page 1, six per page
 
         // Fetch the total number of categories
         const totalCategories = await Category.countDocuments();
 
         // Fetch the categories for the current page
         const categories = await Category.find({})
-            .skip((page - 1) * pageSize) // Skip products for previous pages
+            .skip(skip) // Skip products for previous pages
             .limit(pageSize) // Limit the number of products per page
             .exec();
 

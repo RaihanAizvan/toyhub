@@ -1,12 +1,11 @@
 import Order, { ORDER_STATUSES, normaliseOrderStatus } from "../../models/orders.models.js";
+import { parsePagination } from "../../utils/validation.js";
 import { ADMIN_TRANSITIONS, adminTransition, cancelOrder } from "../../utils/order-transitions.js";
 
 // GET route to render the admin orders page
 const getAdminOrders = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
+        const { page, limit, skip } = parsePagination(req.query);
 
         // Fetch orders with pagination
         const orders = (await Order.find()
