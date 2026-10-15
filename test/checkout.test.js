@@ -468,6 +468,23 @@ describe("checkout", () => {
     });
   });
 
+  itWhenReachable("a shopper with nothing to check out is sent to the cart, not shown a 500", async () => {
+    await withTestDatabase(async () => {
+      const user = await createUser();
+
+      // No cart document at all: the shopper opened checkout without filling one.
+      const noCart = await send(server, "/checkout", { method: "GET", as: user._id });
+      assert.equal(noCart.status, 302, "this is an ordinary state, not a server error");
+      assert.equal(noCart.location, "/cart");
+
+      // A cart that exists but holds nothing is the same situation.
+      await Cart.create({ user: user._id, items: [] });
+      const emptyCart = await send(server, "/checkout", { method: "GET", as: user._id });
+      assert.equal(emptyCart.status, 302);
+      assert.equal(emptyCart.location, "/cart");
+    });
+  });
+
   itWhenReachable("a line whose product is gone is answered, not crashed on", async () => {
     await withTestDatabase(async () => {
       const user = await createUser();
