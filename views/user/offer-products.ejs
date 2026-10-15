@@ -1,43 +1,4 @@
-<style>
-    .offer-section {
-        opacity: 0;
-        transform: translateY(50px);
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .offer-section.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .offer-card {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .offer-card.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    @keyframes fadeInUp {
-        0% {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-fade-up {
-        animation: fadeInUp 0.8s ease forwards;
-    }
-</style>
-
-<section class="py-8 bg-gray-50 offer-section">
+<section class="py-8 bg-gray-50">
     <div class="container mx-auto px-6">
         <div class="relative">
             <div class="text-white py-12 px-6 rounded-2xl mb-12 shadow-lg overflow-hidden relative">
@@ -50,7 +11,7 @@
                 <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="absolute -left-8 -top-8 w-32 h-32 bg-yellow-400/20 rounded-full blur-xl"></div>
                 <div class="text-center relative px-4">
-                    <div class="animate-bounce mb-4">
+                    <div class="mb-4">
                         <span class="bg-yellow-400 text-black px-4 py-1 rounded-full text-sm font-bold">Limited Time</span>
                     </div>
                     <h2 class="text-5xl font-extrabold mb-4 text-white drop-shadow-lg" style="text-shadow: 3px 3px 0px rgba(0,0,0,0.2)">
@@ -78,15 +39,15 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <% if(locals.offerProducts) { %>
                 <% offerProducts.forEach(product => { %>
-                    <div class="offer-card bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-lg">
                         <div class="relative">
                             <div class="aspect-w-16 aspect-h-9">
                                 <img src="<%= (product.images && product.images[0]) ? product.images[0] : "/img/placeholder.png" %>" 
                                      alt="<%= product.name %>"
-                                     class="w-full h-64 object-contain">
+                                     class="w-full h-64 object-contain" loading="lazy">
                             </div>
                             <div class="absolute top-4 right-4">
-                                <div class="bg-red-500 text-white px-4 py-2 rounded-full font-bold animate-pulse">
+                                <div class="bg-red-500 text-white px-4 py-2 rounded-full font-bold">
                                     -<%= product.discount %>% OFF
                                 </div>
                             </div>
@@ -208,30 +169,6 @@
             
             updateCountdown();
             setInterval(updateCountdown, 1000);
-        });
-
-        // Scroll animation
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        // Observe the offer section
-        const offerSection = document.querySelector('.offer-section');
-        observer.observe(offerSection);
-
-        // Observe each offer card with a delay
-        const offerCards = document.querySelectorAll('.offer-card');
-        offerCards.forEach((card, index) => {
-            setTimeout(() => {
-                observer.observe(card);
-            }, index * 100); // 100ms delay between each card
         });
     });
 </script>
