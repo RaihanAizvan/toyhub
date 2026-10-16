@@ -187,7 +187,7 @@
                 const now = new Date();
                 const distance = endDate - now;
                 
-                if (distance < 0) {
+                if (Number.isNaN(distance) || distance < 0) {
                     daysSpan.textContent = '00';
                     hoursSpan.textContent = '00';
                     minutesSpan.textContent = '00';
