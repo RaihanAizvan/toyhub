@@ -92,9 +92,9 @@
                                 <% } %>
                             </p>
                             <div class="flex items-center mt-2">
-                                <span class="text-lg font-semibold text-green-600">$<%= product.priceAfterDiscount %></span>
+                                <span class="text-lg font-semibold text-green-600">₹<%= product.priceAfterDiscount %></span>
                                 <% if (product.priceAfterDiscount !== product.price) { %>
-                                    <span class="text-gray-400 line-through ml-2">$<%= product.price %></span>
+                                    <span class="text-gray-400 line-through ml-2">₹<%= product.price %></span>
                                 <% } %>
                             </div>
                             <div class="mt-2">
