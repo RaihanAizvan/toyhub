@@ -6,6 +6,7 @@
 
 
 import mongoose from "mongoose";
+import { parsePage } from "../../utils/validation.js";
 import Offer from "../../models/offers.models.js";
 import Product from "../../models/product.models.js";
 import Category from "../../models/categories.model.js";
@@ -109,7 +110,7 @@ const syncProductOfferLists = async (offer) => {
 // Function to retrieve all offers and render the offers page
 const getOffers = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Get the current page number from query params, default to 1
+        const page = parsePage(req.query.page); // page 1 unless the query names a real page
         const limit = 10; // Number of offers per page
         const skip = (page - 1) * limit; // Calculate the number of offers to skip
 

@@ -1,6 +1,7 @@
 import Cart from "../../models/cart.models.js";
 import Product from "../../models/product.models.js";
 import { isObjectId } from "../../utils/ownership.js";
+import { parseQuantity } from "../../utils/validation.js";
 import { refreshCartTotals } from "../../utils/cart-totals.js";
 
 const MAX_QUANTITY_PER_ITEM = 10;
@@ -31,20 +32,6 @@ const requireUserId = (req, res) => {
     return null;
   }
   return String(userId);
-};
-
-// A quantity is a whole number in a known range. Anything else, including a
-// fraction, a word or an array, is refused rather than quietly rounded.
-const parseQuantity = (value) => {
-  if (typeof value !== "number" && typeof value !== "string") {
-    return null;
-  }
-
-  const quantity = Number(value);
-  if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_ITEM) {
-    return null;
-  }
-  return quantity;
 };
 
 // The cart is always the one that belongs to the session user. A cart id from

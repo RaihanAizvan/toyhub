@@ -204,6 +204,24 @@ describe("admin pages that answer about things which have gone wrong", () => {
     );
   });
 
+  it("clamps a hostile page and page size rather than handing them to the query", async (t) => {
+    if (!reachable) {
+      return t.skip("no MongoDB on the test URI");
+    }
+
+    // A negative page would become a negative skip and a four-digit page size
+    // would ask for everything at once if either reached Mongo unchanged.
+    const hostile = await fetch(
+      `${baseUrl}/admin/products?page=-5&limit=999999`,
+    );
+    assert.equal(hostile.status, 200);
+    expectNoCrash(await hostile.text());
+
+    const wordy = await fetch(`${baseUrl}/admin/orders?page=abc&limit=-3`);
+    assert.equal(wordy.status, 200);
+    expectNoCrash(await wordy.text());
+  });
+
   it("says what was wrong with the name, on the form the administrator came from", async (t) => {
     if (!reachable) {
       return t.skip("no MongoDB on the test URI");

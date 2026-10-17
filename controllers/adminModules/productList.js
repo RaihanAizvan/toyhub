@@ -1,4 +1,5 @@
 import Product from "../../models/product.models.js";
+import { parsePagination } from "../../utils/validation.js";
 import mongoose from "mongoose";
 import Category from "../../models/categories.model.js";
 import {
@@ -24,12 +25,11 @@ export async function getProductList(req, res) {
     if (!req.session.sAdminEmail) {
         return res.redirect("/admin");
     }
-    const page = parseInt(req.query.page) || 1; // Current page number
-    const pageSize = parseInt(req.query.limit) || 10; // Number of products per page
+    const { page, limit: pageSize, skip } = parsePagination(req.query); // page 1, ten per page
     try {
         const totalProducts = await Product.countDocuments();
         const products = await Product.find({}).populate('category')
-            .skip((page - 1) * pageSize) // Skip products for previous pages
+            .skip(skip) // Skip products for previous pages
             .limit(pageSize) // Limit the number of products per page
             .exec();
 

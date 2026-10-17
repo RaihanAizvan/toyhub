@@ -2,6 +2,7 @@ import Category from '../../models/categories.model.js';
 import Coupon from '../../models/couponSchema.models.js';
 import Product from '../../models/product.models.js';
 import { isObjectId } from '../../utils/ownership.js';
+import { parsePagination } from '../../utils/validation.js';
 
 // A coupon is a rule the shop writes down, so what the admin form sent is read
 // as a rule and checked as one. A number that is not a number, a date that ends
@@ -88,9 +89,7 @@ const checkRestrictionsExist = async ({ applicableProducts, applicableCategories
 };
 
 const getCoupon = async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = parsePagination(req.query);
 
     const totalCoupons = await Coupon.countDocuments({});
     const coupons = await Coupon.find({}).skip(skip).limit(limit);
