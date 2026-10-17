@@ -449,6 +449,32 @@ describe("ratings and reviews", () => {
     assert.doesNotMatch(page, /Cannot read/);
   });
 
+  whenReachable("the review form is only offered to someone whose review will be accepted", async () => {
+    const buyerPage = await (
+      await fetch(`${baseUrl}/product/${product._id}?as=${buyer._id}`)
+    ).text();
+    assert.match(
+      buyerPage,
+      /id="reviewForm"/,
+      "a buyer who received the product is offered the form",
+    );
+
+    // Signed in, but has never had this product delivered. The write would answer
+    // 403, so the form is not put in front of them.
+    const viewer = await createUser({ name: "Just Looking" });
+    const viewerPage = await (
+      await fetch(`${baseUrl}/product/${product._id}?as=${viewer._id}`)
+    ).text();
+    assert.doesNotMatch(viewerPage, /id="reviewForm"/);
+    assert.match(viewerPage, /once an order of this product has been delivered/);
+
+    const anonymousPage = await (
+      await fetch(`${baseUrl}/product/${product._id}`)
+    ).text();
+    assert.doesNotMatch(anonymousPage, /id="reviewForm"/);
+    assert.match(anonymousPage, /Sign in<\/a> to write a review/);
+  });
+
   whenReachable("the product page answers after its reviewers delete their accounts", async () => {
     await review({ rating: 4, title: "Solid", comment: "Held together well." });
 

@@ -322,6 +322,7 @@
                 <!-- Write Review Section -->
                 <div class="border-t border-b py-8 mb-8">
                     <h3 class="text-xl font-semibold mb-6">Write a Review</h3>
+                    <% if (canReview) { %>
                     <form class="max-w-2xl mx-auto" id="reviewForm" onsubmit="submitReview(event)">
                         <div class="space-y-6">
                             <div class="flex flex-col items-center gap-2">
@@ -340,6 +341,11 @@
                             <button type="submit" class="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 transition-colors font-medium">Submit Review</button>
                         </div>
                     </form>
+                    <% } else if (signedIn) { %>
+                    <p class="max-w-2xl mx-auto text-gray-600">You can write a review once an order of this product has been delivered.</p>
+                    <% } else { %>
+                    <p class="max-w-2xl mx-auto text-gray-600"><a href="/user/login" class="text-green-600 hover:underline">Sign in</a> to write a review.</p>
+                    <% } %>
                 </div>
 
                 
@@ -863,10 +869,13 @@
         });
     }
     
-    document.getElementById('loadMoreReviews').addEventListener('click', function() {
-        document.getElementById('hiddenReviews').classList.remove('hidden');
-        this.style.display = 'none';
-    });
+    const loadMoreButton = document.getElementById('loadMoreReviews');
+    if (loadMoreButton) {
+        loadMoreButton.addEventListener('click', function() {
+            document.getElementById('hiddenReviews').classList.remove('hidden');
+            this.style.display = 'none';
+        });
+    }
 
     // rating functionality
 

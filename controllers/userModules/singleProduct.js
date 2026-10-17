@@ -94,6 +94,14 @@ export const getSingleProduct = async (req, res) => {
             // as text, so it is handed over as text.
             wishlist = userWithWishlist ? wishlistIdStrings(userWithWishlist.wishlist) : [];
         }
+
+        // The form is only shown to someone the write would accept. A shopper who
+        // has not received the product, or is not signed in, is told so instead of
+        // being offered a form that answers 403 once it is filled in.
+        const signedIn = Boolean(req.session.user);
+        const canReview = signedIn
+            ? await hasOrderedTheProduct(req.session.user.id, productId)
+            : false;
         // Render the product page with dynamic data
         res.render('user/singleProduct', {
             title: product.name,
@@ -102,7 +110,9 @@ export const getSingleProduct = async (req, res) => {
             offers,
             productFromSameCategory,
             relatedProducts,
-            reviews
+            reviews,
+            signedIn,
+            canReview
         });
     } catch (error) {
         console.error("Error fetching product:", error);
