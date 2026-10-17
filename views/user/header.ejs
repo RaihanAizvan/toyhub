@@ -220,17 +220,20 @@
 
                 <!-- Desktop Icons -->
                 <div class="hidden md:flex items-center gap-3">
-                    <a href="/cart"
-                        class="icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600 relative"
-                        title="Cart">
-                        <i class="fas fa-shopping-bag text-lg"></i>
-                        <!-- Optional Badge logic could go here -->
+                    <!-- Cart and wishlist are the two things a shopper reaches for. They
+                         are drawn as a pair rather than two bare circles: the same
+                         height, a label once there is room for it, and a colour each so
+                         the action is readable at a glance. -->
+                    <a href="/account/wishlist" aria-label="Wishlist"
+                        class="inline-flex items-center gap-2 h-10 px-3 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 transition-colors">
+                        <i class="fas fa-heart text-lg" aria-hidden="true"></i>
+                        <span class="hidden xl:inline text-sm font-semibold">Wishlist</span>
                     </a>
 
-                    <a href="/account/wishlist"
-                        class="icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600"
-                        title="Wishlist">
-                        <i class="fas fa-heart text-lg"></i>
+                    <a href="/cart" aria-label="Cart"
+                        class="inline-flex items-center gap-2 h-10 px-3 rounded-full bg-green-500 text-white hover:bg-green-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-300 shadow-sm transition-colors">
+                        <i class="fas fa-shopping-bag text-lg" aria-hidden="true"></i>
+                        <span class="hidden xl:inline text-sm font-semibold">Cart</span>
                     </a>
 
                     <!-- User Pill -->
