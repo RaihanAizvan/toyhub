@@ -194,7 +194,7 @@
                     <!-- Action Buttons -->
                     <div class="flex gap-4 mb-8 animate-slide-up" style="animation-delay: 800ms">
                         <button onclick="toggleWishlistInSingleProduct(event, '<%= product._id %>')"
-                                class="flex-1 border rounded-lg px-6 py-3 <%= wishlist.includes(product._id) ? 'text-red-500' : 'text-green-500' %> hover:bg-gray-50 transition-colors hover-float">
+                                class="flex-1 border rounded-lg px-6 py-3 <%= wishlist.includes(String(product._id)) ? 'text-red-500' : 'text-green-500' %> hover:bg-gray-50 transition-colors hover-float">
                             <i class="fas fa-heart mr-2 animate-pulse"></i> Wishlist
                         </button>
                         <button class="flex-1 border rounded-lg px-6 py-3 text-blue-500 hover:bg-gray-50 transition-colors hover-float">

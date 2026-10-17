@@ -3,6 +3,7 @@ import User from '../../models/users.models.js';
 import Category from '../../models/categories.model.js';
 import Offer from '../../models/offers.models.js';
 import Coupon from '../../models/couponSchema.models.js';
+import { wishlistIdStrings } from '../../utils/wishlist.js';
 async function getLandingPage(req, res) {
     try {
         // Written elsewhere in the shop as {type, message} — that is the shape
@@ -45,7 +46,9 @@ async function getLandingPage(req, res) {
         let wishlist = [];
         if (req.session.user) {
             const userWithWishlist = await User.findById(req.session.user.id);
-            wishlist = userWithWishlist ? userWithWishlist.wishlist : [];
+            // The view marks the heart by comparing this list to a product id
+            // as text, so it is handed over as text.
+            wishlist = userWithWishlist ? wishlistIdStrings(userWithWishlist.wishlist) : [];
         }
         if (user) {
             res.render('user/home', {
