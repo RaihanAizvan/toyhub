@@ -79,6 +79,17 @@ export const imagesFrom = (files = {}) => {
 };
 
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+// The name a file arrives under is checked as well as its declared type. A
+// declared type is what the sender says the file is, and a name that ends in
+// something else says the sender is not describing a picture; requiring both to
+// agree refuses a script that labels itself an image without refusing a real
+// picture saved under the usual names.
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
+
+const extensionOf = (name) => {
+  const match = /\.([A-Za-z0-9]+)$/.exec(String(name ?? ""));
+  return match ? match[1].toLowerCase() : "";
+};
 
 // Every field of the form is checked here, and each check says what was wrong
 // with the value in the words the page shows beside the input. An administrator
@@ -234,7 +245,13 @@ export const readProductForm = (body = {}, files = {}) => {
 const imageTypeError = (files = {}) => {
   for (const group of Object.values(files)) {
     for (const file of Array.isArray(group) ? group : []) {
-      if (file?.mimetype && !IMAGE_TYPES.has(file.mimetype)) {
+      if (!file || (!file.mimetype && !file.originalname)) {
+        continue;
+      }
+      const wrongType = file.mimetype && !IMAGE_TYPES.has(file.mimetype);
+      const wrongExtension =
+        file.originalname && !IMAGE_EXTENSIONS.has(extensionOf(file.originalname));
+      if (wrongType || wrongExtension) {
         return `${file.originalname ?? "One of the files"} is not a jpg, png or webp image`;
       }
     }

@@ -28,11 +28,21 @@ export const IMAGE_FIELDS = Object.freeze([
 // A field name says where a file belongs, not what it is, so the type is
 // checked as well. Without this, a file is accepted on the strength of the
 // input it arrived in and the image host is left to decide.
+//
+// The declared type is what the sender says the file is. The name is checked
+// against it so the two have to agree: a script that labels itself an image is
+// refused, and a real picture under the usual names still passes.
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp']);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+const extensionOf = (name) => {
+  const match = /\.([A-Za-z0-9]+)$/.exec(String(name ?? ''));
+  return match ? match[1].toLowerCase() : '';
+};
+
 export const acceptImage = (file, cb) => {
-  if (!IMAGE_TYPES.has(file.mimetype)) {
+  if (!IMAGE_TYPES.has(file.mimetype) || !IMAGE_EXTENSIONS.has(extensionOf(file.originalname))) {
     return cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
   }
   if (file.size > MAX_IMAGE_BYTES) {

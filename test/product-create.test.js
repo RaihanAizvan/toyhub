@@ -18,7 +18,7 @@ import {
   readProductForm,
 } from "../utils/product-form.js";
 import { injectCsrfFields } from "../utils/csrf.js";
-import { describeUploadError } from "../utils/multer.js";
+import { acceptImage, describeUploadError } from "../utils/multer.js";
 import { resetUploader, setUploader } from "../utils/uploads.js";
 import { applyTestEnv } from "./helpers/test-env.js";
 import {
@@ -207,6 +207,47 @@ describe("the add-product form", () => {
     assert.equal(ok, false);
     assert.match(errors.imageError, /robot\.png/);
     assert.match(errors.imageError, /jpg, png or webp/);
+  });
+
+  it("a name that is not an image is refused even when the type claims to be one", () => {
+    // The declared type is only what the sender says. A file called robot.php
+    // that labels itself image/png is refused on the name, so the two have to
+    // agree before a picture is accepted.
+    const { ok, errors } = readProductForm(
+      validForm({ category: "65b0f1c2a3d4e5f60718293a" }),
+      uploaded(["robot.php"], { mimetype: "image/png" }),
+    );
+
+    assert.equal(ok, false);
+    assert.match(errors.imageError, /robot\.php/);
+    assert.match(errors.imageError, /jpg, png or webp/);
+  });
+
+  it("the upload middleware takes real pictures and refuses mislabelled files", () => {
+    const accept = (file) => {
+      let answer = null;
+      acceptImage(file, (error, allowed) => {
+        answer = { error, allowed };
+      });
+      return answer;
+    };
+
+    assert.deepEqual(
+      accept({ mimetype: "image/png", originalname: "robot.png", size: 1000 }),
+      { error: null, allowed: true },
+    );
+    assert.equal(
+      accept({ mimetype: "application/pdf", originalname: "robot.pdf", size: 1000 }).error?.code,
+      "LIMIT_UNEXPECTED_FILE",
+    );
+    assert.equal(
+      accept({ mimetype: "image/png", originalname: "robot.php", size: 1000 }).error?.code,
+      "LIMIT_UNEXPECTED_FILE",
+    );
+    assert.equal(
+      accept({ mimetype: "image/png", originalname: "robot.png", size: 6 * 1024 * 1024 }).error?.code,
+      "LIMIT_FILE_SIZE",
+    );
   });
 
   it("the cropped picture is the one that is stored, in the order they were arranged", () => {
