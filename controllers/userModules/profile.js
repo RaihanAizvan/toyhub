@@ -652,7 +652,7 @@ export const postDownloadInvoice = async (req, res) => {
             { header: 'Total', dataKey: 'total' }
         ];
 
-        doc.autoTable({
+        autoTable(doc, {
             columns: tableColumn,
             body: products,
             startY: 70,

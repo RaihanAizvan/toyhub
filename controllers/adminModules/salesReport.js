@@ -304,7 +304,7 @@ export const exportSalesReportPdf = async (req, res) => {
     }));
 
     // Generate table
-    doc.autoTable({
+    autoTable(doc, {
       columns: tableColumn,
       body: tableRows,
       startY: 105,
