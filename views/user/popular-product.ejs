@@ -1,5 +1,4 @@
 <style>
-    /* Keep all existing styles but adjust only the relevant sizing properties */
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -9,60 +8,25 @@
         white-space: normal;
     }
 
+    /* A quiet tile. It rest on the page rather than animating into it, so the
+       cards are there whether or not the observer script ran. */
     .product-card {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         background: #fff;
-        opacity: 0;
-        transform: translateY(20px);
+        border: 1px solid #f1f3f5;
         border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         height: 100%;
         display: flex;
         flex-direction: column;
-    }
-
-    /* Keep all animations and hover effects exactly the same */
-    .product-card.animate {
-        animation: fadeInUp 0.6s ease forwards;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .product-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .product-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(25, 209, 111, 0.2),
-            transparent
-        );
-        transition: 0.6s;
-        z-index: 1;
-    }
-
-    .product-card:hover::before {
-        left: 100%;
+        transform: translateY(-4px);
+        border-color: #d1fae5;
+        box-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.35);
     }
 
     .product-image-container {
@@ -80,22 +44,21 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.5s ease;
-        padding: 0.5rem; /* Reduced from 1rem */
+        transition: transform 0.3s ease;
+        padding: 0.5rem;
     }
 
     .product-card:hover .product-image {
-        transform: scale(1.08);
+        transform: scale(1.03);
     }
 
     .discount-badge {
-        background: linear-gradient(135deg, #f43f5e, #e11d48);
-        animation: pulse 2s infinite;
+        background: #e11d48;
         box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.3);
     }
 
     .product-details {
-        padding: 0.75rem; /* Reduced from 1.25rem */
+        padding: 0.75rem;
         background: linear-gradient(180deg, transparent, rgba(249, 250, 251, 0.8));
         flex-grow: 1;
         display: flex;
@@ -106,8 +69,8 @@
         font-size: 1rem;
         font-weight: 600;
         color: #1f2937;
-        margin-bottom: 0.25rem; /* Reduced from 0.5rem */
-        transition: color 0.3s ease;
+        margin-bottom: 0.25rem;
+        transition: color 0.2s ease;
         height: 2.5rem;
         overflow: hidden;
     }
@@ -115,7 +78,7 @@
     .product-description {
         color: #6b7280;
         font-size: 0.875rem;
-        margin-bottom: 0.5rem; /* Reduced from 1rem */
+        margin-bottom: 0.5rem;
         height: 2.5rem;
         overflow: hidden;
     }
@@ -123,8 +86,8 @@
     .price-container {
         display: flex;
         align-items: baseline;
-        gap: 0.5rem; /* Reduced from 0.75rem */
-        margin-bottom: 0.5rem; /* Reduced from 1rem */
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .current-price {
@@ -143,26 +106,27 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 0.25rem; /* Reduced from 0.5rem */
+        gap: 0.25rem;
         margin-top: auto;
     }
 
     .wishlist-btn {
-        padding: 0.25rem; /* Reduced from 0.5rem */
+        padding: 0.25rem;
         border-radius: 50%;
-        transition: all 0.3s ease;
+        transition: background 0.2s ease, transform 0.2s ease;
         background: #f3f4f6;
     }
 
     .wishlist-btn:hover {
         background: #fee2e2;
-        transform: scale(1.1);
+        transform: scale(1.08);
     }
+
     .add-to-cart-btn {
         color: #19D16F;
-        padding: .15rem 0.75rem; /* Reduced from .25rem 1rem */
+        padding: .15rem 0.75rem;
         border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: background 0.2s ease, color 0.2s ease;
         border: 1px solid #19D16F;
         background: transparent;
         font-weight: 600;
@@ -171,26 +135,12 @@
     }
 
     .add-to-cart-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px -1px rgba(5, 150, 105, 0.4);
+        background: rgba(25, 209, 111, 0.1);
     }
 
     .stock-warning {
-        animation: blink 1.5s infinite;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
+        background: #dc2626;
         box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    @keyframes blink {
-        0% { opacity: 1; }
-        50% { opacity: 0.6; }
-        100% { opacity: 1; }
     }
 </style>
 
@@ -204,7 +154,7 @@
         </h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             <% if (locals.popularProducts) { %>
-                <% popularProducts.forEach(product=> { %> 
+                <% popularProducts.forEach(product=> { %>
                     <div class="product-card">
                         <a href="/product/<%= product._id %>" class="block">
                             <div class="product-image-container">
@@ -213,7 +163,7 @@
                                         <%= Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) %>% OFF
                                     </div>
                                 <% } %>
-                                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="product-image object-cover">
+                                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="product-image object-cover" loading="lazy">
                                 <% if (product.stock === 0) { %>
                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                                         <span class="text-white font-bold text-lg">Out of Stock</span>
@@ -283,7 +233,7 @@
                                     data-product-stock="<%= product.stock %>"
                                     onclick="addToCart(event, '<%= product._id %>')"
                                     <%= product.stock === 0 ? 'disabled' : '' %>>
-                                    <i class="fas fa-shopping-cart text-sm hover:scale-110 transition-transform duration-300 transform"></i>
+                                    <i class="fas fa-shopping-cart text-sm"></i>
                                     <span class="ml-2 text-sm font-medium"></span>
                                     
                                 </button>
@@ -307,24 +257,7 @@
 
 <script>
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-
-    document.querySelectorAll('.product-card').forEach(card => {
-        observer.observe(card);
-    });
-
     function toggleWishlist(event, productId) {
-        console.log('Toggle wishlist clicked');
-        console.log(productId);
-
         const button = event.currentTarget;
         const isInWishlist = button.classList.contains('text-red-500');
 
@@ -337,13 +270,11 @@
             data: { productId: productId }
         })
             .then(response => {
-                console.log('Success:', response.data);
                 toastr.success(response.data.message || (isInWishlist ? 'Product removed from wishlist!' : 'Product added to wishlist!'));
                 button.classList.toggle('text-red-500');
                 button.classList.toggle('text-gray-400');
             })
             .catch(error => {
-                console.error('Error:', error);
                 toastr.error(error.response?.data?.message || 'Failed to update wishlist.');
             });
     }

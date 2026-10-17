@@ -1,50 +1,12 @@
 <style>
     .best-sells-card {
-        opacity: 0;
-        transform: translateY(50px); /* Changed to translateY for scroll effect */
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    .best-sells-card.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    @keyframes fadeInUp {
-        0% {
-            opacity: 0;
-            transform: translateY(50px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-fade-up {
-        animation: fadeInUp 0.8s ease forwards;
-    }
-
-    .image-wrapper {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .image-gradient {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.2));
-        opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-        transform: translateY(100%);
-    }
-
-    .best-sells-card.visible .image-gradient {
-        opacity: 1;
-        transform: translateY(0);
+    .best-sells-card:hover {
+        transform: translateY(-4px);
+        border-color: #d1fae5;
+        box-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.35);
     }
 </style>
 
@@ -64,7 +26,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <% if(locals.bestSellerProducts ) { %>
                 <% bestSellerProducts.forEach(product=> { %>
-                    <a href="/product/<%= product._id %>" class="best-sells-card bg-white shadow-lg rounded-lg p-4">
+                    <a href="/product/<%= product._id %>" class="best-sells-card bg-white border border-gray-100 shadow-sm rounded-lg p-4">
                         <div class="relative">
                             <div class="image-wrapper">
                                 <% if (product.discount) { %>
@@ -72,8 +34,7 @@
                                         <%= product.discount %>%</span>
                                 <% } %>
                                 <img src="<%= product.images[0] %>" alt="<%= product.name %>"
-                                    class="w-full h-40 object-cover rounded-t-lg">
-                                <div class="image-gradient"></div>
+                                    class="w-full h-40 object-cover rounded-t-lg" loading="lazy">
                             </div>
                         </div>
                         <div class="p-4 flex flex-col h-[200px]">
@@ -116,32 +77,3 @@
     </div>
 </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.best-sells-card');
-        
-        // Create intersection observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    // Add animation with delay based on index
-                    setTimeout(() => {
-                        entry.target.classList.add('animate-fade-up');
-                        entry.target.classList.add('visible');
-                    }, index * 100);
-                    
-                    // Unobserve after animation
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px'
-        });
-
-        // Observe each card
-        cards.forEach(card => {
-            observer.observe(card);
-        });
-    });
-</script>
