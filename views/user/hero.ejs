@@ -529,7 +529,40 @@
     // Run - Using setTimeout to ensure the GSAP library is fully loaded before initialization
     setTimeout(init, 0);
 
-    //auto slide
-    setInterval(nextSlide, 4000);
+    // Auto slide. It pauses while the pointer is over the banner, while the tab
+    // is in the background, and it does not run at all when the visitor has asked
+    // for less motion - a banner that changes under a reader is the movement that
+    // preference is about.
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const SLIDE_INTERVAL_MS = 4000;
+    let slideTimer = null;
+
+    function startBanner() {
+        if (slideTimer || prefersReducedMotion.matches) return;
+        slideTimer = setInterval(nextSlide, SLIDE_INTERVAL_MS);
+    }
+
+    function stopBanner() {
+        if (!slideTimer) return;
+        clearInterval(slideTimer);
+        slideTimer = null;
+    }
+
+    if (stackContainer) {
+        stackContainer.addEventListener('mouseenter', stopBanner);
+        stackContainer.addEventListener('mouseleave', startBanner);
+        stackContainer.addEventListener('focusin', stopBanner);
+        stackContainer.addEventListener('focusout', startBanner);
+    }
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopBanner();
+        else startBanner();
+    });
+    prefersReducedMotion.addEventListener?.('change', () => {
+        if (prefersReducedMotion.matches) stopBanner();
+        else startBanner();
+    });
+
+    startBanner();
 
 </script>

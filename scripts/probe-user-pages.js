@@ -292,6 +292,30 @@ for (const [name, path] of pages) {
   }
 }
 
+// The banner advances itself, which means it can also be stopped. A timer that is
+// started and never stoppable runs on under a reader's pointer and in a background
+// tab, so the homepage is asked for the landmarks that make it stoppable.
+const home = await request("/");
+const bannerProblems = [];
+for (const marker of [
+  "prefers-reduced-motion",
+  "function stopBanner",
+  "visibilitychange",
+]) {
+  if (!home.text.includes(marker)) {
+    bannerProblems.push(`the home banner has no ${marker} guard`);
+  }
+}
+if (bannerProblems.length === 0) {
+  console.log("  pass  banner autoplay  / (stoppable, honours reduced motion)");
+} else {
+  console.log("  FAIL  banner autoplay  /");
+  for (const problem of bannerProblems) {
+    console.log(`          ${problem}`);
+  }
+  failures.push({ name: "banner autoplay", path: "/", problems: bannerProblems });
+}
+
 console.log(
   failures.length === 0
     ? `\nall ${pages.length} shopper pages answered`
