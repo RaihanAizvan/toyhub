@@ -61,7 +61,15 @@
                             <div class="mt-2">
                                 <p class="text-xs text-gray-500">Sold: <%= product.sold %>/<%= product.stock %></p>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" id="soldBar" style="width: <%= (product.sold/product.stock*100) %>%"></div>
+                                    <%
+                                    // A best seller can be sold out, and a stock of zero
+                                    // made the width "NaN%". The bar is a class, not an id,
+                                    // because every card on the row shares it.
+                                    const soldPercent = product.stock > 0
+                                        ? Math.min(100, Math.round((product.sold / product.stock) * 100))
+                                        : 100;
+                                %>
+                                <div class="bg-green-500 h-1.5 rounded-full sold-bar" style="width: <%= soldPercent %>%"></div>
                                 </div>
                             </div>
                             <button class="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 w-full ">
