@@ -1,5 +1,33 @@
 # Contributing Guidelines
 
+## Workflow
+
+Work is tracked as GitHub issues, and one issue is one unit of work:
+
+1. **One issue.** Open or pick an issue and say what the problem or change is and
+   how you will know it is done (its acceptance criteria). A bug report should
+   name the steps that reproduce it.
+2. **One branch.** Branch from an up-to-date `main`, named for the issue -
+   `fix/<topic>` or `feat/<topic>` (for example `fix/checkout-500`). Do not mix
+   unrelated changes on one branch.
+3. **Meaningful commits.** Commit in logical steps, each with a message that says
+   what changed and why, in the imperative mood ("Make ...", not "Made ..."). Add
+   a test with every bug fix and every security change.
+4. **A focused pull request.** Open a pull request that links the issue, says
+   what changed and why, lists the files worth reading first, and records how the
+   change was tested (the commands run and what you saw). Keep it scoped to the
+   one issue.
+5. **Review and merge.** CI (`npm run check`) must be green on the latest push.
+   Once the review is addressed and approved, the pull request is squashed into
+   `main` and its branch deleted.
+
+## A note on `.agent-notes.txt`
+
+`.agent-notes.txt` is a scratchpad for work in progress - local reasoning, command
+output, half-finished thoughts. It is listed in `.gitignore` and is never
+committed. If something belongs in the project's history it belongs in a commit
+message, a code comment, or the pull request; do not `git add -f` the file.
+
 ## Reporting Bugs
 
 If you find any bugs or issues, please report them by opening an issue on our GitHub repository. When reporting bugs, please provide as much detail as possible about the problem, including steps to reproduce it.
