@@ -20,7 +20,7 @@
                     <div class="group relative bg-white rounded-2xl overflow-hidden transform hover:-translate-y-2 transition-all duration-300 hover:shadow-2xl">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
                         <div class="h-64 w-full bg-gray-100">
-                            <img src="<%= category.image %>" alt="<%= category.name %>" 
+                            <img src="<%= (category.image && category.image.trim()) ? category.image : '/images/logo.png' %>" alt="<%= category.name %>" 
                                 class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
                         </div>
                         <div class="p-6 relative z-20">
@@ -28,7 +28,7 @@
                                 <%= category.name %>
                             </h2>
                             <p class="text-gray-600 group-hover:text-gray-200 mt-2 transition-colors duration-300">
-                                <span class="font-semibold"><%= category.products.length %></span> products available
+                                <span class="font-semibold"><%= category.productCount %></span> products available
                             </p>
                             <a href="/categories/<%= category._id %>" 
                                class="mt-4 inline-flex items-center gap-2 text-primary group-hover:text-gray-500 font-medium transition-colors duration-300">
