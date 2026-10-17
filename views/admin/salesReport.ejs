@@ -81,31 +81,19 @@
           <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold text-gray-800">Sales Report</h1>
             <div class="flex space-x-4">
-              <!-- Search User -->
-              <div class="relative">
-                <input type="text" placeholder="Search User"
-                  class="bg-white border border-gray-300 rounded-lg py-2 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500">
-                <button class="absolute right-2 top-2">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-4.35-4.35M9.5 4.5a7 7 0 11-9.9 9.9 7 7 0 019.9-9.9z"></path>
-                  </svg>
-                </button>
-              </div>
               <!-- Filter Options -->
               <div class="flex space-x-2">
                 <select id="filterPeriod" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500">
-                  <option value="all">All</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="annual">Annual</option>
-                  <option value="custom">Custom Date</option>
+                  <option value="all" <%= selectedPeriod === 'all' ? 'selected' : '' %>>All</option>
+                  <option value="daily" <%= selectedPeriod === 'daily' ? 'selected' : '' %>>Daily</option>
+                  <option value="weekly" <%= selectedPeriod === 'weekly' ? 'selected' : '' %>>Weekly</option>
+                  <option value="monthly" <%= selectedPeriod === 'monthly' ? 'selected' : '' %>>Monthly</option>
+                  <option value="annual" <%= selectedPeriod === 'annual' ? 'selected' : '' %>>Annual</option>
+                  <option value="custom" <%= selectedPeriod === 'custom' ? 'selected' : '' %>>Custom Date</option>
                 </select>
-                <input type="date" id="startDate" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 hidden">
-                <input type="date" id="endDate" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 hidden">
-                <button id="applyCustomDate" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all hidden">
+                <input type="date" id="startDate" value="<%= startDate || '' %>" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 <%= selectedPeriod === 'custom' ? '' : 'hidden' %>">
+                <input type="date" id="endDate" value="<%= endDate || '' %>" class="bg-white border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500 <%= selectedPeriod === 'custom' ? '' : 'hidden' %>">
+                <button id="applyCustomDate" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all <%= selectedPeriod === 'custom' ? '' : 'hidden' %>">
                   Apply
                 </button>
               </div>
@@ -116,6 +104,25 @@
               <button id="downloadExcel" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all">
                 Download Excel
               </button>
+            </div>
+          </div>
+          <!-- Summary -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="p-4 bg-white rounded-lg shadow">
+              <h3 class="text-sm text-gray-500">Delivered Orders</h3>
+              <p class="text-2xl font-semibold"><%= summary.totalOrders %></p>
+            </div>
+            <div class="p-4 bg-white rounded-lg shadow">
+              <h3 class="text-sm text-gray-500">Total Revenue</h3>
+              <p class="text-2xl font-semibold">₹<%= summary.totalRevenue.toFixed(2) %></p>
+            </div>
+            <div class="p-4 bg-white rounded-lg shadow">
+              <h3 class="text-sm text-gray-500">Total Discounts</h3>
+              <p class="text-2xl font-semibold">₹<%= summary.totalDiscount.toFixed(2) %></p>
+            </div>
+            <div class="p-4 bg-white rounded-lg shadow">
+              <h3 class="text-sm text-gray-500">Average Order Value</h3>
+              <p class="text-2xl font-semibold">₹<%= summary.averageOrderValue.toFixed(2) %></p>
             </div>
           </div>
           <!-- Sales Report Table -->
@@ -137,50 +144,63 @@
                 </tr>
               </thead>
               <tbody id="salesReportTableBody" class="text-gray-800 text-sm font-light">
-                <% dailyOrders.forEach(order => { %> 
-                  <tr class="border-b border-gray-200 hover:bg-gray-100">
-                    <td class="py-4 px-6 text-left whitespace-nowrap">
-                      <div class="flex items-center">
-                        <span><%= order._id %></span>
-                      </div>
-                    </td>
-                    <% const formattedDate = order.orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
-                    <td class="py-3 px-6 text-center"><%= order.user?.name ?? 'A deleted account' %></td>
-                    <td class="py-3 px-6 text-center"><%= formattedDate %></td>
-                    <td class="py-3 px-6 text-center"><%= order.totalAmount %></td>
-                    <td class="py-3 px-6 text-center"><%= order.discount %></td>
-                    <td class="py-3 px-6 text-center"><%= order.offerDiscount %></td>
-                    <td class="py-3 px-6 text-center"><%= order.couponDiscount %></td>
-                    <td class="py-3 px-6 text-center"><%= order.cutoffAmount %></td>
-                    <td class="py-3 px-6 text-center"><%= order.subtotal %></td>
-                    <td class="py-3 px-6 text-center"><%= order.paymentMethod %></td>
-                    <td class="py-3 px-6 text-center">
-                      <span class="<%= order.status === 'pending' ? 'text-yellow-500' : order.status === 'delivered' ? 'text-green-500' : 'text-red-500' %>">
-                        <%= order.status %>
-                      </span>
-                    </td>
+                <% if (orders.length === 0) { %>
+                  <tr>
+                    <td colspan="11" class="py-6 px-6 text-center text-gray-500">No orders match this period.</td>
                   </tr>
-                <% }); %>
+                <% } else { %>
+                  <% orders.forEach(order => { %>
+                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                      <td class="py-4 px-6 text-left whitespace-nowrap">
+                        <div class="flex items-center">
+                          <span><%= order._id %></span>
+                        </div>
+                      </td>
+                      <% const formattedDate = order.orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
+                      <td class="py-3 px-6 text-center"><%= order.user?.name ?? 'A deleted account' %></td>
+                      <td class="py-3 px-6 text-center"><%= formattedDate %></td>
+                      <td class="py-3 px-6 text-center"><%= order.totalAmount %></td>
+                      <td class="py-3 px-6 text-center"><%= order.discount %></td>
+                      <td class="py-3 px-6 text-center"><%= order.offerDiscount %></td>
+                      <td class="py-3 px-6 text-center"><%= order.couponDiscount %></td>
+                      <td class="py-3 px-6 text-center"><%= order.cutoffAmount %></td>
+                      <td class="py-3 px-6 text-center"><%= order.subtotal %></td>
+                      <td class="py-3 px-6 text-center"><%= order.paymentMethod %></td>
+                      <td class="py-3 px-6 text-center">
+                        <span class="<%= order.status === 'pending' ? 'text-yellow-500' : order.status === 'delivered' ? 'text-green-500' : order.status === 'cancelled' ? 'text-red-500' : 'text-blue-500' %>">
+                          <%= order.status %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                <% } %>
               </tbody>
             </table>
           </div>
           <!-- Pagination -->
-          <div class="mt-4 flex justify-between items-center">
-            <div class="flex space-x-1">
-              <% for (let i = 1; i <= locals.totalPages; i++) { %>
-                <a href="/admin/salesReport?page=<%= i %>&limit=10" 
-                   class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= currentPage === i ? 'bg-gray-300' : '' %>">
-                  <%= i %>
-                </a>
+          <% if (totalPages > 1) { %>
+            <div class="mt-4 flex justify-between items-center">
+              <% if (currentPage > 1) { %>
+                <a href="/admin/salesReport?period=<%= selectedPeriod %>&page=<%= currentPage - 1 %>&limit=10<%= selectedPeriod === 'custom' ? '&startDate=' + startDate + '&endDate=' + endDate : '' %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Previous</a>
+              <% } %>
+              <div class="flex space-x-1">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                  <% if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) { %>
+                    <a href="/admin/salesReport?period=<%= selectedPeriod %>&page=<%= i %>&limit=10<%= selectedPeriod === 'custom' ? '&startDate=' + startDate + '&endDate=' + endDate : '' %>"
+                       class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg <%= currentPage === i ? 'bg-gray-300' : '' %>">
+                      <%= i %>
+                    </a>
+                  <% } %>
+                <% } %>
+              </div>
+              <% if (currentPage < totalPages) { %>
+                <a href="/admin/salesReport?period=<%= selectedPeriod %>&page=<%= currentPage + 1 %>&limit=10<%= selectedPeriod === 'custom' ? '&startDate=' + startDate + '&endDate=' + endDate : '' %>" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
               <% } %>
             </div>
-            <% if (locals.currentPage < locals.totalPages) { %>
-              <a href="/admin/salesReport?page=<%= locals.currentPage + 1 %>&limit=10" class="px-3 py-1 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg">Next</a>
-            <% } %>
-          </div>
+          <% } %>
         </div>
       </div>
-  
+
       <!-- footer -->
     </div>
     <footer class="flex items-center justify-between text-xs px-6 py-4 bg-white border-t mt-6">
@@ -231,55 +251,15 @@
       const applyCustomDateBtn = document.getElementById('applyCustomDate');
       const downloadExcelButton = document.getElementById('downloadExcel');
       const downloadPdfButton = document.getElementById('downloadPdf');
-      const salesReportTableBody = document.getElementById('salesReportTableBody');
-  
-      const orders = {
-        all: <%- JSON.stringify(allOrders) %>,
-        daily: <%- JSON.stringify(dailyOrders) %>,
-        weekly: <%- JSON.stringify(weeklyOrders) %>,
-        monthly: <%- JSON.stringify(monthlyOrders) %>,
-        annual: <%- JSON.stringify(annualOrders) %>
-      };
-  
-      function renderOrders(orders) {
-        salesReportTableBody.innerHTML = '';
-        if (!Array.isArray(orders)) {
-          console.error('Orders is not an array:', orders);
-          return;
+
+      const navTo = (period, params = {}) => {
+        const search = new URLSearchParams({ period });
+        for (const [key, value] of Object.entries(params)) {
+          if (value) search.set(key, value);
         }
-        orders.forEach(order => {
-          if (!order || !order.orderDate) {
-            console.error('Invalid order:', order);
-            return;
-          }
-          const formattedDate = new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-          const row = `
-            <tr class="border-b border-gray-200 hover:bg-gray-100">
-              <td class="py-4 px-6 text-left whitespace-nowrap">
-                <div class="flex items-center">
-                  <span>${order._id}</span>
-                </div>
-              </td>
-              <td class="py-3 px-6 text-center">${order.address?.user?.name || 'N/A'}</td>
-              <td class="py-3 px-6 text-center">${formattedDate}</td>
-              <td class="py-3 px-6 text-center">${order.totalAmount || 0}</td>
-              <td class="py-3 px-6 text-center">${order.discount || 0}</td>
-              <td class="py-3 px-6 text-center">${order.offerDiscount || 0}</td>
-              <td class="py-3 px-6 text-center">${order.couponDiscount || 0}</td>
-              <td class="py-3 px-6 text-center">${order.cutoffAmount || 0}</td>
-              <td class="py-3 px-6 text-center">${order.subtotal || 0}</td>
-              <td class="py-3 px-6 text-center">${order.paymentMethod || 'N/A'}</td>
-              <td class="py-3 px-6 text-center">
-                <span class="${order.status === 'pending' ? 'text-yellow-500' : order.status === 'delivered' ? 'text-green-500' : 'text-red-500'}">
-                  ${order.status || 'N/A'}
-                </span>
-              </td>
-            </tr>
-          `;
-          salesReportTableBody.insertAdjacentHTML('beforeend', row);
-        });
-      }
-  
+        window.location.href = `/admin/salesReport?${search.toString()}`;
+      };
+
       filterPeriod.addEventListener('change', function() {
         if (filterPeriod.value === 'custom') {
           startDateInput.classList.remove('hidden');
@@ -289,42 +269,24 @@
           startDateInput.classList.add('hidden');
           endDateInput.classList.add('hidden');
           applyCustomDateBtn.classList.add('hidden');
-          if (orders[filterPeriod.value]) {
-            renderOrders(orders[filterPeriod.value]);
-          } else {
-            console.error('Invalid filter period:', filterPeriod.value);
-          }
+          navTo(filterPeriod.value);
         }
       });
 
       applyCustomDateBtn.addEventListener('click', function() {
-        const startDate = new Date(startDateInput.value);
-        const endDate = new Date(endDateInput.value);
-        
-        if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) {
-          alert('Please select valid start and end dates');
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        if (!startDate || !endDate) {
+          alert('Please select both start and end dates');
           return;
         }
-        
         if (endDate < startDate) {
           alert('End date must be after start date');
           return;
         }
-        
-        // Set time to start of day for start date and end of day for end date
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-        
-        // Filter orders between start and end dates
-        const filteredOrders = orders.all.filter(order => {
-          if (!order || !order.orderDate) return false;
-          const orderDate = new Date(order.orderDate);
-          return orderDate >= startDate && orderDate <= endDate;
-        });
-        
-        renderOrders(filteredOrders);
+        navTo('custom', { startDate, endDate });
       });
-  
+
       downloadExcelButton.addEventListener('click', function() {
         const period = filterPeriod.value;
         if (period === 'custom') {
@@ -337,7 +299,7 @@
           window.location.href = `/admin/salesReport/export?period=${period}`;
         }
       });
-  
+
       downloadPdfButton.addEventListener('click', function() {
         const period = filterPeriod.value;
         if (period === 'custom') {
@@ -345,20 +307,10 @@
             alert('Please select both start and end dates');
             return;
           }
-          
-          const formattedStartDate = new Date(startDateInput.value).toISOString().split('T')[0];
-          const formattedEndDate = new Date(endDateInput.value).toISOString().split('T')[0];
-          
-          window.location.href = `/admin/salesReport/export-pdf?period=${period}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+          window.location.href = `/admin/salesReport/export-pdf?period=${period}&startDate=${startDateInput.value}&endDate=${endDateInput.value}`;
         } else {
           window.location.href = `/admin/salesReport/export-pdf?period=${period}`;
         }
       });
-
-      // Set initial filter value to "all" and render all orders
-      filterPeriod.value = "all";
-      if (orders.all) {
-        renderOrders(orders.all);
-      }
     });
   </script>

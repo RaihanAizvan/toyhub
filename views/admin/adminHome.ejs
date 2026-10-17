@@ -86,22 +86,19 @@
       <!-- Dashboard Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="p-4 bg-white rounded-lg shadow">
-          <h3 class="text-sm text-gray-500">Total Orders</h3>
-          <p class="text-2xl font-semibold">₹<%= locals.totalOrders.toFixed(2) %></p>
-          <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
-          </p>
+          <h3 class="text-sm text-gray-500">Total Revenue</h3>
+          <p class="text-2xl font-semibold">₹<%= locals.totalRevenue.toFixed(2) %></p>
+          <p class="text-sm text-gray-500">From delivered orders</p>
         </div>
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Active Orders</h3>
           <p class="text-2xl font-semibold"><%= locals.activeOrders %></p>
-          <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
-          </p>
+          <p class="text-sm text-gray-500">Not yet delivered or cancelled</p>
         </div>
         <div class="p-4 bg-white rounded-lg shadow">
           <h3 class="text-sm text-gray-500">Today's Revenue</h3>
           <p class="text-2xl font-semibold">₹<%= locals.todaysRevenue.toFixed(2) %></p>
-          <p class="text-sm text-green-500"> 34.7% <span class="text-gray-500">Compared to Oct 2023</span>
-          </p>
+          <p class="text-sm text-gray-500">Delivered today</p>
         </div>
       </div>
       <!-- Sales Graph -->
@@ -217,13 +214,13 @@
                 <li>
                   <div class="flex items-center justify-between">
                     <span>
-                      <%= location %>
+                      <%= location.city %>
                     </span>
-                    <span class="font-semibold"> <%= location %>
+                    <span class="font-semibold"> ₹<%= location.revenue %>
                     </span>
                   </div>
                   <div class="text-sm text-gray-500">
-                    <%= bestSellingLocations.salesOnThisAddress %> sales
+                    <%= location.orders %> orders
                   </div>
                 </li>
               <% }) %>
@@ -381,13 +378,11 @@
     var chart = new ApexCharts(document.querySelector('#salesChart'), options);
     chart.render();
 
-    async function fetchDataAndRenderChart(url, defaultCategories) {
+    async function fetchDataAndRenderChart(url) {
       try {
         const response = await axios.get(url);
+        const labels = response.data.labels || [];
         const salesData = response.data.salesData || [];
-
-        // Adjust categories based on the length of salesData
-        const categories = defaultCategories.slice(0, salesData.length);
 
         // Update chart with the new data
         chart.updateSeries([
@@ -397,7 +392,7 @@
         ]);
         chart.updateOptions({
           xaxis: {
-            categories: categories
+            categories: labels
           }
         });
       } catch (error) {
@@ -406,29 +401,27 @@
     }
 
     // Load weekly data by default
-    fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    fetchDataAndRenderChart('/admin/sales/weekly');
 
 
 
     // Button event listeners
     document.getElementById('weeklyBtn').addEventListener('click', function () {
       updateButtonStyles('weeklyBtn');
-      fetchDataAndRenderChart('/admin/sales/weekly', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+      fetchDataAndRenderChart('/admin/sales/weekly');
     });
 
 
 
     document.getElementById('monthlyBtn').addEventListener('click', function () {
       updateButtonStyles('monthlyBtn');
-      fetchDataAndRenderChart('/admin/sales/monthly', ['Week 1', 'Week 2', 'Week 3', 'Week 4']);
+      fetchDataAndRenderChart('/admin/sales/monthly');
     });
 
 
     document.getElementById('yearlyBtn').addEventListener('click', function () {
       updateButtonStyles('yearlyBtn');
-      fetchDataAndRenderChart('/admin/sales/yearly', [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ]);
+      fetchDataAndRenderChart('/admin/sales/yearly');
     });
 
 
