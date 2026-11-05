@@ -8,6 +8,8 @@
     "test": "node --test \"test/**/*.test.js\"",
     "prestart": "node scripts/check-native-deps.js",
     "start": "node server.js",
+    "predev": "node scripts/check-native-deps.js",
+    "dev": "node --watch server.js",
     "smoke": "node scripts/smoke-startup.js",
     "check": "npm run lint && npm test && npm run smoke"
   },

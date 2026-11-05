@@ -14,6 +14,9 @@ const ENV_ALLOWLIST = new Set([
   "utils/config.js",
   "utils/session.js",
   "scripts/lint.js",
+  // Chooses the probe database by handing a rewritten URI to the app through the
+  // environment, the only channel server.js reads it from.
+  "scripts/probe-env.js",
   // Boots the app on a port of its own choosing, which it has to hand over
   // through the environment because that is the only way server.js is told.
   "scripts/walk-signup-flow.js",

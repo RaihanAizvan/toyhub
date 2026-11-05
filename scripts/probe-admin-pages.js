@@ -16,6 +16,10 @@ setMailTransport({ sendMail: async () => {} });
 const port = Number(readEnv("PROBE_PORT") || "3599");
 process.env.PORT = String(port);
 
+// Runs against its own database, never the configured one. Imported before any
+// model so the connection below reads the probe database.
+await import("./probe-env.js");
+
 const { default: AdminUser } = await import("../models/admin.models.js");
 const { default: Product } = await import("../models/product.models.js");
 const { default: User } = await import("../models/users.models.js");

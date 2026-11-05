@@ -21,6 +21,11 @@ setMailTransport({
 const port = Number(readEnv("WALK_PORT") || "3457");
 process.env.PORT = String(port);
 
+// Runs against its own database, never the configured one: this walk creates
+// accounts and orders. Imported before server.js so the connection reads the
+// probe database.
+await import("./probe-env.js");
+
 await import("../server.js");
 
 // Wait for the app to come up, the same way waiting for it by hand would.
