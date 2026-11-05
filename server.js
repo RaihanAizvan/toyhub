@@ -24,6 +24,7 @@ import { createHealthRouter } from "./utils/health.js";
 import { exposeCsrfToken, injectCsrfFields, verifyCsrfRequest } from "./utils/csrf.js";
 import { passwordPolicyScript } from "./utils/password-policy.js";
 import { phonePolicyScript } from "./utils/phone-number.js";
+import { contentSecurityPolicy } from "./utils/security-headers.js";
 
 
 
@@ -58,25 +59,8 @@ app.use(createSessionMiddleware(sessionSettings));
 app.use((req, res, next) => {
   // `http://localhost:8001` was allowed here, which in a deployed shop meant
   // anyone running something on a visitor's machine could serve them script for
-  // this origin. The headers this page actually needs are the CDNs below.
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "script-src 'self'",
-      // Still needed: the views carry inline scripts and inline handlers, and
-      // removing them is its own piece of work rather than something to slip in
-      // with a security fix.
-      "'unsafe-inline'",
-      "https://cdn.jsdelivr.net",
-      "https://unpkg.com",
-      "https://code.jquery.com",
-      "https://cdnjs.cloudflare.com",
-      "https://checkout.razorpay.com",
-      "frame-src https://api.razorpay.com https://checkout.razorpay.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-    ].join("; "),
-  );
+  // this origin. The sources this page actually needs are in the shared policy.
+  res.setHeader("Content-Security-Policy", contentSecurityPolicy);
   next();
 });
 
@@ -147,23 +131,9 @@ app.use("/cart", cartRoutes);
 app.use("/checkout", checkoutRoutes);
 
 app.use((req, res, next) => {
-  // Set again this late in the stack, so it wins over the earlier header. It is
-  // kept in step with that one rather than being a second, looser answer.
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "script-src 'self'",
-      "'unsafe-inline'",
-      "https://cdn.jsdelivr.net",
-      "https://unpkg.com",
-      "https://code.jquery.com",
-      "https://cdnjs.cloudflare.com",
-      "https://checkout.razorpay.com",
-      "frame-src https://api.razorpay.com https://checkout.razorpay.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-    ].join("; "),
-  );
+  // Set again this late in the stack, so it wins over the earlier header. Both
+  // places read the one shared policy, so the answer cannot drift.
+  res.setHeader("Content-Security-Policy", contentSecurityPolicy);
   next();
 });
 
