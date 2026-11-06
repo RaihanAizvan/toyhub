@@ -384,12 +384,24 @@ async function postResendOtp(req, res) {
 
 //! login and logout
 
+// The redirects from a failed sign-in carry a short reason. Only the reasons
+// this page knows are shown, so a crafted query string cannot put its own words
+// on the login page.
+const LOGIN_MESSAGES = {
+    account: "That account could not be found. Please try again.",
+    google: "Google sign-in failed. Please try again.",
+};
+
 function getLogin(req, res) {
     const blocked = req.query.blocked;
+    const error = req.query.error;
     if (req.session?.user) {
         return res.redirect("/")
     }
-    res.render("user/login", { title: 'Login', message: blocked ? "Sorry You are Blocked" : "" })
+    const message = blocked
+        ? "Sorry You are Blocked"
+        : (typeof error === "string" && Object.hasOwn(LOGIN_MESSAGES, error) ? LOGIN_MESSAGES[error] : "");
+    res.render("user/login", { title: 'Login', message })
 }
 
 async function postLogin(req, res) {

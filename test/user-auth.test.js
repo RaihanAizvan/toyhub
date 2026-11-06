@@ -59,6 +59,7 @@ const buildApp = () => {
   app.get("/user/otp", userAuth.getOtp);
   app.post("/user/otp", userAuth.postOtp);
   app.post("/user/resend-otp", userAuth.postResendOtp);
+  app.get("/user/login", userAuth.getLogin);
   app.post("/user/login", userAuth.postLogin);
   app.get("/user/session", (req, res) =>
     res.json({ user: req.session.user ?? null }),
@@ -319,6 +320,30 @@ describe("user login", () => {
   });
 
   const withDatabase = (run) => (reachable ? withTestDatabase(run) : null);
+
+  it("shows the reason a sign-in redirect carried, and no other", async (t) => {
+    if (!reachable) {
+      return t.skip("no MongoDB on the test URI");
+    }
+
+    const blocked = await send(server, "/user/login?blocked=1", { method: "GET" });
+    assert.equal(blocked.status, 200);
+    assert.match(blocked.text, /Sorry You are Blocked/);
+
+    const account = await send(server, "/user/login?error=account", { method: "GET" });
+    assert.match(account.text, /could not be found/);
+
+    const google = await send(server, "/user/login?error=google", { method: "GET" });
+    assert.match(google.text, /Google sign-in failed/);
+
+    // A reason the page does not know is not printed, and neither is anything
+    // reached through the prototype chain.
+    for (const crafted of ["constructor", "toString", "__proto__"]) {
+      const response = await send(server, `/user/login?error=${crafted}`, { method: "GET" });
+      assert.equal(response.status, 200);
+      assert.doesNotMatch(response.text, /function|\[object Object\]/);
+    }
+  });
 
   it("answers unknown, wrong-password and blocked accounts identically", async (t) => {
     if (!reachable) {
