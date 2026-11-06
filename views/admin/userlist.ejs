@@ -112,13 +112,13 @@
                       <span><%= user.name %></span>
                     </div>
                   </td>
-                  <% const formattedDate = user.joined_date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); %>
+                  <% const formattedDate = user.joined_date ? user.joined_date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'; %>
                   <td class="py-3 px-6 text-left"><%= formattedDate %></td>
                   <td class="py-3 px-6 text-left"><%= user.email %></td>
                   <td class="py-3 px-6 text-left">
                     <button id="toggleButton-<%= user._id %>" 
                             class="bg-gray-300 hover:bg-gray-400 text-gray-800 w-20 font-semibold py-1 px-5 rounded-full text-xs toggle-button"
-                            onclick="toggleBlockUser('<%= user._id %>', <%= user.isBlocked %>)">
+                            onclick="toggleBlockUser('<%= user._id %>', <%= Boolean(user.isBlocked) %>)">
                       <%= user.isBlocked ? 'Unblock' : 'Block' %> <!-- Initial button text -->
                     </button>
                   </td>
