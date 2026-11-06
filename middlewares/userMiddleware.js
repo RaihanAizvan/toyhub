@@ -12,29 +12,39 @@ function isUser(req, res, next) {
 }
 const checkBlockStatus = async (req, res, next) => {
   try {
-    if (req.session.user) {
-      const userId = req.session.user.id;
-      const user = await User.findById(userId);
-
-      if (user && user.isBlocked) {
-        // Destroy the session
-        req.session.destroy((err) => {
-          if (err) {
-            console.error('Error destroying session:', err.message);
-          }
-          clearSessionCookie(res);
-          // Redirect to login with a message
-          return res.redirect('/user/login?blocked=1');
-        });
-      } else {
-        next();
-      }
-    } else {
-      next();
+    if (!req.session.user) {
+      return next();
     }
+
+    const userId = req.session.user.id;
+    const user = await User.findById(userId);
+
+    if (!user || !user.isBlocked) {
+      return next();
+    }
+
+    // The answer is decided before the session is gone, because after destroy
+    // the request has no session to ask. A caller that speaks json gets an
+    // answer it can read rather than a redirected page.
+    const wantsJson = req.xhr === true
+      || String(req.get('accept') ?? '').includes('application/json');
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err.message);
+      }
+      clearSessionCookie(res);
+      if (wantsJson) {
+        return res.status(403).json({
+          success: false,
+          message: 'This account is blocked. Please contact support.',
+        });
+      }
+      return res.redirect('/user/login?blocked=1');
+    });
   } catch (error) {
     console.error('Error checking block status:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

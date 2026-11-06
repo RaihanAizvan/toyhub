@@ -4,6 +4,7 @@ import express from "express";
 const router = express.Router();
 
 router.use(middleware.redirectToLoginIfNotAUser)
+router.use(middleware.checkBlockStatus)
 
 router.get('/', profile.getProfileEdit);
 router.post('/update-name', profile.postUpdateName)

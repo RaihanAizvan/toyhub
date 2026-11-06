@@ -5,6 +5,7 @@ const router = express.Router();
 
 //middlewares
 router.use(middleware.redirectToLoginIfNotAUser)
+router.use(middleware.checkBlockStatus)
 router.use(middleware.updateOfferDiscountInCart)
 router.use(middleware.updateCouponDiscountInCheckout)
 router.use(middleware.checkForProductStockBeforeCheckout)
