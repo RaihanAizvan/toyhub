@@ -2,6 +2,7 @@
     import isAdmin from "../middlewares/adminMiddleware.js"    
     import * as adminController from "../controllers/adminController.js"
     import upload from "../utils/multer.js"
+    import { isObjectId } from "../utils/validation.js"
 
     const router = express.Router()
 
@@ -15,6 +16,22 @@
     router.post("/logout", adminController.postLogout)
     
     router.use(isAdmin.isAdmin)     
+
+    // An id from the URL is checked before any handler sees it. A value that
+    // could never be an ObjectId used to reach findById, throw a CastError and
+    // answer 500 for what is only a page that is not here.
+    const rejectInvalidId = (req, res, next, value) => {
+        if (isObjectId(value)) {
+            return next();
+        }
+
+        if (String(req.get("accept") ?? "").includes("application/json") || req.xhr === true) {
+            return res.status(404).json({ success: false, message: "Not found" });
+        }
+        return res.status(404).type("txt").send("Not found");
+    };
+    router.param("id", rejectInvalidId);
+    router.param("orderId", rejectInvalidId);
     
     //!---------------------------------------/!/
     //todo: Define dashboard routes here/!/
