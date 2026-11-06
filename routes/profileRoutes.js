@@ -35,6 +35,7 @@ router.post('/wallet/top-up/verify', profile.postVerifyTopUp);
 router.get('/wallet/reconciliation', profile.getWalletReconciliation);
 
 router.get('/reviews', profile.getReviews);
+router.post('/reviews/:id/delete', profile.postDeleteReview);
 
 
 

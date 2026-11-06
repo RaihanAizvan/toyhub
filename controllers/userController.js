@@ -154,6 +154,8 @@ export const getWalletReconciliation = profile.getWalletReconciliation
 
 export const getReviews = profile.getReviews
 
+export const postDeleteReview = profile.postDeleteReview
+
 //* -----------------------------------------!                                         
 //s     Exporting address                    |
 //* -----------------------------------------!      
