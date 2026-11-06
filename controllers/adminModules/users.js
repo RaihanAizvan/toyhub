@@ -16,7 +16,8 @@ async function getUserList(req, res) {
             totalPages: totalPages
         }); 
     } catch (error) {
-        console.error(`Oops, something went wrong: ${error.message}`);
+        console.error(`Failed to load the user list: ${error.message}`);
+        return res.status(500).send('Failed to load the user list');
     }
 }
 

@@ -248,7 +248,7 @@ describe("session source guards", () => {
     assert.match(adminLoginSource, /regenerateSession\(req\)/);
     assert.match(adminLoginSource, /clearSessionCookie\(res\)/);
     assert.match(addressSource, /invalidateUserSessions\(user\._id\)/);
-    assert.match(blockSource, /invalidateUserSessions\(userId\)/);
+    assert.match(blockSource, /invalidateUserSessions\(userId, req\.sessionStore\)/);
     assert.match(middlewareSource, /req\.session\.user\.id/);
     assert.doesNotMatch(middlewareSource, /req\.session\.user\._id/);
   });

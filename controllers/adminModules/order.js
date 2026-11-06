@@ -109,7 +109,6 @@ const getAdminOrderDetails = async(req,res) =>{
         if (!order) {
           return res.status(404).send('Order not found');
         }
-        console.log(order);
     
         // The page asks "is this shipped", "is this cancelled", so it is handed
         // the word this application uses rather than whatever an old order says.
