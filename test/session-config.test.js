@@ -236,6 +236,10 @@ describe("session source guards", () => {
       new URL("../controllers/adminModules/block.js", import.meta.url),
       "utf8",
     );
+    const googleSource = await readFile(
+      new URL("../routes/googleAuthRoute.js", import.meta.url),
+      "utf8",
+    );
     const middlewareSource = await readFile(
       new URL("../middlewares/userMiddleware.js", import.meta.url),
       "utf8",
@@ -249,6 +253,8 @@ describe("session source guards", () => {
     assert.match(adminLoginSource, /clearSessionCookie\(res\)/);
     assert.match(addressSource, /invalidateUserSessions\(user\._id\)/);
     assert.match(blockSource, /invalidateUserSessions\(userId\)/);
+    assert.match(googleSource, /regenerateSession\(req\)/);
+    assert.match(googleSource, /session: false/, "passport must not write the session");
     assert.match(middlewareSource, /req\.session\.user\.id/);
     assert.doesNotMatch(middlewareSource, /req\.session\.user\._id/);
   });
