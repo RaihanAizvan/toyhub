@@ -37,7 +37,7 @@
 <!-- Hamburger Menu for Mobile -->
 <div class="md:hidden fixed mt-28 left-0 w-full bg-white shadow-md z-50">
     <div class="flex justify-between items-center p-4">
-        <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" onclick="toggleMobileMenu(event)">
+        <button id="profileMenuButton" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" onclick="toggleMobileMenu(event)">
             <i class="fas fa-bars text-xl"></i>
         </button>
         <div class="text-lg font-semibold text-primary"><%= locals.name %></div>
@@ -103,9 +103,9 @@
     // Close menu when clicking outside
     document.addEventListener('click', function(event) {
         const menu = document.getElementById('mobile-menu');
-        const hamburgerBtn = document.querySelector('button');
+        const hamburgerBtn = document.getElementById('profileMenuButton');
         
-        if (!menu.contains(event.target) && !hamburgerBtn.contains(event.target) && isMenuOpen) {
+        if (menu && isMenuOpen && !menu.contains(event.target) && !(hamburgerBtn?.contains(event.target))) {
             toggleMobileMenu(event);
         }
     });
