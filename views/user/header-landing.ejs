@@ -29,19 +29,23 @@
         </div>
         <!-- Search Bar -->
         <div class="flex items-center flex-grow space-x-2 px-4 min-w-0 relative">
-            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
-                <option>All Categories</option>
+            <select id="searchCategory" aria-label="Search category"
+                class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
+                <option value="">All Categories</option>
                 <% if (locals.categories) { %>
                     <% categories.forEach(category => { %>
                         <option value="<%= category._id %>"><%= category.name %></option>
                     <% }) %>
                 <% } %>
             </select>
-            <input type="text" placeholder="Search for items..."
+            <input type="text" placeholder="Search for items..." aria-label="Search products"
                 class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
                 id="searchInput" />
-            <button onclick="searchItem(document.getElementById('searchInput').value)" class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
-                <i class="fas fa-search"></i>
+            <button type="button"
+                onclick="searchItem(document.getElementById('searchInput').value, document.getElementById('searchCategory').value)"
+                aria-label="Search"
+                class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
+                <i class="fas fa-search" aria-hidden="true"></i>
             </button>
             <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden w-full"></div>
         </div>
@@ -84,14 +88,14 @@
         }
 
         debounceTimer = setTimeout(() => {
-            handleSearchInput(value);
+            handleSearchInput(value, document.getElementById('searchCategory')?.value ?? '');
         }, 300);
     });
 
     searchInput.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
-            searchItem(this.value);
+            searchItem(this.value, document.getElementById('searchCategory')?.value ?? '');
         }
     });
 
@@ -102,8 +106,11 @@
         }
     });
 
-    function handleSearchInput(value) {
+    function handleSearchInput(value, categoryId = '') {
         if (!value) return;
+
+        const searchParams = new URLSearchParams({ q: value });
+        if (categoryId) searchParams.set('category', categoryId);
 
     // One suggestion row: the name as text, and the product's own id as the link.
     function buildSuggestion(item) {
@@ -124,7 +131,7 @@
         return row;
     }
 
-        axios.get(`/search/?q=${encodeURIComponent(value)}`)
+        axios.get(`/search/?${searchParams.toString()}`)
             .then(response => {
                 const data = response.data;
                 if (!data) {
@@ -154,8 +161,11 @@
             });
     }
 
-    function searchItem(query) {
+    function searchItem(query, categoryId = '') {
         if (!query) return;
-        window.location.href = `/search/results?q=${encodeURIComponent(query.trim())}`;
+
+        const searchParams = new URLSearchParams({ q: query.trim() });
+        if (categoryId) searchParams.set('category', categoryId);
+        window.location.href = `/search/results?${searchParams.toString()}`;
     }
 </script>

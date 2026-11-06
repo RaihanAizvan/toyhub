@@ -180,9 +180,9 @@
                 <div class="search-container flex items-center bg-gray-50 rounded-full px-2 py-1 shadow-inner">
                     <!-- Categories Select -->
                     <div class="relative border-r border-gray-200 pr-2">
-                        <select
+                        <select id="searchCategory" aria-label="Search category"
                             class="appearance-none bg-transparent text-sm text-gray-600 font-medium py-2 pl-3 pr-8 cursor-pointer focus:outline-none hover:text-green-600 transition-colors">
-                            <option>All Items</option>
+                            <option value="">All Items</option>
                             <% if (locals.categories) { %>
                                 <% categories.forEach(category=> { %>
                                     <option value="<%= category._id %>">
@@ -197,13 +197,15 @@
 
                     <!-- Input -->
                     <input type="text" id="searchInput" placeholder="What are you looking for?"
-                        class="flex-grow bg-transparent border-none px-4 py-2 text-gray-700 focus:ring-0 placeholder-gray-400"
-                        oninput="handleSearchInput(this.value.replace(/[*\/${}]/g, ''))">
+                        aria-label="Search products"
+                        class="flex-grow bg-transparent border-none px-4 py-2 text-gray-700 focus:ring-0 placeholder-gray-400">
 
                     <!-- Search Button -->
-                    <button onclick="searchItem(document.getElementById('searchInput').value)" id=""
+                    <button type="button"
+                        onclick="searchItem(document.getElementById('searchInput').value, document.getElementById('searchCategory').value)"
+                        aria-label="Search"
                         class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md transform hover:rotate-12 transition-all duration-300">
-                        <i class="fas fa-search"></i>
+                        <i class="fas fa-search" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -273,7 +275,7 @@
                 <input type="text" id="mobileSearchInput" placeholder="Search..."
                     class="bg-transparent w-full focus:outline-none text-sm">
 
-                <button onclick="searchItem(document.getElementById('mobileSearchInput').value)"
+                <button type="button" onclick="searchItem(document.getElementById('mobileSearchInput').value)"
                     class="ml-2 text-green-600 font-semibold">
                     Go
                 </button>
@@ -398,6 +400,14 @@
     function attachSearchEvents(input) {
         if (!input) return;
 
+        // The category belongs to the desktop search bar. The mobile field
+        // sends only what was typed, even if the hidden select still holds a
+        // value from a wider viewport.
+        const category = () => {
+            if (input !== desktopInput) return '';
+            return document.getElementById('searchCategory')?.value ?? '';
+        };
+
         input.addEventListener('input', function () {
             clearTimeout(debounceTimer);
 
@@ -413,7 +423,7 @@
 
             debounceTimer = setTimeout(() => {
                 positionSuggestionsBelow(this);
-                handleSearchInput(sanitized);
+                handleSearchInput(sanitized, category());
             }, 100);
 
         });
@@ -421,7 +431,7 @@
         input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                searchItem(this.value);
+                searchItem(this.value, category());
             }
         });
     }
@@ -475,10 +485,13 @@
         return row;
     }
 
-    function handleSearchInput(value) {
+    function handleSearchInput(value, categoryId = '') {
         if (!value) return;
 
-        axios.get(`/search/?q=${encodeURIComponent(value)}`)
+        const params = new URLSearchParams({ q: value });
+        if (categoryId) params.set('category', categoryId);
+
+        axios.get(`/search/?${params.toString()}`)
             .then(response => {
                 const data = response.data;
 
@@ -507,9 +520,12 @@
             });
     }
 
-    function searchItem(query) {
+    function searchItem(query, categoryId = '') {
         if (!query) return;
-        window.location.href = `/search/results?q=${encodeURIComponent(query.trim())}`;
+
+        const params = new URLSearchParams({ q: query.trim() });
+        if (categoryId) params.set('category', categoryId);
+        window.location.href = `/search/results?${params.toString()}`;
     }
 
     // Logout Logic (Preserved SweetAlert)

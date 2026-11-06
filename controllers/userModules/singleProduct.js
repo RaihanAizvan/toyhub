@@ -378,15 +378,28 @@ export const searchProducts = async (req, res) => {
 
         const pattern = new RegExp(escapeForRegex(q), 'i');
 
+        // The header offers a category next to the search field. A value that
+        // is not an id is ignored rather than cast, so a crafted query is a
+        // wider search and never a database error.
+        const category = typeof req.query.category === 'string'
+            && mongoose.Types.ObjectId.isValid(req.query.category)
+            ? req.query.category
+            : null;
+
+        const filter = {
+            $or: [
+                { name: pattern },
+                { description1: pattern },
+                { description2: pattern },
+            ],
+            isBlocked: false,
+        };
+        if (category) {
+            filter.category = category;
+        }
+
         const products = await Product.find(
-            {
-                $or: [
-                    { name: pattern },
-                    { description1: pattern },
-                    { description2: pattern },
-                ],
-                isBlocked: false,
-            },
+            filter,
             // Only what a suggestion row needs, and `_id` so the browser can link
             // to the canonical product route instead of searching for the name
             // again.
