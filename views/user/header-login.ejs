@@ -40,23 +40,23 @@
             </a>
         </div>
         <!-- Search Bar -->
-        <div class="flex items-center flex-grow space-x-2 px-4 min-w-0">
-            <select class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
-                <option>All Categories</option>
+        <form class="flex items-center flex-grow space-x-2 px-4 min-w-0" action="/search/results" method="GET">
+            <select name="category" aria-label="Search category"
+                class="hidden sm:block border border-gray-300 rounded-l-lg px-3 py-2 flex-shrink-0">
+                <option value="">All Categories</option>
                 <% if (locals.categories) { %>
                     <% categories.forEach(category => { %>
                         <option value="<%= category._id %>"><%= category.name %></option>
                     <% }) %>
                 <% } %>
             </select>
-            <input type="text" placeholder="Search for items..."
-                class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm"
-                oninput="handleSearchInput(this.value)" />
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
-                <i class="fas fa-search"></i>
+            <input type="text" name="q" placeholder="Search for items..." aria-label="Search products"
+                class="border border-gray-300 flex-grow min-w-0 px-4 py-2 rounded-lg sm:rounded-none text-sm" />
+            <button type="submit" aria-label="Search"
+                class="bg-green-600 text-white px-4 py-2 rounded-lg sm:rounded-r-lg flex-shrink-0">
+                <i class="fas fa-search" aria-hidden="true"></i>
             </button>
-            <div id="suggestions" class="absolute bg-white shadow-lg rounded-md hidden"></div>
-        </div>
+        </form>
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-4">

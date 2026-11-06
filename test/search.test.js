@@ -35,8 +35,10 @@ let server;
 let reachable = false;
 let baseUrl;
 
-const suggestions = async (query) => {
-  const response = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}`, {
+const suggestions = async (query, category) => {
+  const params = new URLSearchParams({ q: query });
+  if (category) params.set("category", category);
+  const response = await fetch(`${baseUrl}/search?${params.toString()}`, {
     redirect: "manual",
   });
   const text = await response.text();
@@ -93,6 +95,24 @@ describe("product search suggestions", () => {
         "the suggestion carries the identifier the link needs and no more",
       );
       assert.equal(response.data[0].name, "Walking Robot");
+    });
+  });
+
+  itWhenReachable("a category narrows the suggestions, and a bad one is ignored", async () => {
+    await withTestDatabase(async () => {
+      const robots = await createCategory({ name: "Robots" });
+      const dolls = await createCategory({ name: "Dolls" });
+      await createProduct({ name: "Robot One", category: robots._id });
+      await createProduct({ name: "Robot Two", category: dolls._id });
+
+      const all = await suggestions("Robot");
+      assert.equal(all.data.length, 2, "without a category both are offered");
+
+      const narrowed = await suggestions("Robot", robots._id);
+      assert.deepEqual(narrowed.data.map((product) => product.name), ["Robot One"]);
+
+      const malformed = await suggestions("Robot", "not-an-id");
+      assert.equal(malformed.data.length, 2, "a value that is not an id is ignored");
     });
   });
 
@@ -335,6 +355,31 @@ describe("product search suggestions", () => {
     // eslint-disable-next-line no-new-func
     return new Function("document", "encodeURIComponent", `${body}; return buildSuggestion;`);
   };
+
+  it("the header sends the chosen category with the query, and the sign-in header works without javascript", async () => {
+    for (const file of ["header.ejs", "header-landing.ejs"]) {
+      const source = await readFile(
+        new URL(`../views/user/${file}`, import.meta.url),
+        "utf8",
+      );
+      assert.match(source, /id="searchCategory"/, `${file} offers a category`);
+      assert.match(source, /searchCategory/, `${file} reads it when searching`);
+      assert.doesNotMatch(
+        source,
+        /oninput="handleSearchInput/,
+        `${file} has one input listener, not two`,
+      );
+    }
+
+    const signInHeader = await readFile(
+      new URL("../views/user/header-login.ejs", import.meta.url),
+      "utf8",
+    );
+    assert.match(signInHeader, /action="\/search\/results"/, "the form searches the real route");
+    assert.match(signInHeader, /name="q"/, "the form carries the query");
+    assert.match(signInHeader, /name="category"/, "the form carries the category");
+    assert.doesNotMatch(signInHeader, /handleSearchInput/, "no handler is needed on these pages");
+  });
 
   itWhenReachable("a product name is printed, never parsed", async () => {
     const hostile = `Robot" onmouseover="alert(1)`;
