@@ -54,18 +54,26 @@ export const getSingleProduct = async (req, res) => {
         const productFromSameCategory = await Product.find({category:product.category})
             .populate('category')
             .limit(8);
-        // First try to find related products based on name/description match
-        let relatedProducts = await Product.find({
-            $and: [
-                { _id: { $ne: productId } },
-                {
-                    $or: [
-                        { name: { $regex: new RegExp(product.name.split(' ').join('|'), 'i') } },
-                        { description1: { $regex: new RegExp(product.name.split(' ').join('|'), 'i') } }
-                    ]
-                }
-            ]
-        }).limit(7);
+        // First try to find related products based on a name/description match.
+        // The name is text, not a pattern: `C++ Builder (Deluxe)` used to become
+        // an invalid regex and turn the page into a 500. Each word is escaped
+        // before it is joined into the alternation.
+        const nameWords = String(product.name ?? '').split(/\s+/).filter(Boolean);
+        let relatedProducts = [];
+        if (nameWords.length > 0) {
+            const namePattern = new RegExp(nameWords.map(escapeForRegex).join('|'), 'i');
+            relatedProducts = await Product.find({
+                $and: [
+                    { _id: { $ne: productId } },
+                    {
+                        $or: [
+                            { name: namePattern },
+                            { description1: namePattern }
+                        ]
+                    }
+                ]
+            }).limit(7);
+        }
 
         // If no related products found, get products from same category
         if (relatedProducts.length === 0) {
