@@ -49,6 +49,17 @@ const suggestions = async (query) => {
   return { status: response.status, data, text };
 };
 
+const resultsPage = async (query = "") => {
+  const response = await fetch(`${baseUrl}/search/results?${query}`, {
+    redirect: "manual",
+  });
+  return {
+    status: response.status,
+    location: response.headers.get("location"),
+    text: await response.text(),
+  };
+};
+
 describe("product search suggestions", () => {
   before(async () => {
     reachable = await canReachTestDatabase();
@@ -396,5 +407,83 @@ describe("product search suggestions", () => {
     });
 
     assert.equal(row.href, "/product/..%2F..%2Faccount", "the id cannot climb out of the path");
+  });
+
+  itWhenReachable("a page that is not a number is page one, not a redirect loop", async () => {
+    await withTestDatabase(async () => {
+      for (const page of ["abc", "0", "-2", "1.5", ""]) {
+        const response = await resultsPage(`page=${encodeURIComponent(page)}`);
+        assert.equal(response.status, 200, `page=${JSON.stringify(page)} was not a page`);
+        assert.equal(response.location, null, "a bad page is corrected, not redirected to NaN");
+      }
+    });
+  });
+
+  itWhenReachable("a page past the end redirects once to a real page", async () => {
+    await withTestDatabase(async () => {
+      const category = await createCategory({ name: "Robots" });
+      for (let index = 0; index < 12; index += 1) {
+        await createProduct({
+          name: `Paged Robot ${index}`,
+          description1: "A robot for the shop.",
+          sku: `PAGE-${index}`,
+          category: category._id,
+        });
+      }
+
+      const response = await resultsPage("page=99");
+
+      assert.equal(response.status, 302);
+      assert.match(response.location ?? "", /[?&]page=2(?:&|$)/, `got ${response.location}`);
+      assert.doesNotMatch(response.location ?? "", /NaN/);
+
+      const followed = await fetch(`${baseUrl}${response.location}`, { redirect: "manual" });
+      assert.equal(followed.status, 200, "the redirect target is a real page");
+    });
+  });
+
+  itWhenReachable("a filter the shop cannot use is ignored instead of crashing", async () => {
+    await withTestDatabase(async () => {
+      for (const query of [
+        "minPrice=abc",
+        "maxPrice=-1",
+        "minPrice=abc&maxPrice=nope",
+        "category=abc",
+        "category=not-an-id",
+        "category=abc&minPrice=x&page=abc",
+        "category=000000000000000000000000",
+      ]) {
+        const response = await resultsPage(query);
+        assert.equal(response.status, 200, `${query} was answered with ${response.status}`);
+      }
+    });
+  });
+
+  itWhenReachable("the results query is literal text, not a pattern", async () => {
+    await withTestDatabase(async () => {
+      const category = await createCategory({ name: "Robots" });
+      await createProduct({ name: "A. B. C.", description1: "A robot for the shop.", sku: "LIT-1", category: category._id });
+      await createProduct({ name: "AxB Zebra", description1: "A robot for the shop.", sku: "LIT-2", category: category._id });
+      await createProduct({ name: "Literal Zebra", description1: "A robot for the shop.", sku: "LIT-3", category: category._id });
+
+      const dot = await resultsPage(`q=${encodeURIComponent("A.")}`);
+      assert.equal(dot.status, 200);
+      assert.match(dot.text, /A\. B\. C\./);
+      assert.doesNotMatch(dot.text, /AxB Zebra/, "a dot matches a dot, not any character");
+
+      const everything = await resultsPage(`q=${encodeURIComponent(".*")}`);
+      assert.equal(everything.status, 200);
+      assert.doesNotMatch(everything.text, /Literal Zebra/, ".* is text, not the whole catalogue");
+
+      const broken = await resultsPage(`q=${encodeURIComponent("(a+)+")}`);
+      assert.equal(broken.status, 200, "an invalid pattern is text, not a 500");
+    });
+  });
+
+  itWhenReachable("a repeated q is read once instead of crashing", async () => {
+    await withTestDatabase(async () => {
+      const response = await resultsPage("q=robot&q=zebra");
+      assert.equal(response.status, 200);
+    });
   });
 });

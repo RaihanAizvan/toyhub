@@ -16,6 +16,11 @@ import {
 } from "../../utils/reviews.js";
 import { wishlistIdStrings } from "../../utils/wishlist.js";
 
+// Search text is matched literally and a request may only send a short term.
+// Both search handlers read these limits so they cannot drift apart.
+const MAX_SEARCH_LENGTH = 60;
+const escapeForRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 
 
 export const getSingleProduct = async (req, res) => {
@@ -124,32 +129,56 @@ export const searchAndFilterProducts = async (req, res) => {
     try {
         const { q, sort, category, page = 1, minPrice, maxPrice } = req.query;
         const limit = 10;
-        const skip = (parseInt(page) - 1) * limit;
+
+        // `parseInt` of anything that is not a number is NaN. Feeding NaN to
+        // `skip` throws, and NaN is never equal to itself, so the old bounds
+        // check redirected to `?page=NaN` and then did it again forever.
+        const requestedPage = Number.parseInt(page, 10);
+        const currentPage = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+        const skip = (currentPage - 1) * limit;
 
         // Build query object for search and filtering
         let query = { isBlocked: false };
         let sortOptions = {};
 
-        // Search query handling
-        if (q) {
+        // Search query handling. The text is matched literally: dropping it into
+        // a `$regex` as typed let `.*` match the catalogue and `(a+)+` occupy a
+        // database worker. The cap is the same one the suggestion endpoint uses.
+        const searchText = typeof q === 'string' ? q.trim().slice(0, MAX_SEARCH_LENGTH) : '';
+        if (searchText) {
+            const pattern = new RegExp(escapeForRegex(searchText), 'i');
             query.$or = [
-                { name: { $regex: q, $options: 'i' } },
-                { description1: { $regex: q, $options: 'i' } },
-                { description2: { $regex: q, $options: 'i' } }
+                { name: pattern },
+                { description1: pattern },
+                { description2: pattern }
             ];
         }
 
-        // Category filter handling
+        // Category filter handling. Only ids a query can actually use are kept;
+        // an invalid id used to reach Mongoose and answer 500.
         if (category) {
-            const categoryArray = Array.isArray(category) ? category : category.split(',');
-            query.category = { $in: categoryArray };
+            const categoryArray = (Array.isArray(category) ? category : String(category).split(','))
+                .filter((id) => mongoose.Types.ObjectId.isValid(id));
+            if (categoryArray.length > 0) {
+                query.category = { $in: categoryArray };
+            }
         }
 
-        // Price range handling
-        if (minPrice || maxPrice) {
+        // Price range handling. A bound that is not a non-negative number is
+        // ignored rather than cast to NaN and thrown by the driver.
+        const priceBound = (raw) => {
+            if (typeof raw !== 'string' || raw.trim() === '') {
+                return null;
+            }
+            const value = Number(raw);
+            return Number.isFinite(value) && value >= 0 ? value : null;
+        };
+        const min = priceBound(minPrice);
+        const max = priceBound(maxPrice);
+        if (min !== null || max !== null) {
             query.priceAfterDiscount = {};
-            if (minPrice) query.priceAfterDiscount.$gte = parseFloat(minPrice);
-            if (maxPrice) query.priceAfterDiscount.$lte = parseFloat(maxPrice);
+            if (min !== null) query.priceAfterDiscount.$gte = min;
+            if (max !== null) query.priceAfterDiscount.$lte = max;
         }
 
         // Sort handling
@@ -176,9 +205,9 @@ export const searchAndFilterProducts = async (req, res) => {
         const totalPages = Math.ceil(totalCount / limit);
 
         // Validate page number
-        const validatedPage = Math.min(Math.max(1, parseInt(page)), totalPages || 1);
+        const validatedPage = Math.min(Math.max(1, currentPage), totalPages || 1);
 
-        if (validatedPage !== parseInt(page)) {
+        if (validatedPage !== currentPage) {
             return res.redirect(`/search/results?${new URLSearchParams({
                 ...req.query,
                 page: validatedPage
@@ -197,9 +226,9 @@ export const searchAndFilterProducts = async (req, res) => {
             .lean(); // Use lean() for better performance
 
         // Handle single exact match
-        if (products.length === 1 && 
-            q && 
-            products[0].name.toLowerCase() === q.toLowerCase()) {
+        if (products.length === 1 &&
+            searchText &&
+            products[0].name.toLowerCase() === searchText.toLowerCase()) {
             return res.redirect(`/product/${products[0]._id}`);
         }
 
@@ -215,16 +244,16 @@ export const searchAndFilterProducts = async (req, res) => {
 
         // Render results
         res.render('user/searchResults', {
-            title: q ? `Search Results - ${q}` : 'All Products',
+            title: searchText ? `Search Results - ${searchText}` : 'All Products',
             results: products,
-            query: q || '',
+            query: searchText,
             categories,
             pagination,
-            page,
+            page: validatedPage,
             pages: totalPages,
             sort,
             category,
-            q,
+            q: searchText,
             minPrice,
             maxPrice,
             noResults: products.length === 0,
@@ -356,15 +385,8 @@ export const submitReview = async (req, res) => {
     }
 };
 
-// A suggestion is a short label, so the search is short too. Without a bound a
-// caller could hand this a megabyte of text and ask the database to match it.
-const MAX_SEARCH_LENGTH = 60;
+// A suggestion row is a short list, so the answer is bounded.
 const MAX_SEARCH_RESULTS = 8;
-
-// The text is matched literally. It used to be dropped into a `$regex` as typed,
-// which meant a shopper could send `.*` and match everything, or `(a+)+` and
-// occupy a database worker for a very long time.
-const escapeForRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const searchProducts = async (req, res) => {
     try {
