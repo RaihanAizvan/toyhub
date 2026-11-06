@@ -449,6 +449,21 @@ describe("ratings and reviews", () => {
     assert.doesNotMatch(page, /Cannot read/);
   });
 
+  whenReachable("a product name that looks like a regex does not break the product page", async () => {
+    const tricky = await createProduct({
+      name: "C++ Builder (Deluxe) [v2.0]",
+      description1: "A robot for the shop.",
+      sku: "REGEX-NAME-1",
+      category: category._id,
+    });
+
+    const response = await fetch(`${baseUrl}/product/${tricky._id}`);
+
+    assert.equal(response.status, 200, "the name is text, not a pattern");
+    const page = await response.text();
+    assert.match(page, /C\+\+ Builder \(Deluxe\)/);
+  });
+
   whenReachable("the review form is only offered to someone whose review will be accepted", async () => {
     const buyerPage = await (
       await fetch(`${baseUrl}/product/${product._id}?as=${buyer._id}`)
