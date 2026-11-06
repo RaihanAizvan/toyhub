@@ -18,6 +18,7 @@ import WalletTopup, {
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { isObjectId } from "../../utils/ownership.js";
+import { summariseRatings } from "../../utils/reviews.js";
 import { createGatewayOrder, fetchGatewayPayment, isValidSignature, paymentMatches, toPaise } from "../../utils/razorpay.js";
 import { WalletError, creditWallet, getOrCreateWallet, listLedger, reconcileWallet } from "../../utils/wallet.js";
 
@@ -741,6 +742,7 @@ export const getReviews = async (req, res) => {
 
         res.render('user/reviews', {
             reviews,
+            name: req.session.user.name,
             title: 'My Reviews',
             error: null
         });
@@ -749,11 +751,51 @@ export const getReviews = async (req, res) => {
         console.error('Error fetching reviews:', error);
         res.render('user/reviews', {
             reviews: [],
-            title: 'My Reviews', 
+            name: req.session.user?.name,
+            title: 'My Reviews',
             error: 'Failed to load reviews'
         });
     }
 }
+
+// Deleting a review changes what the product page says about the product, so
+// the totals are rebuilt from the rows that remain instead of adjusted by hand.
+// Only the person who wrote a review can remove it.
+export const postDeleteReview = async (req, res) => {
+    const userId = requireUserId(req, res);
+    if (!userId) {
+        return;
+    }
+
+    const reviewId = req.params.id;
+    if (!isObjectId(reviewId)) {
+        return res.status(404).json({ success: false, message: 'That review does not exist' });
+    }
+
+    try {
+        const review = await Rating.findOneAndDelete({ _id: reviewId, userId });
+        if (!review) {
+            return res.status(404).json({ success: false, message: 'That review does not exist' });
+        }
+
+        if (isObjectId(review.productId)) {
+            const ratings = await Rating.find({ productId: review.productId })
+                .select('_id rating status')
+                .sort({ date: -1 })
+                .lean();
+            const summary = summariseRatings(ratings);
+            await Product.updateOne(
+                { _id: review.productId },
+                { $set: { ...summary, ratings: ratings.map((rating) => rating._id) } },
+            );
+        }
+
+        return res.redirect('/account/reviews');
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        return res.status(500).json({ success: false, message: 'Failed to delete review' });
+    }
+};
 
 export default {
     getProfileEdit,
@@ -772,5 +814,6 @@ export default {
     postVerifyTopUp,
     getWalletReconciliation,
     postDownloadInvoice,
-    getReviews
+    getReviews,
+    postDeleteReview
 }

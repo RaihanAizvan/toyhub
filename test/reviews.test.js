@@ -157,6 +157,12 @@ const postReviewAs = async (userId, productId, body) => {
 
 const review = (body, id = product._id) => postReviewAs(buyer._id, id, body);
 
+const deleteReviewAs = (userId, reviewId) =>
+  fetch(`${baseUrl}/account/reviews/${reviewId}/delete?as=${userId}`, {
+    method: "POST",
+    redirect: "manual",
+  });
+
 const whenReachable = (name, fn) =>
   it(name, async (t) => {
     if (!reachable) {
@@ -438,6 +444,51 @@ describe("ratings and reviews", () => {
     const summary = await Product.findById(product._id).lean();
     assert.equal(summary.averageRating, 2, "the rejected one is gone from the average");
     assert.equal(summary.ratingStats[5], 0);
+  });
+
+  whenReachable("a shopper can delete their own review and the totals follow", async () => {
+    const submitted = await review({ rating: 5, title: "Mine", comment: "It walks." });
+    assert.equal(submitted.status, 201);
+    const stored = await Rating.findOne({ productId: product._id, userId: buyer._id }).lean();
+
+    const response = await deleteReviewAs(buyer._id, stored._id);
+
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("location"), "/account/reviews");
+    assert.equal(await Rating.countDocuments({ productId: product._id }), 0, "the row is gone");
+
+    const summary = await Product.findById(product._id).lean();
+    assert.equal(summary.ratingCount, 0, "the product no longer counts it");
+    assert.equal(summary.averageRating, 0);
+    assert.deepEqual(summary.ratings, [], "and no longer lists its id");
+  });
+
+  whenReachable("someone else's review cannot be deleted", async () => {
+    await review({ rating: 5, title: "Mine", comment: "It walks." });
+    const stored = await Rating.findOne({ productId: product._id, userId: buyer._id }).lean();
+    const stranger = await createUser({ name: "Stranger" });
+
+    const response = await deleteReviewAs(stranger._id, stored._id);
+
+    assert.equal(response.status, 404);
+    assert.equal(await Rating.countDocuments({ _id: stored._id }), 1, "the review is still there");
+  });
+
+  whenReachable("a malformed review id is a 404, not a database error", async () => {
+    const response = await deleteReviewAs(buyer._id, "not-an-id");
+    assert.equal(response.status, 404);
+  });
+
+  whenReachable("the reviews page offers the edit and delete actions", async () => {
+    await review({ rating: 4, title: "Solid", comment: "Held together well." });
+    const stored = await Rating.findOne({ productId: product._id, userId: buyer._id }).lean();
+
+    const page = await (await fetch(`${baseUrl}/account/reviews?as=${buyer._id}`)).text();
+
+    assert.match(page, new RegExp(`/product/${product._id}`), "edit goes to the product page");
+    assert.match(page, new RegExp(`/account/reviews/${stored._id}/delete`), "delete has a destination");
+    assert.doesNotMatch(page, /editReview\(/);
+    assert.doesNotMatch(page, /deleteReview\(/);
   });
 
   whenReachable("the product page answers for a product with no reviews", async () => {
