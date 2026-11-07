@@ -142,7 +142,7 @@ app.get("/", landingRoute.getLandingPage);
 
 // 404 Handler
 app.use((req,res) => {
-  res.status(404).render('404'); // Renders the 404.ejs page
+  res.status(404).render('404', { title: 'Page not found' }); // Renders the 404.ejs page
 });
 
 // Start the server
