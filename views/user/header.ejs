@@ -1,6 +1,5 @@
 <!-- Google Fonts & Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
     :root {
@@ -196,14 +195,14 @@
                     </div>
 
                     <!-- Input -->
-                    <input type="text" id="searchInput" placeholder="What are you looking for?"
+                    <input type="text" id="searchInput" placeholder="What are you looking for?" aria-label="Search products"
                         class="flex-grow bg-transparent border-none px-4 py-2 text-gray-700 focus:ring-0 placeholder-gray-400"
                         oninput="handleSearchInput(this.value.replace(/[*\/${}]/g, ''))">
 
                     <!-- Search Button -->
-                    <button onclick="searchItem(document.getElementById('searchInput').value)" id=""
-                        class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md transform hover:rotate-12 transition-all duration-300">
-                        <i class="fas fa-search"></i>
+                    <button onclick="searchItem(document.getElementById('searchInput').value)" aria-label="Search"
+                        class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-colors duration-300">
+                        <i class="fas fa-search" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -214,8 +213,8 @@
             <div class="flex items-center gap-2 md:gap-4">
                 <!-- Mobile Search Toggle (Visible only on mobile) -->
                 <button class="md:hidden icon-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-600"
-                    id="mobileSearchBtn">
-                    <i class="fas fa-search"></i>
+                    id="mobileSearchBtn" aria-label="Toggle search">
+                    <i class="fas fa-search" aria-hidden="true"></i>
                 </button>
 
                 <!-- Desktop Icons -->
@@ -251,13 +250,13 @@
                     </div>
 
                     <button onclick="logout()" class="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Logout">
-                        <i class="fas fa-power-off text-lg"></i>
+                        title="Logout" aria-label="Log out">
+                        <i class="fas fa-power-off text-lg" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <!-- Hamburger Button -->
-                <button id="hamburgerButton"
+                <button id="hamburgerButton" aria-label="Toggle menu"
                     class="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 focus:outline-none">
                     <span class="hamburger-line line1 w-6 h-0.5 bg-gray-800 block rounded-full"></span>
                     <span class="hamburger-line line2 w-6 h-0.5 bg-gray-800 block rounded-full"></span>
