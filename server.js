@@ -11,6 +11,7 @@ import adminRoutes from "./routes/adminRoute.js";
 import userRoutes from "./routes/userRoute.js";
 import googleRoutes from "./routes/googleAuthRoute.js";
 import homeRoutes from "./routes/homeRoute.js";
+import pagesRoutes from "./routes/pagesRoute.js";
 import productRoutes from "./routes/productRoute.js"
 import profileRoutes from "./routes/profileRoutes.js"
 import cartRoutes from "./routes/cartRoute.js"
@@ -122,6 +123,7 @@ const port =   process.env.PORT || 3000;
 
 // Route middleware
 app.use("/", homeRoutes);
+app.use("/", pagesRoutes);
 app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/auth", googleRoutes);

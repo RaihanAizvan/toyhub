@@ -1,0 +1,68 @@
+<%- include("./header") %>
+
+<main class="container mx-auto px-4 py-10 max-w-3xl">
+    <header>
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Privacy</p>
+        <h1 class="mt-3 text-4xl font-bold text-gray-900">What ToyHub keeps, and why</h1>
+        <p class="mt-4 text-gray-600">
+            This page explains the information the shop needs to work. It describes what the
+            application actually stores, in plain words.
+        </p>
+        <p class="mt-2 text-sm text-gray-500">
+            Last updated: <%= new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" }) %>
+        </p>
+    </header>
+
+    <div class="mt-10 space-y-6">
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your account</h2>
+            <p class="mt-2 text-gray-600">
+                We keep the name, email address and phone number you sign up with, plus any
+                delivery addresses you save. A password is stored only as a one-way hash.
+                Signing in with Google stores the Google account id linked to the same email.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your orders and activity</h2>
+            <p class="mt-2 text-gray-600">
+                Orders, their items and status, invoices, wallet balance and top-ups, reviews,
+                wishlist entries and applied coupons belong to your account. They are used to
+                fulfil orders, show your history, and keep offers and reviews fair.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your session</h2>
+            <p class="mt-2 text-gray-600">
+                A session cookie keeps you signed in. A second token protects forms from being
+                submitted by another site. Both are cleared when you log out.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Services that help</h2>
+            <p class="mt-2 text-gray-600">
+                The shop uses a database host, an image host for product pictures, a payment
+                provider for card and wallet payments, and an email provider for verification
+                and password-reset codes. Each receives only what its task needs.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your choices</h2>
+            <p class="mt-2 text-gray-600">
+                You can change your name, phone number and addresses from your account at any
+                time. To ask for a copy of your account data, or for the account to be removed,
+                contact us and we will work through it with you.
+            </p>
+        </section>
+    </div>
+
+    <div class="mt-10 bg-green-50 border border-green-100 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-gray-900">Questions about privacy</h2>
+        <p class="mt-2 text-gray-600">Write to <a href="mailto:toyhub@gmail.com" class="text-primary font-semibold hover:text-green-700">toyhub@gmail.com</a> and say what you would like to know.</p>
+    </div>
+</main>
+
+<%- include("./footer") %>
