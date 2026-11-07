@@ -1,0 +1,64 @@
+<%- include("./header") %>
+
+<main class="container mx-auto px-4 py-10">
+    <section class="max-w-3xl mx-auto text-center">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">About ToyHub</p>
+        <h1 class="mt-3 text-4xl md:text-5xl font-bold text-gray-900">A shop built around play</h1>
+        <p class="mt-6 text-lg text-gray-600">
+            ToyHub is a small, curated toy shop. We look for things that are fun to open,
+            safe to play with, and worth keeping after the first afternoon.
+        </p>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-full bg-green-50 text-primary flex items-center justify-center">
+                <i class="fas fa-gift" aria-hidden="true"></i>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-gray-900">Chosen with care</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Every product is added by hand, with its age range and details kept up to date.
+            </p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-full bg-green-50 text-primary flex items-center justify-center">
+                <i class="fas fa-tag" aria-hidden="true"></i>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-gray-900">Honest prices</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Offers and coupons show the saving before you pay, and the final total is decided on the server.
+            </p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-full bg-green-50 text-primary flex items-center justify-center">
+                <i class="fas fa-comments" aria-hidden="true"></i>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-gray-900">Someone answers</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Order questions, returns and product questions all reach a person.
+            </p>
+        </div>
+    </section>
+
+    <section class="mt-12 max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h2 class="text-2xl font-bold text-gray-900">What you will find here</h2>
+        <p class="mt-4 text-gray-600">
+            Toys for building, pretending and moving, plus the everyday things that make play
+            easier: games, puzzles, art supplies and gifts. New stock arrives in small batches,
+            so the shelves stay readable instead of endless.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <a href="/product" class="inline-flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i> Browse the shop
+            </a>
+            <a href="/categories/all" class="inline-flex items-center gap-2 border border-gray-200 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:border-green-300 hover:text-primary transition-colors">
+                <i class="fas fa-th-large" aria-hidden="true"></i> All categories
+            </a>
+            <a href="/contact" class="inline-flex items-center gap-2 border border-gray-200 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:border-green-300 hover:text-primary transition-colors">
+                <i class="fas fa-envelope" aria-hidden="true"></i> Contact us
+            </a>
+        </div>
+    </section>
+</main>
+
+<%- include("./footer") %>
